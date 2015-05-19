@@ -1,0 +1,15 @@
+{
+  "libraries": [
+    {
+      "file": "@abs_top_builddir@/.libs/libserenity.@LIB_EXT@",
+      "modules": [
+        {
+          "name": "com_mesosphere_mesos_SerenityEstimator"
+        },
+        {
+          "name": "com_mesosphere_mesos_SerenityController"
+        }
+      ]
+    }
+  ]
+}
