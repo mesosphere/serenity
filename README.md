@@ -76,19 +76,3 @@ At this point, the Module libraries are ready in `/build/.libs`.
 
 ## Using Mesos Modules
 See [Mesos Modules](http://mesos.apache.org/documentation/latest/modules/).
-
-## Additional Instructions for using Python Modules
-Currently, due to a bug in the Mesos build system, `import
-mesos.interface.mesos_pb2` fails due to a missing `__init__.py` file. Adjust the
-following command according to your setup and execute:
-```
-cp <mesos-source-tree>/python/src/mesos/__init__.py $(PREFIX)/python2.7/site-packages/mesos/
-```
-
-### Update PYTHONPATH
-
-You need to update PYTHONPATH to point to mesos installed packages as well as
-any of your python scripts/modules that you might be using. Here is an example:
-```
-export PYTHONPATH=$HOME/usr/lib/python2.7/site-packages:$HOME/mesos-modules-private/python:$HOME/mesos-modules-private/pythonHook
-```
