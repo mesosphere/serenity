@@ -17,7 +17,7 @@ For more details, please see
 
 ## Prerequisites
 
-Building Mesos modules requires system-wide installation of google-protobug,
+Building Mesos modules requires system-wide installation of google-protobuf,
 glog, boost, and picojson.
 
 ## Build Mesos with some unbundled dependencies
