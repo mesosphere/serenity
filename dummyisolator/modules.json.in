@@ -1,0 +1,12 @@
+{
+  "libraries": [
+    {
+      "file": "@abs_top_builddir@/.libs/libdummy_isolator.@LIB_EXT@",
+      "modules": [
+        {
+          "name": "com_mesosphere_mesos_DummyIsolator"
+        }
+      ]
+    }
+  ]
+}
