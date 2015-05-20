@@ -142,6 +142,6 @@ AX_CXX_COMPILE_STDCXX_11([noext], [mandatory])
 
 # Create Modules JSON blobs.
 AC_CONFIG_FILES([estimator/modules.json], [])
-AC_CONFIG_FILES([dummyisolator/modules.json.in], [])
+AC_CONFIG_FILES([dummyisolator/modules.json], [])
 
 AC_OUTPUT
