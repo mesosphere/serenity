@@ -58,6 +58,11 @@ MESOS_CPPFLAGS += -I$(top_srcdir)/include
 # Setup CPPFLAGS that are used for most source files.
 AM_CPPFLAGS = $(MESOS_CPPFLAGS) -Wall -Werror
 
-pkglib_LTLIBRARIES += libserenity.la
-libserenity_la_SOURCES = estimator/serenity_estimator.cpp
-libserenity_la_LDFLAGS = -release $(PACKAGE_VERSION) -shared
+# pkglib_LTLIBRARIES += libserenity.la
+# libserenity_la_SOURCES = estimator/serenity_estimator.cpp
+# libserenity_la_LDFLAGS = -release $(PACKAGE_VERSION) -shared
+
+pkglibexec_PROGRAMS = pipeline_test
+pipeline_test_SOURCES = pipeline/pipeline_test.cpp
+pipeline_test_CPPFLAGS = $(MESOS_CPPFLAGS)
+# mesos_health_check_LDADD = libmesos.la $(LDADD)
