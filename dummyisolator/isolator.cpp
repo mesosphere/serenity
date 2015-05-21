@@ -2,7 +2,6 @@
 #include <mesos/module.hpp>
 
 #include <mesos/module/isolator.hpp>
-
 #include <mesos/slave/isolator.hpp>
 
 #include <process/future.hpp>
@@ -24,13 +23,14 @@ public:
   static Try<mesos::slave::Isolator*> create(const Parameters& parameters)
   {
     return new Isolator(process::Owned<IsolatorProcess>(
-        new DummyIsolatorProcess(parameters)));
+      new DummyIsolatorProcess(parameters)));
   }
 
   virtual ~DummyIsolatorProcess() {}
 
   virtual process::Future<Nothing> recover(
-      const std::list<mesos::slave::ExecutorRunState>& states)
+      const std::list<mesos::slave::ExecutorRunState>& states,
+      const hashset<ContainerID>& orphans)
   {
     return Nothing();
   }
@@ -77,6 +77,7 @@ public:
   }
 
 private:
+  const Parameters& parameters;
   DummyIsolatorProcess(const Parameters& parameters_)
     : parameters(parameters_) {}
 };
