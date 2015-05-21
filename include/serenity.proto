@@ -53,6 +53,37 @@ message Slack {
 
 
 /**
+ * NOTE: Waiting to be upstreamed!
+ * Describes a message between the QoS Controller and slave.
+ * The QoS Controller makes some decisions and informs slave
+ * that some particular corrections has to be made.
+ */
+message QoSCorrections {
+
+  // Each correction contains information about executor
+  // or task and the type of corrective action we want to
+  // perform.
+  message Correction {
+
+    // NOTE: In future we can define more actions, but
+    // for now we have:
+    // 1) kill - terminate the executor or task
+    enum Action {
+      KILL = 1;
+    }
+
+    required Action action = 1;
+    optional ExecutorID executor_id = 2;
+    optional TaskID task_id = 3;
+    optional string reason = 4;
+    optional double timestamp = 5;
+  }
+
+  repeated Correction corrections = 1;
+}
+
+
+/**
 * Necessary union to define executor or
 * both executor and task
 */
@@ -61,32 +92,6 @@ message WorkID {
   optional ExecutorID executor = 1;
   optional TaskID task = 2;
 }
-
-
-/**
-* Describes a message between QoS policy executor and slave.
-* QoS executor makes a decision based on Contention messages
-* and some policies. In the end it sends information to slave
-* informing that some correction has to be made.
-*/
-message Correction {
-    enum Action {
-    KILL = 1;
-    FREEZE = 2;
-    RESIZE = 3;
-    MIGRATE = 4;
-  }
-  repeated WorkID work = 1;
-  optional Action action = 2;
-  optional Text reason = 3;
-  optional double timestamp = 4;
-  optional Labels labels = 5;
-}
-
-
-/**
-* NOTE: These proto buffers are for internal communication
-*/
 
 
 /**
