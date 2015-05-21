@@ -23,7 +23,7 @@ public:
   static Try<mesos::slave::Isolator*> create(const Parameters& parameters)
   {
     return new Isolator(process::Owned<IsolatorProcess>(
-      new DummyIsolatorProcess(parameters)));
+        new DummyIsolatorProcess(parameters)));
   }
 
   virtual ~DummyIsolatorProcess() {}
