@@ -30,7 +30,8 @@ public:
   virtual ~DummyIsolatorProcess() {}
 
   virtual process::Future<Nothing> recover(
-      const std::list<mesos::slave::ExecutorRunState>& states)
+      const std::list<mesos::slave::ExecutorRunState>& states,
+      const hashset<mesos::ContainerID>& containerId)
   {
     return Nothing();
   }
@@ -77,8 +78,7 @@ public:
   }
 
 private:
-  DummyIsolatorProcess(const Parameters& parameters_)
-    : parameters(parameters_) {}
+  DummyIsolatorProcess(const Parameters& parameters_) {}
 };
 
 
