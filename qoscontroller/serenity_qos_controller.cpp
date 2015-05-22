@@ -41,47 +41,42 @@
  * possibility of such damages.
  */
 
-#include <mesos/mesos.hpp>
-#include <mesos/module.hpp>
+#include "serenity_qos_controller.hpp"
 
-//#include <mesos/module/resource_estimator.hpp>
+namespace mesos {
+namespace serenity {
 
-#include <mesos/slave/resource_estimator.hpp>
+Try<Nothing> SerenityQoSController::input(int in) {
+  return Nothing();
 
-#include <process/future.hpp>
-#include <process/owned.hpp>
-#include <process/subprocess.hpp>
+}
 
-#include <stout/try.hpp>
-#include <stout/stringify.hpp>
-#include <stout/hashmap.hpp>
-#include <stout/option.hpp>
+SerenityQoSController::~SerenityQoSController() {};
+
+
+} // namespace serenity
+} // namespace mesos
 
 using namespace mesos;
 
-using mesos::slave::ResourceEstimator;
+//using mesos::slave::Isolator;
 
-class SerenityEstimator : public ResourceEstimator
-{
-};
-
-
-static ResourceEstimator* createEstimator(const Parameters& parameters)
-{
-  LOG(INFO) << "Loading Serenity Estimator module";
-  Try<ResourceEstimator*> result = SerenityEstimator::create(parameters);
-  if (result.isError()) {
-    return NULL;
-  }
-  return result.get();
-}
-
-
-mesos::modules::Module<ResourceEstimator> com_mesosphere_mesos_SerenityEstimator(
-    MESOS_MODULE_API_VERSION,
-    MESOS_VERSION,
-    "Mesosphere",
-    "support@mesosphere.com",
-    "Serenity Estimator",
-    NULL,
-    createEstimator);
+//static SerenityController *createQosController(const Parameters &parameters) {
+//  LOG(INFO) << "Loading Serenity QoS Controller module";
+//  Try < QoSController * > result = SerenityEstimator::create(parameters);
+//  if (result.isError()) {
+//    return NULL;
+//  }
+//  return result.get();
+//}
+//
+//
+//mesos::modules::Module <QoSController> com_mesosphere_mesos_SerenityQoSController(
+//    MESOS_MODULE_API_VERSION,
+//    MESOS_VERSION,
+//    "Mesosphere",
+//    "support@mesosphere.com",
+//    "Serenity Estimator",
+//    NULL,
+//    createEstimator);
+//

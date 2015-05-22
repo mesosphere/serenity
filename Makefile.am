@@ -54,19 +54,32 @@ AM_LIBS = $(PTHREAD_LIBS)
 
 # Add top-level include dir to our include path.
 MESOS_CPPFLAGS += -I$(top_srcdir)/include
+MESOS_CPPFLAGS += -I$(top_srcdir)/serenity
 
 # Setup CPPFLAGS that are used for most source files.
 AM_CPPFLAGS = $(MESOS_CPPFLAGS) -Wall -Werror
 
-# pkglib_LTLIBRARIES += libserenity.la
-# libserenity_la_SOURCES = estimator/serenity_estimator.cpp
-# libserenity_la_LDFLAGS = -release $(PACKAGE_VERSION) -shared
+pkglib_LTLIBRARIES += libserenity.la
+libserenity_la_SOURCES = bus/bus_socket.cpp
+#libserenity_la_SOURCES += estimator/serenity_estimator.cpp
+libserenity_la_SOURCES += filters/moving_average.cpp
+libserenity_la_SOURCES += sources/dummy_source.cpp
+libserenity_la_SOURCES += qoscontroller/serenity_qos_controller.cpp
 
-pkglib_LTLIBRARIES += libdummy_isolator.la
-libdummy_isolator_la_SOURCES = dummyisolator/isolator.cpp
-libdummy_isolator_la_LDFLAGS = -release $(PACKAGE_VERSION) -shared
+
+libserenity_la_LDFLAGS = -release $(PACKAGE_VERSION) -shared
+
+#pkglib_LTLIBRARIES += libdummy_isolator.la
+#libdummy_isolator_la_SOURCES = dummyisolator/isolator.cpp
+#libdummy_isolator_la_LDFLAGS = -release $(PACKAGE_VERSION) -shared
 
 pkglibexec_PROGRAMS = pipeline_test
 pipeline_test_SOURCES = pipeline/pipeline_test.cpp
+pipeline_test_SOURCES += bus/bus_socket.cpp
+#pipeline_test_SOURCES += estimator/serenity_estimator.cpp
+pipeline_test_SOURCES += filters/moving_average.cpp
+pipeline_test_SOURCES += sources/dummy_source.cpp
+pipeline_test_SOURCES += qoscontroller/serenity_qos_controller.cpp
+
 pipeline_test_CPPFLAGS = $(MESOS_CPPFLAGS)
-# mesos_health_check_LDADD = libmesos.la $(LDADD)
+#mesos_health_check_LDADD = libmesos.la $(LDADD)
