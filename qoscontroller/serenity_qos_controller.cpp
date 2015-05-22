@@ -41,35 +41,15 @@
  * possibility of such damages.
  */
 
-#include <mesos/mesos.hpp>
-#include <mesos/module.hpp>
-
-//#include <mesos/module/resource_estimator.hpp>
-
-#include <mesos/slave/resource_estimator.hpp>
-
-#include <process/future.hpp>
-#include <process/owned.hpp>
-#include <process/subprocess.hpp>
-
-#include <stout/try.hpp>
-#include <stout/stringify.hpp>
-#include <stout/hashmap.hpp>
-#include <stout/option.hpp>
-
 using namespace mesos;
 
-using mesos::slave::ResourceEstimator;
-
-class SerenityEstimator : public ResourceEstimator
+class SerenityQoSController : public QoSController
 {
 };
 
-
-static ResourceEstimator* createEstimator(const Parameters& parameters)
-{
-  LOG(INFO) << "Loading Serenity Estimator module";
-  Try<ResourceEstimatort*> result = SerenityEstimator::create(parameters);
+static SerenityController *createQosController(const Parameters &parameters) {
+  LOG(INFO) << "Loading Serenity QoS Controller module";
+  Try < QoSController * > result = SerenityEstimator::create(parameters);
   if (result.isError()) {
     return NULL;
   }
@@ -77,7 +57,7 @@ static ResourceEstimator* createEstimator(const Parameters& parameters)
 }
 
 
-mesos::modules::Module<ResourceEstimator> com_mesosphere_mesos_SerenityEstimator(
+mesos::modules::Module <QoSController> com_mesosphere_mesos_SerenityQoSController(
     MESOS_MODULE_API_VERSION,
     MESOS_VERSION,
     "Mesosphere",

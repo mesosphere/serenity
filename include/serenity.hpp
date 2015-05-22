@@ -41,47 +41,66 @@
  * possibility of such damages.
  */
 
-#include <mesos/mesos.hpp>
-#include <mesos/module.hpp>
 
-//#include <mesos/module/resource_estimator.hpp>
+#ifndef SERENITY_SERENITY_HPP
+#define SERENITY_SERENITY_HPP
 
-#include <mesos/slave/resource_estimator.hpp>
+#include <string>
+
+#include <mesos/resources.hpp>
 
 #include <process/future.hpp>
-#include <process/owned.hpp>
-#include <process/subprocess.hpp>
 
-#include <stout/try.hpp>
-#include <stout/stringify.hpp>
-#include <stout/hashmap.hpp>
+#include <stout/lambda.hpp>
+#include <stout/nothing.hpp>
 #include <stout/option.hpp>
+#include <stout/try.hpp>
 
-using namespace mesos;
+namespace mesos {
+namespace serenity {
 
-using mesos::slave::ResourceEstimator;
+// The bus socket allows peers to communicate (subscribe and publish)
+// asynchronously.
+class BusSocket {
+public:
+  // Filters need to claim a topic before being able to
+  // publish to it.
+  Try<Nothing> registration(std::string topic);
 
-class SerenityEstimator : public ResourceEstimator
-{
+  // NOTE: Subscribe can return a future instead of relying
+  // on a provided callback.
+  Try<Nothing> subscribe(
+      std::string topic,
+      std::function<void(mesos::scheduler::Event)> callback); //skonefal TODO: Waiting for serenity.proto generic serenity event
+
+  Try<Nothing> publish(std::string topic, mesos::scheduler::Event event); //skonefal TODO: Waiting for serenity.proto generic serenity event
 };
 
 
-static ResourceEstimator* createEstimator(const Parameters& parameters)
+template<typename T, typename S>
+class Filter : public BusSocket
 {
-  LOG(INFO) << "Loading Serenity Estimator module";
-  Try<ResourceEstimatort*> result = SerenityEstimator::create(parameters);
-  if (result.isError()) {
-    return NULL;
-  }
-  return result.get();
-}
+  // Variadic template to allow fanout.
+  Filter(Filter<S, S>* out) {}
+
+  virtual Try<Nothing> input(T in) = 0;
+};
+
+template<typename T>
+class Source : public Filter<None, T>
+{
+  Source(Filter<None, T>* out...) {}
+};
 
 
-mesos::modules::Module<ResourceEstimator> com_mesosphere_mesos_SerenityEstimator(
-    MESOS_MODULE_API_VERSION,
-    MESOS_VERSION,
-    "Mesosphere",
-    "support@mesosphere.com",
-    "Serenity Estimator",
-    NULL,
-    createEstimator);
+template<typename T>
+class Sink : public Filter<T, None>
+{
+  virtual Result<T> input(T in) = 0;
+};
+
+} // namespace serenity
+} // namespace mesos
+
+
+#endif //SERENITY_SERENITY_HPP
