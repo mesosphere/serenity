@@ -16,10 +16,6 @@
  * limitations under the License.
  */
 
-/**
-* Proto for serenity framework. Describes Input and the Output of the whole flow
-* and internal messages
-*/
 
 //Because serenity is a separate project, you have to copy mesos.proto to same directory
 import "mesos.proto";
@@ -31,55 +27,10 @@ option java_outer_classname = "Protos";
 
 
 /**
-* NOTE: These proto buffers should be upstreamed - it defines
-* external communication (slave -> serenity -> slave)
-*/
-
-
-/**
 * Contains resource usage for running executors
 */
 message Usage {
  repeated ResourceUsage resource_usage = 1;
-}
-
-
-/**
-* Contains slack resources which can be offered for BE tasks
-*/
-message Slack {
-  repeated Resource resources = 1;
-}
-
-
-/**
- * NOTE: Waiting to be upstreamed!
- * Describes a message between the QoS Controller and slave.
- * The QoS Controller makes some decisions and informs slave
- * that some particular corrections has to be made.
- */
-message QoSCorrections {
-
-  // Each correction contains information about executor
-  // or task and the type of corrective action we want to
-  // perform.
-  message Correction {
-
-    // NOTE: In future we can define more actions, but
-    // for now we have:
-    // 1) kill - terminate the executor or task
-    enum Action {
-      KILL = 1;
-    }
-
-    required Action action = 1;
-    optional ExecutorID executor_id = 2;
-    optional TaskID task_id = 3;
-    optional string reason = 4;
-    optional double timestamp = 5;
-  }
-
-  repeated Correction corrections = 1;
 }
 
 
