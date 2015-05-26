@@ -113,9 +113,9 @@ protected:
 
 private:
 
-  template<typename ...Any>
-  void recursiveUnboxing(Filter<S, Any>* head, Filter<S, Any>*...  tail) {
-    outputVector.push_back(&head->input());
+  template<typename Some, typename ...Any>
+  void recursiveUnboxing(Filter<S, Some>* head, Filter<S, Any> *...  tail) {
+    outputVector.push_back(head->input());
     recursiveUnboxing(tail...);
   }
 
