@@ -52,7 +52,7 @@
 namespace mesos {
 namespace serenity {
 
-class SerenityQoSController : public Sink<mesos::ResourceUsage>
+class SerenityQoSController : public Sink<int>
 {
 public:
   SerenityQoSController() {};
@@ -62,7 +62,7 @@ protected:
   // TODO: specify it to the real correction message
 //  Try<Nothing> input(mesos::ResourceUsage in) override;
 
-  Try<Nothing> input(mesos::ResourceUsage in) {
+  Try<Nothing> input(int) {
     return Nothing();
   }
 };

@@ -47,7 +47,7 @@
 
 #include <string>
 #include <tuple>
-#include <functional>
+//#include <functional>
 
 #include <mesos/resources.hpp>
 
@@ -110,7 +110,7 @@ private:
     //outputVector.push_back(&head->input(T));
 
 
-    std::function<Try<Nothing>(S)> funt2 = std::bind(&Filter<S, Some>::input, head);
+    std::function<Try<Nothing>(S)> funt2 = std::bind(&Filter<S, Some>::input, head, std::placeholders::_1);
 //    auto fff = std::bind(&Filter::input, head);
 
     recursiveUnboxing(tail...);

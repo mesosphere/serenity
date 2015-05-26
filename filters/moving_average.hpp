@@ -56,19 +56,19 @@ namespace serenity {
 /*
  *
  */
-class MovingAverageFilter : public Filter<mesos::ResourceUsage, mesos::ResourceUsage>
+class MovingAverageFilter : public Filter<int, int>
 {
 public:
   // Filter output constructor
   template <typename ...Any>
-  MovingAverageFilter(Filter<mesos::ResourceUsage, Any> *... outputFilters) : Filter(outputFilters...) {};
+  MovingAverageFilter(Filter<int, Any> *... outputFilters) : Filter(outputFilters...) {};
 
   // Sink output constructor
   //  MovingAverageFilter(Sink<mesos::ResourceUsage>* out...) : Filter(out) {};
 
   ~MovingAverageFilter() {};
 
-  virtual Try<Nothing> input(mesos::ResourceUsage in) override;
+  virtual Try<Nothing> input(int in) override;
 
 
 };

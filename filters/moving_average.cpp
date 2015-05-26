@@ -55,7 +55,7 @@ namespace serenity {
 //{
 //}
 
-Try<Nothing> MovingAverageFilter::input(mesos::ResourceUsage in)
+Try<Nothing> MovingAverageFilter::input(int in)
 {
   return Nothing();
 }
