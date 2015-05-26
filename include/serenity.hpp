@@ -47,6 +47,7 @@
 
 #include <string>
 #include <tuple>
+#include <functional>
 
 #include <mesos/resources.hpp>
 
@@ -83,39 +84,31 @@ public:
 template<typename T, typename S>
 class Filter : public BusSocket
 {
-protected:
-
+public:
 
   // Variadic template to allow fanout.
   template<typename ...Any>
-  Filter(Filter<S, Any> *... out) {//: inputVector{&out.input...} {};
-    auto filtersTuple = std::make_tuple(out...);
+  Filter(Filter<S, Any> *... out) {
     recursiveUnboxing(out...);
-    const int tupleSize = sizeof...(out);
-
-
-//  for(int idx = 0; idx < tupleSize; idx++)
-//    {
-//      auto filter = std::get<idx>(tupleSize);
-//    }
-
-
   };
-//  Filter(Filter<S, Any> *... out) {};//  : outputVector{out...} {};
+
   virtual Try<Nothing> input(T in) = 0;
 
-  //Vector for storing outp
-  // ut filters
-//  std::vector<Filter<S, boost::any>*> outputVector;
 
+//  typedef Try<Nothing> (*InputMPtr)(T in);
   std::vector<std::function<Try<Nothing>(T)>> outputVector;
 
-
 private:
-
   template<typename Some, typename ...Any>
   void recursiveUnboxing(Filter<S, Some>* head, Filter<S, Any> *...  tail) {
-    outputVector.push_back(head->input());
+
+    //typedef Try<Nothing> (mesos::serenity::Filter<S, Some>::*Input)(T in);
+    //Input lol = &head->input<S>;
+    // InputMPtr imptr = &(head->input);
+
+    //std::function<Try<Nothing>(Some)> pFunc = &head->input<Some>;
+    //outputVector.push_back(&head->input(T));
+
     recursiveUnboxing(tail...);
   }
 
