@@ -106,8 +106,12 @@ private:
     //Input lol = &head->input<S>;
     // InputMPtr imptr = &(head->input);
 
-    //std::function<Try<Nothing>(Some)> pFunc = &head->input<Some>;
+    //std::function<Try<Nothing>(S)> pFunc = &head->input<S>;
     //outputVector.push_back(&head->input(T));
+
+
+    std::function<Try<Nothing>(S)> funt2 = std::bind(&Filter<S, Some>::input, head);
+//    auto fff = std::bind(&Filter::input, head);
 
     recursiveUnboxing(tail...);
   }
