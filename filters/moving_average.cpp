@@ -42,4 +42,23 @@
  */
 
 
-#include "moving_average.h"
+#include "moving_average.hpp"
+
+namespace mesos {
+namespace serenity {
+
+//MovingAverageFilter::MovingAverageFilter(
+//    Filter<mesos::ResourceUsage, boost::any>*
+//           outputFilters...) : Filter(outputFilters) {}
+
+//MovingAverageFilter::~MovingAverageFilter() noexcept
+//{
+//}
+
+Try<Nothing> MovingAverageFilter::input(mesos::ResourceUsage in)
+{
+  return Nothing();
+}
+
+} // namespace serenity
+} // namespace mesos

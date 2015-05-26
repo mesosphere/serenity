@@ -41,36 +41,33 @@
  * possibility of such damages.
  */
 
+#ifndef BAK_SERENITY_SERENITY_QOS_CONTROLLER_HPP
+#define BAK_SERENITY_SERENITY_QOS_CONTROLLER_HPP
+
+#include <mesos/resources.hpp>
+#include <stout/nothing.hpp>
+
+#include "serenity.hpp"
+
 namespace mesos {
 namespace serenity {
 
-#include "serenity_qos_controller.hpp"
+class SerenityQoSController : public Sink<mesos::ResourceUsage>
+{
+public:
+  SerenityQoSController() {};
+  ~SerenityQoSController() {};
 
-//Try<Nothing> SerenityQoSController::input(mesos::ResourceUsage in) {
-//  safdsaf
-//  return Nothing();
-//}
+protected:
+  // TODO: specify it to the real correction message
+//  Try<Nothing> input(mesos::ResourceUsage in) override;
 
-
+  Try<Nothing> input(mesos::ResourceUsage in) {
+    return Nothing();
+  }
+};
 
 } // namespace serenity
 } // namespace mesos
 
-//static SerenityController *createQosController(const Parameters &parameters) {
-//  LOG(INFO) << "Loading Serenity QoS Controller module";
-//  Try < QoSController * > result = SerenityEstimator::create(parameters);
-//  if (result.isError()) {
-//    return NULL;
-//  }
-//  return result.get();
-//}
-//
-//
-//mesos::modules::Module <QoSController> com_mesosphere_mesos_SerenityQoSController(
-//    MESOS_MODULE_API_VERSION,
-//    MESOS_VERSION,
-//    "Mesosphere",
-//    "support@mesosphere.com",
-//    "Serenity Estimator",
-//    NULL,
-//    createEstimator);
+#endif //BAK_SERENITY_SERENITY_QOS_CONTROLLER_HPP

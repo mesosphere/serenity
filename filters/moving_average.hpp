@@ -45,10 +45,36 @@
 #ifndef SERENITY_MOVINGAVERAGE_H
 #define SERENITY_MOVINGAVERAGE_H
 
+#include <boost/any.hpp>
+#include <mesos/resources.hpp>
 
-class MovingAverageFilter
+#include "serenity.hpp"
+
+namespace mesos {
+namespace serenity {
+
+/*
+ *
+ */
+class MovingAverageFilter : public Filter<mesos::ResourceUsage, mesos::ResourceUsage>
 {
+public:
+  // Filter output constructor
+  template <typename ...Any>
+  MovingAverageFilter(Filter<mesos::ResourceUsage, Any> *... outputFilters) : Filter(outputFilters...) {};
+
+  // Sink output constructor
+  //  MovingAverageFilter(Sink<mesos::ResourceUsage>* out...) : Filter(out) {};
+
+  ~MovingAverageFilter() {};
+
+  virtual Try<Nothing> input(mesos::ResourceUsage in) override;
+
+
 };
 
+
+} // namespace serenity
+} // namespace mesos
 
 #endif //SERENITY_MOVINGAVERAGE_H

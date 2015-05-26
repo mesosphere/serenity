@@ -41,36 +41,25 @@
  * possibility of such damages.
  */
 
+#ifndef BAK_SERENITY_DUMMY_SOURCE_H
+#define BAK_SERENITY_DUMMY_SOURCE_H
+
+#include <stout/none.hpp>
+
+#include <mesos/resources.hpp>
+
+#include "serenity.hpp"
+
 namespace mesos {
 namespace serenity {
 
-#include "serenity_qos_controller.hpp"
-
-//Try<Nothing> SerenityQoSController::input(mesos::ResourceUsage in) {
-//  safdsaf
-//  return Nothing();
-//}
-
-
+class DummySource : Source<None, mesos::ResourceUsage>
+{
+  DummySource(Filter<mesos::ResourceUsage, boost::any>*
+              outputFilters...) : Filter(outputFilters) {};
+};
 
 } // namespace serenity
 } // namespace mesos
 
-//static SerenityController *createQosController(const Parameters &parameters) {
-//  LOG(INFO) << "Loading Serenity QoS Controller module";
-//  Try < QoSController * > result = SerenityEstimator::create(parameters);
-//  if (result.isError()) {
-//    return NULL;
-//  }
-//  return result.get();
-//}
-//
-//
-//mesos::modules::Module <QoSController> com_mesosphere_mesos_SerenityQoSController(
-//    MESOS_MODULE_API_VERSION,
-//    MESOS_VERSION,
-//    "Mesosphere",
-//    "support@mesosphere.com",
-//    "Serenity Estimator",
-//    NULL,
-//    createEstimator);
+#endif //BAK_SERENITY_DUMMY_SOURCE_H

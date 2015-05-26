@@ -46,6 +46,7 @@
 #define SERENITY_SERENITY_HPP
 
 #include <string>
+#include <tuple>
 
 #include <mesos/resources.hpp>
 
@@ -55,6 +56,8 @@
 #include <stout/nothing.hpp>
 #include <stout/option.hpp>
 #include <stout/try.hpp>
+
+//#include <boost/any.hpp>
 
 namespace mesos {
 namespace serenity {
@@ -80,15 +83,53 @@ public:
 template<typename T, typename S>
 class Filter : public BusSocket
 {
-  // Variadic template to allow fanout.
-  Filter(Filter<S, S>* out) {}
+protected:
 
+
+  // Variadic template to allow fanout.
+  template<typename ...Any>
+  Filter(Filter<S, Any> *... out) {//: inputVector{&out.input...} {};
+    auto filtersTuple = std::make_tuple(out...);
+    recursiveUnboxing(out...);
+    const int tupleSize = sizeof...(out);
+
+
+//  for(int idx = 0; idx < tupleSize; idx++)
+//    {
+//      auto filter = std::get<idx>(tupleSize);
+//    }
+
+
+  };
+//  Filter(Filter<S, Any> *... out) {};//  : outputVector{out...} {};
   virtual Try<Nothing> input(T in) = 0;
+
+  //Vector for storing outp
+  // ut filters
+//  std::vector<Filter<S, boost::any>*> outputVector;
+
+  std::vector<std::function<Try<Nothing>(T)>> outputVector;
+
+
+private:
+
+  template<typename ...Any>
+  void recursiveUnboxing(Filter<S, Any>* head, Filter<S, Any>*...  tail) {
+    outputVector.push_back(&head->input());
+    recursiveUnboxing(tail...);
+  }
+
+  // end condition
+  void recursiveUnboxing() {}
+
+
 };
+
 
 template<typename T>
 class Source : public Filter<None, T>
 {
+protected:
   Source(Filter<None, T>* out...) {}
 };
 
@@ -96,7 +137,8 @@ class Source : public Filter<None, T>
 template<typename T>
 class Sink : public Filter<T, None>
 {
-  virtual Result<T> input(T in) = 0;
+protected:
+  virtual Try<Nothing> input(T in) = 0;
 };
 
 } // namespace serenity
