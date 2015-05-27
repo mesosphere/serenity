@@ -41,20 +41,25 @@
  * possibility of such damages.
  */
 
+#include "serenity_qos_controller.hpp"
+
 namespace mesos {
 namespace serenity {
 
-#include "serenity_qos_controller.hpp"
+Try<Nothing> SerenityQoSController::input(int in) {
+  return Nothing();
 
-//Try<Nothing> SerenityQoSController::input(mesos::ResourceUsage in) {
-//  safdsaf
-//  return Nothing();
-//}
+}
 
+SerenityQoSController::~SerenityQoSController() {};
 
 
 } // namespace serenity
 } // namespace mesos
+
+using namespace mesos;
+
+//using mesos::slave::Isolator;
 
 //static SerenityController *createQosController(const Parameters &parameters) {
 //  LOG(INFO) << "Loading Serenity QoS Controller module";
@@ -74,3 +79,4 @@ namespace serenity {
 //    "Serenity Estimator",
 //    NULL,
 //    createEstimator);
+//

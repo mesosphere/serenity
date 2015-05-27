@@ -47,13 +47,7 @@
 namespace mesos {
 namespace serenity {
 
-//MovingAverageFilter::MovingAverageFilter(
-//    Filter<mesos::ResourceUsage, boost::any>*
-//           outputFilters...) : Filter(outputFilters) {}
-
-//MovingAverageFilter::~MovingAverageFilter() noexcept
-//{
-//}
+MovingAverageFilter::~MovingAverageFilter() {}
 
 Try<Nothing> MovingAverageFilter::input(int in)
 {

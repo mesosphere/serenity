@@ -43,3 +43,12 @@
 
 
 #include "dummy_source.h"
+
+
+namespace mesos{
+namespace serenity{
+
+  DummySource::~DummySource() { }
+
+}
+}

@@ -16,7 +16,6 @@ int main(int argc, char** argv)
   Try<int> foobar = 5;
   std::cout << "pipe test" << "\n";
 
-//  mesos::ResourceUsage resourceUsage;
 
   mesos::serenity::SerenityQoSController qos;
 

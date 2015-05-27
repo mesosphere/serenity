@@ -46,7 +46,6 @@
 #include <bits/stringfwd.h>
 
 #include "serenity.hpp"
-#include "bus_socket.hpp"
 
 
 namespace mesos {

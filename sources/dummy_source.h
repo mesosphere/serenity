@@ -45,18 +45,22 @@
 #define BAK_SERENITY_DUMMY_SOURCE_H
 
 #include <stout/none.hpp>
-
-#include <mesos/resources.hpp>
+#include <stout/nothing.hpp>
+#include <stout/try.hpp>
 
 #include "serenity.hpp"
 
 namespace mesos {
 namespace serenity {
 
-class DummySource : Source<None, mesos::ResourceUsage>
+class DummySource : Source<int>
 {
-  DummySource(Filter<mesos::ResourceUsage, boost::any>*
-              outputFilters...) : Filter(outputFilters) {};
+
+  template <typename ...Any>
+  DummySource(const Filter<int, Any>*... outputFilters) : Filter(outputFilters...) {};
+
+  ~DummySource() noexcept;
+
 };
 
 } // namespace serenity

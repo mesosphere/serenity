@@ -45,34 +45,27 @@
 #ifndef SERENITY_MOVINGAVERAGE_H
 #define SERENITY_MOVINGAVERAGE_H
 
-#include <boost/any.hpp>
-#include <mesos/resources.hpp>
-
 #include "serenity.hpp"
 
 namespace mesos {
 namespace serenity {
 
-/*
- *
- */
+//TODO: Template it <IN, OUT> and add a strategy to constructor?
 class MovingAverageFilter : public Filter<int, int>
 {
 public:
-  // Filter output constructor
+
   template <typename ...Any>
   MovingAverageFilter(Filter<int, Any> *... outputFilters) : Filter(outputFilters...) {};
 
-  // Sink output constructor
-  //  MovingAverageFilter(Sink<mesos::ResourceUsage>* out...) : Filter(out) {};
-
-  ~MovingAverageFilter() {};
+  ~MovingAverageFilter() noexcept;
 
   virtual Try<Nothing> input(int in) override;
 
+private:
+  MovingAverageFilter(const MovingAverageFilter& other) {};
 
 };
-
 
 } // namespace serenity
 } // namespace mesos

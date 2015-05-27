@@ -69,7 +69,7 @@ class SerenityEstimator : public ResourceEstimator
 static ResourceEstimator* createEstimator(const Parameters& parameters)
 {
   LOG(INFO) << "Loading Serenity Estimator module";
-  Try<ResourceEstimatort*> result = SerenityEstimator::create(parameters);
+  Try<ResourceEstimator*> result = SerenityEstimator::create(parameters);
   if (result.isError()) {
     return NULL;
   }

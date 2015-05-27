@@ -41,7 +41,96 @@
  * possibility of such damages.
  */
 
-#ifndef SERENITY_BUS_SOCKET_H
-#define SERENITY_BUS_SOCKET_H
 
-#endif //SERENITY_BUS_SOCKET_H
+#ifndef SERENITY_SERENITY_HPP
+#define SERENITY_SERENITY_HPP
+
+#include <cstdlib>
+
+#include <stout/none.hpp>
+#include <stout/nothing.hpp>
+#include <functional>
+#include <stout/try.hpp>
+
+#include <mesos/scheduler/scheduler.hpp>
+
+
+namespace mesos {
+namespace serenity {
+
+// The bus socket allows peers to communicate (subscribe and publish)
+// asynchronously.
+class BusSocket {
+public:
+  // Filters need to claim a topic before being able to
+  // publish to it.
+  Try<Nothing> registration(std::string topic);
+
+  // NOTE: Subscribe can return a future instead of relying
+  // on a provided callback.
+  Try<Nothing> subscribe(
+      std::string topic,
+      std::function<void(mesos::scheduler::Event)> callback); //skonefal TODO: Waiting for serenity.proto generic serenity event
+
+  Try<Nothing> publish(std::string topic, mesos::scheduler::Event event); //skonefal TODO: Waiting for serenity.proto generic serenity event
+};
+
+
+template<typename T, typename S>
+class Filter : public BusSocket
+{
+public:
+
+  // Variadic template to allow fanout.
+  template<typename ...Any>
+  Filter(Filter<S, Any> *... out) {
+    recursiveUnboxing(out...);
+  };
+
+  virtual Try<Nothing> input(T in) = 0;
+
+
+  std::vector<std::function<Try<Nothing>(T)>> outputVector;
+
+private:
+  template<typename Some, typename ...Any>
+  void recursiveUnboxing(Filter<S, Some>* head, Filter<S, Any> *...  tail) {
+    std::function<Try<Nothing>(S)> outputFunction =
+        std::bind(&Filter<S, Some>::input, head, std::placeholders::_1);
+    outputVector.push_back(outputFunction);
+
+    recursiveUnboxing(tail...);
+  }
+
+  // end condition
+  void recursiveUnboxing() {}
+
+};
+
+
+template<typename T>
+class Source : public Filter<None, T>
+{
+public:
+  template<typename ...Any>
+  Source(const Filter<T, Any>*... out) {}
+
+  Try<Nothing> input(None) {
+    return Nothing();
+  }
+};
+
+
+template<typename T>
+class Sink : public Filter<T, None>
+{
+public:
+
+  virtual Try<Nothing> input(T in) = 0;
+};
+
+} // namespace serenity
+} // namespace mesos
+
+
+#endif //SERENITY_SERENITY_HPP

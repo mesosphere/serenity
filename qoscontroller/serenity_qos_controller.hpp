@@ -41,11 +41,11 @@
  * possibility of such damages.
  */
 
-#ifndef BAK_SERENITY_SERENITY_QOS_CONTROLLER_HPP
-#define BAK_SERENITY_SERENITY_QOS_CONTROLLER_HPP
+#ifndef SERENITY_SERENITY_QOS_CONTROLLER_HPP
+#define SERENITY_SERENITY_QOS_CONTROLLER_HPP
 
-#include <mesos/resources.hpp>
 #include <stout/nothing.hpp>
+#include <stout/try.hpp>
 
 #include "serenity.hpp"
 
@@ -56,18 +56,15 @@ class SerenityQoSController : public Sink<int>
 {
 public:
   SerenityQoSController() {};
-  ~SerenityQoSController() {};
+  ~SerenityQoSController() noexcept;
 
 protected:
   // TODO: specify it to the real correction message
-//  Try<Nothing> input(mesos::ResourceUsage in) override;
+  Try<Nothing> input(int in) override;
 
-  Try<Nothing> input(int) {
-    return Nothing();
-  }
 };
 
 } // namespace serenity
 } // namespace mesos
 
-#endif //BAK_SERENITY_SERENITY_QOS_CONTROLLER_HPP
+#endif //SERENITY_SERENITY_QOS_CONTROLLER_HPP
