@@ -41,47 +41,33 @@
  * possibility of such damages.
  */
 
-#include <mesos/mesos.hpp>
-#include <mesos/module.hpp>
 
-//#include <mesos/module/resource_estimator.hpp>
+#ifndef SERENITY_MOVINGAVERAGE_H
+#define SERENITY_MOVINGAVERAGE_H
 
-#include <mesos/slave/resource_estimator.hpp>
+#include "serenity.hpp"
 
-#include <process/future.hpp>
-#include <process/owned.hpp>
-#include <process/subprocess.hpp>
+namespace mesos {
+namespace serenity {
 
-#include <stout/try.hpp>
-#include <stout/stringify.hpp>
-#include <stout/hashmap.hpp>
-#include <stout/option.hpp>
-
-using namespace mesos;
-
-using mesos::slave::ResourceEstimator;
-
-class SerenityEstimator : public ResourceEstimator
+//TODO: Template it <IN, OUT> and add a strategy to constructor?
+class MovingAverageFilter : public Filter<int, int>
 {
+public:
+
+  template <typename ...Any>
+  MovingAverageFilter(Filter<int, Any>*... outputFilters) : Filter(outputFilters...) {};
+
+  ~MovingAverageFilter() noexcept;
+
+  virtual Try<Nothing> input(int in) override;
+
+private:
+  MovingAverageFilter(MovingAverageFilter& other) {};
+
 };
 
+} // namespace serenity
+} // namespace mesos
 
-static ResourceEstimator* createEstimator(const Parameters& parameters)
-{
-  LOG(INFO) << "Loading Serenity Estimator module";
-  Try<ResourceEstimator*> result = SerenityEstimator::create(parameters);
-  if (result.isError()) {
-    return NULL;
-  }
-  return result.get();
-}
-
-
-mesos::modules::Module<ResourceEstimator> com_mesosphere_mesos_SerenityEstimator(
-    MESOS_MODULE_API_VERSION,
-    MESOS_VERSION,
-    "Mesosphere",
-    "support@mesosphere.com",
-    "Serenity Estimator",
-    NULL,
-    createEstimator);
+#endif //SERENITY_MOVINGAVERAGE_H

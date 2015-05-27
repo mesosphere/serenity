@@ -41,47 +41,97 @@
  * possibility of such damages.
  */
 
-#include <mesos/mesos.hpp>
-#include <mesos/module.hpp>
 
-//#include <mesos/module/resource_estimator.hpp>
+#ifndef SERENITY_SERENITY_HPP
+#define SERENITY_SERENITY_HPP
 
-#include <mesos/slave/resource_estimator.hpp>
-
-#include <process/future.hpp>
-#include <process/owned.hpp>
-#include <process/subprocess.hpp>
+#include <cstdlib>
 
 #include <stout/try.hpp>
-#include <stout/stringify.hpp>
-#include <stout/hashmap.hpp>
-#include <stout/option.hpp>
+#include <stout/none.hpp>
+#include <stout/nothing.hpp>
 
-using namespace mesos;
+#include <functional>
 
-using mesos::slave::ResourceEstimator;
+#include <mesos/scheduler/scheduler.hpp>
 
-class SerenityEstimator : public ResourceEstimator
-{
+
+namespace mesos {
+namespace serenity {
+
+// The bus socket allows peers to communicate (subscribe and publish)
+// asynchronously.
+class BusSocket {
+public:
+  // Filters need to claim a topic before being able to
+  // publish to it.
+  Try<Nothing> registration(std::string topic);
+
+  // NOTE: Subscribe can return a future instead of relying
+  // on a provided callback.
+  Try<Nothing> subscribe(
+      std::string topic,
+      std::function<void(mesos::scheduler::Event)> callback); //skonefal TODO: Waiting for serenity.proto generic serenity event
+
+  Try<Nothing> publish(std::string topic, mesos::scheduler::Event event); //skonefal TODO: Waiting for serenity.proto generic serenity event
 };
 
 
-static ResourceEstimator* createEstimator(const Parameters& parameters)
+template<typename T, typename S>
+class Filter : public BusSocket
 {
-  LOG(INFO) << "Loading Serenity Estimator module";
-  Try<ResourceEstimator*> result = SerenityEstimator::create(parameters);
-  if (result.isError()) {
-    return NULL;
+public:
+
+  // Variadic template to allow fanout.
+  template<typename ...Any>
+  Filter(Filter<S, Any>*... out) {
+    recursiveUnpacking(out...);
+  };
+
+  virtual Try<Nothing> input(T in) = 0;
+
+
+  std::vector<std::function<Try<Nothing>(T)>> outputVector;
+
+private:
+  template<typename Some, typename ...Any>
+  void recursiveUnpacking(Filter<S, Some>* head, Filter<S, Any>*... tail) {
+    std::function<Try<Nothing>(S)> outputFunction =
+        std::bind(&Filter<S, Some>::input, head, std::placeholders::_1);
+    outputVector.push_back(outputFunction);
+
+    recursiveUnpacking(tail...);
   }
-  return result.get();
-}
+
+  // end condition
+  void recursiveUnpacking() {}
+
+};
 
 
-mesos::modules::Module<ResourceEstimator> com_mesosphere_mesos_SerenityEstimator(
-    MESOS_MODULE_API_VERSION,
-    MESOS_VERSION,
-    "Mesosphere",
-    "support@mesosphere.com",
-    "Serenity Estimator",
-    NULL,
-    createEstimator);
+template<typename T>
+class Source : public Filter<None, T>
+{
+public:
+  template<typename ...Any>
+  Source(Filter<T, Any>*... out) {}
+
+  Try<Nothing> input(None) {
+    return Nothing();
+  }
+};
+
+
+template<typename T>
+class Sink : public Filter<T, None>
+{
+public:
+
+  virtual Try<Nothing> input(T in) = 0;
+};
+
+} // namespace serenity
+} // namespace mesos
+
+
+#endif //SERENITY_SERENITY_HPP

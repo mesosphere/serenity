@@ -41,47 +41,29 @@
  * possibility of such damages.
  */
 
-#include <mesos/mesos.hpp>
-#include <mesos/module.hpp>
+#ifndef SERENITY_DUMMY_SOURCE_H
+#define SERENITY_DUMMY_SOURCE_H
 
-//#include <mesos/module/resource_estimator.hpp>
-
-#include <mesos/slave/resource_estimator.hpp>
-
-#include <process/future.hpp>
-#include <process/owned.hpp>
-#include <process/subprocess.hpp>
-
+#include <stout/none.hpp>
+#include <stout/nothing.hpp>
 #include <stout/try.hpp>
-#include <stout/stringify.hpp>
-#include <stout/hashmap.hpp>
-#include <stout/option.hpp>
 
-using namespace mesos;
+#include "serenity.hpp"
 
-using mesos::slave::ResourceEstimator;
+namespace mesos {
+namespace serenity {
 
-class SerenityEstimator : public ResourceEstimator
+class DummySource : Source<int>
 {
+
+  template <typename ...Any>
+  DummySource(Filter<int, Any>*... outputFilters) : Filter(outputFilters...) {};
+
+  ~DummySource() noexcept;
+
 };
 
+} // namespace serenity
+} // namespace mesos
 
-static ResourceEstimator* createEstimator(const Parameters& parameters)
-{
-  LOG(INFO) << "Loading Serenity Estimator module";
-  Try<ResourceEstimator*> result = SerenityEstimator::create(parameters);
-  if (result.isError()) {
-    return NULL;
-  }
-  return result.get();
-}
-
-
-mesos::modules::Module<ResourceEstimator> com_mesosphere_mesos_SerenityEstimator(
-    MESOS_MODULE_API_VERSION,
-    MESOS_VERSION,
-    "Mesosphere",
-    "support@mesosphere.com",
-    "Serenity Estimator",
-    NULL,
-    createEstimator);
+#endif // SERENITY_DUMMY_SOURCE_H
