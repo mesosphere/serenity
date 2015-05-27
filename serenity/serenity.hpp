@@ -47,10 +47,11 @@
 
 #include <cstdlib>
 
+#include <stout/try.hpp>
 #include <stout/none.hpp>
 #include <stout/nothing.hpp>
+
 #include <functional>
-#include <stout/try.hpp>
 
 #include <mesos/scheduler/scheduler.hpp>
 
@@ -83,8 +84,8 @@ public:
 
   // Variadic template to allow fanout.
   template<typename ...Any>
-  Filter(Filter<S, Any> *... out) {
-    recursiveUnboxing(out...);
+  Filter(Filter<S, Any>*... out) {
+    recursiveUnpacking(out...);
   };
 
   virtual Try<Nothing> input(T in) = 0;
@@ -94,16 +95,16 @@ public:
 
 private:
   template<typename Some, typename ...Any>
-  void recursiveUnboxing(Filter<S, Some>* head, Filter<S, Any> *...  tail) {
+  void recursiveUnpacking(Filter<S, Some>* head, Filter<S, Any>*... tail) {
     std::function<Try<Nothing>(S)> outputFunction =
         std::bind(&Filter<S, Some>::input, head, std::placeholders::_1);
     outputVector.push_back(outputFunction);
 
-    recursiveUnboxing(tail...);
+    recursiveUnpacking(tail...);
   }
 
   // end condition
-  void recursiveUnboxing() {}
+  void recursiveUnpacking() {}
 
 };
 
@@ -113,7 +114,7 @@ class Source : public Filter<None, T>
 {
 public:
   template<typename ...Any>
-  Source(const Filter<T, Any>*... out) {}
+  Source(Filter<T, Any>*... out) {}
 
   Try<Nothing> input(None) {
     return Nothing();

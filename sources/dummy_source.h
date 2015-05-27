@@ -41,8 +41,8 @@
  * possibility of such damages.
  */
 
-#ifndef BAK_SERENITY_DUMMY_SOURCE_H
-#define BAK_SERENITY_DUMMY_SOURCE_H
+#ifndef SERENITY_DUMMY_SOURCE_H
+#define SERENITY_DUMMY_SOURCE_H
 
 #include <stout/none.hpp>
 #include <stout/nothing.hpp>
@@ -57,7 +57,7 @@ class DummySource : Source<int>
 {
 
   template <typename ...Any>
-  DummySource(const Filter<int, Any>*... outputFilters) : Filter(outputFilters...) {};
+  DummySource(Filter<int, Any>*... outputFilters) : Filter(outputFilters...) {};
 
   ~DummySource() noexcept;
 
@@ -66,4 +66,4 @@ class DummySource : Source<int>
 } // namespace serenity
 } // namespace mesos
 
-#endif //BAK_SERENITY_DUMMY_SOURCE_H
+#endif // SERENITY_DUMMY_SOURCE_H

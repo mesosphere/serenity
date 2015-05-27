@@ -56,14 +56,14 @@ class MovingAverageFilter : public Filter<int, int>
 public:
 
   template <typename ...Any>
-  MovingAverageFilter(Filter<int, Any> *... outputFilters) : Filter(outputFilters...) {};
+  MovingAverageFilter(Filter<int, Any>*... outputFilters) : Filter(outputFilters...) {};
 
   ~MovingAverageFilter() noexcept;
 
   virtual Try<Nothing> input(int in) override;
 
 private:
-  MovingAverageFilter(const MovingAverageFilter& other) {};
+  MovingAverageFilter(MovingAverageFilter& other) {};
 
 };
 

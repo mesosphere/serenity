@@ -21,9 +21,9 @@ int main(int argc, char** argv)
 
   mesos::serenity::MovingAverageFilter mafilter3(&qos);
 
-//  mesos::serenity::MovingAverageFilter mafilter2(&qos, &qos);
+  mesos::serenity::MovingAverageFilter mafilter2(&qos, &qos);
 
-//  mesos::serenity::MovingAverageFilter mafilter4(&qos, &mafilter3);
+  mesos::serenity::MovingAverageFilter mafilter4(&qos, &mafilter3);
 
   return EXIT_SUCCESS;
 }
