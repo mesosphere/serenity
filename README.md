@@ -1,5 +1,23 @@
 # Serenity
 
+Intel and Mesosphere are working on creating cutting-edge oversubscription
+technologies for Mesos. Follow the [Mesos Oversubscription Architecture](https://docs.google.com/document/d/1pUnElxHy1uWfHY_FOvvRC73QaOGgdXE0OXN-gbxdXA0/edit), it
+is a very flexible solution which drives the internal semantics in Mesos but
+leaves all actual estimation and controller logic to module implementors.
+
+We consider oversubscription as a series of estimates i.e. how much can safely
+be oversubscribed and decisions i.e. how to protect production workloads. The
+different substages of estimates and decision-making should be able to
+influence each other. For example, dramatic corrections may have to involve
+limiting or stopping current estimates.
+
+We aim for a very flexible solution where both estimation and corrections are
+done in a pipelined approach with shared knowledge between each stage, referred
+to as Filters with a shared bus.
+
+![Serenity pipeline](https://github.com/mesosphere/serenity/blob/master/docs/images/pipeline.png)
+
+
 # Installing
 
 ## Prerequisites
@@ -34,7 +52,7 @@ make
 make install
 ```
 
-## Build Serenity Modules
+### Build Serenity
 
 Once Mesos is built and installed, clone the Serenity package.
 
@@ -50,6 +68,6 @@ make
 
 At this point, the Module libraries are ready in `build/.libs`.
 
-## Using Mesos Modules
+### Using Mesos Modules
 
 See [Mesos Modules](http://mesos.apache.org/documentation/latest/modules/).
