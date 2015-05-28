@@ -17,6 +17,7 @@ to as Filters with a shared bus.
 
 ![Serenity pipeline](https://github.com/mesosphere/serenity/blob/master/docs/images/serenity_pipeline.png)
 
+For more documentation, please refer to [docs](https://github.com/mesosphere/serenity/blob/master/docs/README.md).
 
 # Installing
 
