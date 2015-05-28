@@ -41,42 +41,18 @@
  * possibility of such damages.
  */
 
-#include "serenity_qos_controller.hpp"
+#include "exponential_moving_average.hpp"
+
 
 namespace mesos {
 namespace serenity {
 
-Try<Nothing> SerenityQoSController::input(int in) {
-  return Nothing();
+ExponentialMovingAverageFilter::~ExponentialMovingAverageFilter() {}
 
+Try<int> ExponentialMovingAverageFilter::doWork(int in)
+{
+  return in;
 }
-
-SerenityQoSController::~SerenityQoSController() {};
-
 
 } // namespace serenity
 } // namespace mesos
-
-using namespace mesos;
-
-//using mesos::slave::Isolator;
-
-//static SerenityController *createQosController(const Parameters &parameters) {
-//  LOG(INFO) << "Loading Serenity QoS Controller module";
-//  Try < QoSController * > result = SerenityEstimator::create(parameters);
-//  if (result.isError()) {
-//    return NULL;
-//  }
-//  return result.get();
-//}
-//
-//
-//mesos::modules::Module <QoSController> com_mesosphere_mesos_SerenityQoSController(
-//    MESOS_MODULE_API_VERSION,
-//    MESOS_VERSION,
-//    "Mesosphere",
-//    "support@mesosphere.com",
-//    "Serenity Estimator",
-//    NULL,
-//    createEstimator);
-//

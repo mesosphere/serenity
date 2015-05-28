@@ -41,18 +41,29 @@
  * possibility of such damages.
  */
 
+#ifndef SERENITY_SERENITY_QOS_CONTROLLER_HPP
+#define SERENITY_SERENITY_QOS_CONTROLLER_HPP
 
-#include "moving_average.hpp"
+#include <stout/nothing.hpp>
+#include <stout/try.hpp>
+
+#include "serenity.hpp"
 
 namespace mesos {
 namespace serenity {
 
-MovingAverageFilter::~MovingAverageFilter() {}
-
-Try<int> MovingAverageFilter::doWork(int in)
+class SerenityQoSController : public Sink<int>
 {
-  return in;
-}
+public:
+  SerenityQoSController() {};
+  ~SerenityQoSController() noexcept;
+
+protected:
+  Try<None> doWork(int in) override;
+
+};
 
 } // namespace serenity
 } // namespace mesos
+
+#endif //SERENITY_SERENITY_QOS_CONTROLLER_HPP

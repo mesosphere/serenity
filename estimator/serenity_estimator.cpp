@@ -63,25 +63,41 @@ using mesos::slave::ResourceEstimator;
 
 class SerenityEstimator : public ResourceEstimator
 {
+public:
+  static Try<ResourceEstimator*> create(const Parameters& parameters){
+    return new SerenityEstimator();
+  }
+
+  virtual Try<Nothing> initialize() {
+    return Nothing();
+  }
+
+  virtual process::Future<Resources> oversubscribable(){
+    return mesos::Resources();
+  }
+
+
 };
 
 
-static ResourceEstimator* createEstimator(const Parameters& parameters)
-{
-  LOG(INFO) << "Loading Serenity Estimator module";
-  Try<ResourceEstimator*> result = SerenityEstimator::create(parameters);
-  if (result.isError()) {
-    return NULL;
-  }
-  return result.get();
-}
+// skonefal TODO: waint until the Resource Estimator module lands on mesos master
 
-
-mesos::modules::Module<ResourceEstimator> com_mesosphere_mesos_SerenityEstimator(
-    MESOS_MODULE_API_VERSION,
-    MESOS_VERSION,
-    "Mesosphere",
-    "support@mesosphere.com",
-    "Serenity Estimator",
-    NULL,
-    createEstimator);
+//static ResourceEstimator* createSerenityEstimator(const Parameters& parameters)
+//{
+//  LOG(INFO) << "Loading Serenity Estimator module";
+//  Try<ResourceEstimator*> result = SerenityEstimator::create(parameters);
+//  if (result.isError()) {
+//    return NULL;
+//  }
+//  return result.get();
+//}
+//
+//
+//mesos::modules::Module<ResourceEstimator> com_mesosphere_mesos_SerenityEstimator(
+//    MESOS_MODULE_API_VERSION,
+//    MESOS_VERSION,
+//    "Mesosphere",
+//    "support@mesosphere.com",
+//    "Serenity Estimator",
+//    NULL,
+//    createSerenityEstimator);

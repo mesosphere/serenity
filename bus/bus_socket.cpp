@@ -43,7 +43,6 @@
 
 #include <stout/try.hpp>
 #include <stout/nothing.hpp>
-#include <bits/stringfwd.h>
 
 #include "serenity.hpp"
 

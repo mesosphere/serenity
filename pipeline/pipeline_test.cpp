@@ -1,14 +1,10 @@
-#include <stdio.h>
 #include <stdlib.h>
 
 #include <stout/try.hpp>
-//#include "serenity.hpp"
-
-#include <boost/any.hpp>
-#include <mesos/resources.hpp>
 
 #include "filters/moving_average.hpp"
-#include "qoscontroller/serenity_qos_controller.hpp"
+#include "filters/exponential_moving_average.hpp"
+#include "qos_controllers/serenity_qos_controller.hpp"
 
 
 int main(int argc, char** argv)
@@ -18,6 +14,12 @@ int main(int argc, char** argv)
 
 
   mesos::serenity::SerenityQoSController qos;
+
+//  mesos::serenity::MovingAverageFilter defFilter;
+//  mesos::serenity::ExponentialMovingAverageFilter expFilter(&defFilter);
+
+//  mesos::serenity::MovingAverageFilter defFilter2(defFilter);
+//  mesos::serenity::MovingAverageFilter mafilter
 
   mesos::serenity::MovingAverageFilter mafilter3(&qos);
 

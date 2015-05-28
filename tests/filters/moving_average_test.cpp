@@ -42,17 +42,4 @@
  */
 
 
-#include "moving_average.hpp"
 
-namespace mesos {
-namespace serenity {
-
-MovingAverageFilter::~MovingAverageFilter() {}
-
-Try<int> MovingAverageFilter::doWork(int in)
-{
-  return in;
-}
-
-} // namespace serenity
-} // namespace mesos

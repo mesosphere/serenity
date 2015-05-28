@@ -88,10 +88,27 @@ public:
     recursiveUnpacking(out...);
   };
 
-  virtual Try<Nothing> input(T in) = 0;
+  Try<Nothing> input(T in) {
+    Try<S> result = doWork(in);
+    if (result.isError()) {
+      //TODO error handling
+      return Nothing();
+    }
+    else if (result.isSome()) {
+      for (auto output : outputVector) {
+        output(result.get());
+      }
+      return Nothing();
+    }
+    else {
+      return Nothing();
+    }
+  }
 
+  std::vector<std::function<Try<Nothing>(S)>> outputVector;
 
-  std::vector<std::function<Try<Nothing>(T)>> outputVector;
+protected:
+  virtual Try<S> doWork(T in) = 0;
 
 private:
   template<typename Some, typename ...Any>
@@ -116,8 +133,11 @@ public:
   template<typename ...Any>
   Source(Filter<T, Any>*... out) {}
 
-  Try<Nothing> input(None) {
-    return Nothing();
+
+protected:
+  virtual Try<T> doWork(None in){
+    Error err("Source cannot be inputted");
+    return err;
   }
 };
 
@@ -127,7 +147,8 @@ class Sink : public Filter<T, None>
 {
 public:
 
-  virtual Try<Nothing> input(T in) = 0;
+  virtual Try<None> doWork(T in) = 0;
+
 };
 
 } // namespace serenity

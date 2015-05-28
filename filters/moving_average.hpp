@@ -60,7 +60,8 @@ public:
 
   ~MovingAverageFilter() noexcept;
 
-  virtual Try<Nothing> input(int in) override;
+protected:
+  virtual Try<int> doWork(int in) override;
 
 private:
   MovingAverageFilter(MovingAverageFilter& other) {};

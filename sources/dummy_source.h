@@ -55,7 +55,7 @@ namespace serenity {
 
 class DummySource : Source<int>
 {
-
+public:
   template <typename ...Any>
   DummySource(Filter<int, Any>*... outputFilters) : Filter(outputFilters...) {};
 

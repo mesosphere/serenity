@@ -41,18 +41,36 @@
  * possibility of such damages.
  */
 
+#ifndef SERENITY_EXPONENTIAL_MOVING_AVERAGE_H
+#define SERENITY_EXPONENTIAL_MOVING_AVERAGE_H
 
-#include "moving_average.hpp"
+#include "serenity.hpp"
 
 namespace mesos {
 namespace serenity {
 
-MovingAverageFilter::~MovingAverageFilter() {}
 
-Try<int> MovingAverageFilter::doWork(int in)
+//TODO: Template it <IN, OUT> and add a strategy to constructor?
+class ExponentialMovingAverageFilter : public Filter<int, int>
 {
-  return in;
-}
+public:
+
+  ExponentialMovingAverageFilter(){}; //test constructor
+
+  template <typename ...Any>
+  ExponentialMovingAverageFilter(Filter<int, Any>*... outputFilters) : Filter(outputFilters...) {};
+
+  ~ExponentialMovingAverageFilter() noexcept;
+
+protected:
+  virtual Try<int> doWork(int in) override;
+
+private:
+  ExponentialMovingAverageFilter(ExponentialMovingAverageFilter& other) {};
+
+};
 
 } // namespace serenity
 } // namespace mesos
+
+#endif //SERENITY_EXPONENTIAL_MOVING_AVERAGE_H

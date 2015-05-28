@@ -50,5 +50,5 @@ namespace serenity{
 
   DummySource::~DummySource() { }
 
-}
-}
+} // namespace serenity
+} // namespace mesos
