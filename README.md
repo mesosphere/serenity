@@ -15,7 +15,7 @@ We aim for a very flexible solution where both estimation and corrections are
 done in a pipelined approach with shared knowledge between each stage, referred
 to as Filters with a shared bus.
 
-![Serenity pipeline](https://github.com/mesosphere/serenity/blob/master/docs/images/pipeline.png)
+![Serenity pipeline](https://github.com/mesosphere/serenity/blob/master/docs/images/serenity_pipeline.png)
 
 
 # Installing
