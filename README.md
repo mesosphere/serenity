@@ -1,4 +1,6 @@
-# Serenity
+# Serenity [![Build Status](https://teamcity.mesosphere.io/guestAuth/app/rest/builds/buildType:(id:SerenityModules_CI)/statusIcon)](https://teamcity.mesosphere.io/viewType.html?buildTypeId=SerenityModules_CI&guest=1)
+
+# Building the Modules
 
 Intel and Mesosphere are working on creating cutting-edge oversubscription
 technologies for Mesos. Follow the [Mesos Oversubscription Architecture](https://docs.google.com/document/d/1pUnElxHy1uWfHY_FOvvRC73QaOGgdXE0OXN-gbxdXA0/edit), it
