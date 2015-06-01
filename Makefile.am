@@ -72,10 +72,10 @@ libserenity_la_SOURCES += qos_controllers/serenity_qos_controller.cpp
 #libserenity_la_SOURCES += include/serenity.pb.cc include/serenity.pb.h
 libserenity_la_LDFLAGS = -release $(PACKAGE_VERSION) -shared
 
-pkglib_LTLIBRARIES += libserenity_estimator.la
-libserenity_estimator_la_SOURCES = estimator/serenity_estimator.cpp
-libserenity_estimator_la_LIBADD = libserenity.la $(LDADD)
-libserenity_estimator_la_LDFLAGS = -release $(PACKAGE_VERSION) -shared
+#pkglib_LTLIBRARIES += libserenity_estimator.la
+#libserenity_estimator_la_SOURCES = estimator/serenity_estimator.cpp
+#libserenity_estimator_la_LIBADD = libserenity.la $(LDADD)
+#libserenity_estimator_la_LDFLAGS = -release $(PACKAGE_VERSION) -shared
 
 pkglib_LTLIBRARIES += libserenity_qos_controller.la
 libserenity_qos_controller_la_SOURCES = qos_controllers/serenity_qos_controller.cpp
