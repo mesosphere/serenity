@@ -47,7 +47,7 @@
 #include <stout/nothing.hpp>
 #include <stout/try.hpp>
 
-#include "serenity.hpp"
+#include "serenity/serenity.hpp"
 
 namespace mesos {
 namespace serenity {

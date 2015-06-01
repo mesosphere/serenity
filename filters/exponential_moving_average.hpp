@@ -44,7 +44,7 @@
 #ifndef SERENITY_EXPONENTIAL_MOVING_AVERAGE_H
 #define SERENITY_EXPONENTIAL_MOVING_AVERAGE_H
 
-#include "serenity.hpp"
+#include "serenity/serenity.hpp"
 
 namespace mesos {
 namespace serenity {

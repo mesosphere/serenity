@@ -1,5 +1,5 @@
 build/*
-.idea/*
+lib/*
 m4/
 Makefile.in
 aclocal.m4

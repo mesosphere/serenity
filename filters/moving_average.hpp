@@ -45,7 +45,7 @@
 #ifndef SERENITY_MOVINGAVERAGE_H
 #define SERENITY_MOVINGAVERAGE_H
 
-#include "serenity.hpp"
+#include "serenity/serenity.hpp"
 
 namespace mesos {
 namespace serenity {

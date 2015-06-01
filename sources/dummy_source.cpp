@@ -42,7 +42,7 @@
  */
 
 
-#include "dummy_source.h"
+#include "dummy_source.hpp"
 
 
 namespace mesos{

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.0.0)
 project(serenity)
 enable_testing()
 
@@ -18,15 +18,24 @@ include_directories( ${gtest_SOURCE_DIR} include)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 
+# Protobuf stuff
+
+find_package(Protobuf REQUIRED)
+set(PROTOBUF_IMPORT_DIRS ${MESOS_INSTALLATION_DIR}/include/)
+file(GLOB ProtoFiles "${CMAKE_CURRENT_SOURCE_DIR}/messages/serenity.proto")
+PROTOBUF_GENERATE_CPP(ProtoSources ProtoHeaders ${ProtoFiles})
+add_library(messages STATIC ${ProtoSources} ${ProtoHeaders})
+
+
 
 include_directories(
     ./
     ../
-    serenity/
     include/
     ${MESOS_INSTALLATION_DIR}/include
     ${gmock_SOURCE_DIR}/include/
     ${gmock_SOURCE_DIR}/gtest/include/
+    ${CMAKE_BINARY_DIR}/
 )
 
 
@@ -49,6 +58,7 @@ set(SERENITY_TEST_SOURCES
 )
 
 add_library(serenity ${SERENITY_SOURCES})
+target_link_libraries(serenity messages)
 
 add_executable(pipeline_test ${PIPELINE_TEST_SOURCES})
 target_link_libraries(pipeline_test serenity)
