@@ -52,7 +52,7 @@ make install
 
 Note that the `--prefix=$HOME/usr` is required only if you don't want to do a system-wide Mesos installation.
 
-## Build Mesos Modules
+## Build Mesos Modules (deprecated)
 
 Once Mesos is built and installed, extract/clone the mesos-modules package. For the sake of this
 example, that could be in `~/mesos-modules`. Note that you should not put
@@ -64,7 +64,7 @@ The configuration phase needs to know some details about your Mesos installation
 location, hence the following are used:
 `--with-mesos=/path/to/mesos/installation`
 
-## Example
+## Example (deprecated)
 ```
 ./bootstrap
 mkdir build && cd build
@@ -76,3 +76,15 @@ At this point, the Module libraries are ready in `/build/.libs`.
 
 ## Using Mesos Modules
 See [Mesos Modules](http://mesos.apache.org/documentation/latest/modules/).
+
+## Building Serenity with Cmake
+
+Serenity now supports Cmake build system.
+
+Build the serenity with those commands:
+```
+./setup.sh
+cd build
+cmake -DWITH_MESOS="/usr" ..
+make
+```

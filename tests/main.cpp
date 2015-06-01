@@ -43,14 +43,11 @@
 
 #include <gtest/gtest.h>
 
-#include "filters/moving_average.hpp"
+int main(int argc, char** argv) {
+  //GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-TEST(FactorialTest, Negative) {
-  // This test is named "Negative", and belongs to the "FactorialTest"
-  // test case.
-  ASSERT_EQ(1, 1);
+  ::testing::InitGoogleTest(&argc, argv);
 
-  ASSERT_EQ(2, 2);
+  return RUN_ALL_TESTS();
+
 }
-
-
