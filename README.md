@@ -1,39 +1,43 @@
-# Building the Modules
+# Serenity
 
-Mesos modules provide a way to easily extend inner workings of Mesos by creating
-and using shared libraries that are loaded on demand. Modules can be used to
-customize Mesos without having to recompiling/relinking for each specific use
-case. Modules can isolate external dependencies into separate libraries, thus
-resulting into a smaller Mesos core. Modules also make it easy to experiment
-with new features. For example, imagine loadable allocators that contain a VM
-(Lua, Python, …) which makes it possible to try out new allocator algorithms
-written in scripting languages without forcing those dependencies into the
-project. Finally, modules provide an easy way for third parties to easily extend
-Mesos without having to know all the internal details.
+Intel and Mesosphere are working on creating cutting-edge oversubscription
+technologies for Mesos. Follow the [Mesos Oversubscription Architecture](https://docs.google.com/document/d/1pUnElxHy1uWfHY_FOvvRC73QaOGgdXE0OXN-gbxdXA0/edit), it
+is a very flexible solution which drives the internal semantics in Mesos but
+leaves all actual estimation and controller logic to module implementors.
 
-For more details, please see
-[Mesos Modules](http://mesos.apache.org/documentation/latest/modules/).
+We consider oversubscription as a series of estimates i.e. how much can safely
+be oversubscribed and decisions i.e. how to protect production workloads. The
+different substages of estimates and decision-making should be able to
+influence each other. For example, dramatic corrections may have to involve
+limiting or stopping current estimates.
 
+We aim for a very flexible solution where both estimation and corrections are
+done in a pipelined approach with shared knowledge between each stage, referred
+to as Filters with a shared bus.
+
+![Serenity pipeline](https://github.com/mesosphere/serenity/blob/master/docs/images/serenity_pipeline.png)
+
+For more documentation, please refer to [docs](https://github.com/mesosphere/serenity/blob/master/docs/README.md).
+
+# Installing
 
 ## Prerequisites
 
 Building Mesos modules requires system-wide installation of google-protobuf,
-glog, boost, and picojson.
+glog, boost and picojson.
 
 ## Build Mesos with some unbundled dependencies
 
 ### Preparing Mesos source code
-First we need to prepare Mesos source code.  You can either download the Mesos
-standard release in the form of a tarball and extract it, or clone the git
-repository.
 
-Let us assume you did extract/clone
-the repository into `~/mesos`. Let us also assume that you build Mesos in a
-subdirectory
-called `build` (`~/mesos/build`).
+Start by pulling a recent version of [Apache Mesos](https://git-wip-us.apache.org/repos/asf/mesos.git):
+
+```
+git clone https://git-wip-us.apache.org/repos/asf/mesos.git ~/mesos
+```
 
 ### Building and Installing Mesos
-Next, we need to configure and build Mesos.
+
 Due to the fact that modules will need to have access to a couple of libprocess
 dependencies, Mesos itself should get built with unbundled dependencies to
 reduce chances of problems introduced by varying versions (libmesos vs. module
@@ -42,39 +46,45 @@ library).
 We recommend using the following configure options:
 
 ```
-cd <mesos-source-tree>
-mkdir build
-cd build
-../configure --with-glog=/usr/local --with-protobuf=/usr/local --with-boost=/usr/local --prefix=$HOME/usr
+cd ~/mesos
+mkdir build && cd build
+../configure --with-glog=/usr/local --with-protobuf=/usr/local --with-boost=/usr/local
 make
 make install
 ```
 
+<<<<<<< HEAD
 Note that the `--prefix=$HOME/usr` is required only if you don't want to do a system-wide Mesos installation.
 
 ## Build Mesos Modules (deprecated)
+=======
+### Build Serenity
+>>>>>>> master
 
-Once Mesos is built and installed, extract/clone the mesos-modules package. For the sake of this
-example, that could be in `~/mesos-modules`. Note that you should not put
-`mesos-modules` into the `mesos` folder.
+Once Mesos is built and installed, clone the Serenity package.
 
-You may now run start building the modules.
+The configuration phase needs to know some details about your Mesos build and installation
+location:
 
+<<<<<<< HEAD
 The configuration phase needs to know some details about your Mesos installation
 location, hence the following are used:
 `--with-mesos=/path/to/mesos/installation`
 
 ## Example (deprecated)
+=======
+>>>>>>> master
 ```
 ./bootstrap
 mkdir build && cd build
-../configure --with-mesos=/path/to/mesos/installation
+../configure --with-mesos-root=~/mesos --with-mesos-build-dir=~/mesos/build
 make
 ```
 
-At this point, the Module libraries are ready in `/build/.libs`.
+At this point, the Module libraries are ready in `build/.libs`.
 
-## Using Mesos Modules
+### Using Mesos Modules
+
 See [Mesos Modules](http://mesos.apache.org/documentation/latest/modules/).
 
 ## Building Serenity with Cmake
