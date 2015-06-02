@@ -55,7 +55,21 @@ make
 make install
 ```
 
-### Build Serenity
+## Building Serenity with Cmake
+
+Once Mesos is built and installed, clone the Serenity package.
+
+Build the serenity with those commands:
+
+```
+./setup.sh
+cd build
+cmake -DWITH_MESOS="/usr" ..
+make
+```
+
+
+### Build Serenity by autotools (deprecated)
 
 Once Mesos is built and installed, clone the Serenity package.
 

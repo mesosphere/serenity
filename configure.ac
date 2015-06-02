@@ -76,6 +76,7 @@ case "$host_os" in
 esac
 AC_SUBST(LIB_EXT)
 
+
 # Check if we're using clang.
 AC_MSG_CHECKING([if compiling with clang])
 
@@ -135,6 +136,27 @@ if test "x$CLANG" = "xno"; then
     AC_MSG_ERROR([Unable to build with g++-4.7 due to missing C++11 features])
   fi
 fi
+
+AC_ARG_WITH([protobuf-libdir],
+    [AS_HELP_STRING([--with-protobuf-libdir=LIB_DIR],
+        [location of the protocol buffers libraries, defaults to /usr/lib])],
+    [PROTOBUF_LIBDIR="$withval"],
+    [PROTOBUF_LIBDIR='/usr/lib'])
+AC_SUBST([PROTOBUF_LIBDIR])
+
+LDFLAGS="$LDFLAGS -L$PROTOBUF_LIBDIR"
+
+AC_CHECK_LIB([protobuf], [main], [], [AC_MSG_ERROR([cannot find protobuf library])])
+
+AC_ARG_WITH([protoc],
+    [AS_HELP_STRING([--with-protoc=PATH],
+        [location of the protoc protocol buffer compiler binary, defaults to protoc])],
+    [PROTOC="$withval"],
+    [PROTOC='protoc'])
+AC_SUBST([PROTOC])
+
+
+
 
 # Ensure we can build the C++11 features we expect, and set the std
 # CXXFLAG as appropriate.

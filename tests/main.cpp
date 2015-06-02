@@ -41,33 +41,13 @@
  * possibility of such damages.
  */
 
-#include <stout/try.hpp>
-#include <stout/nothing.hpp>
+#include <gtest/gtest.h>
 
-#include "serenity/serenity.hpp"
+int main(int argc, char** argv) {
+  //GOOGLE_PROTOBUF_VERIFY_VERSION;
 
+  ::testing::InitGoogleTest(&argc, argv);
 
-namespace mesos {
-namespace serenity {
+  return RUN_ALL_TESTS();
 
-
-Try<Nothing> BusSocket::registration(std::string topic){
-  return Nothing();
 }
-
-
-//skonefal TODO: Waiting for serenity.proto generic serenity event
-Try<Nothing> BusSocket::subscribe(
-    std::string topic,
-    std::function<void(mesos::scheduler::Event)> callback) {
-  return Nothing();
-}
-
-
-//skonefal TODO: Waiting for serenity.proto generic serenity event
-Try<Nothing> BusSocket::publish(std::string topic, mesos::scheduler::Event event){
-  return  Nothing();
-}
-
-} // namespace serenity
-} // namespace mesos

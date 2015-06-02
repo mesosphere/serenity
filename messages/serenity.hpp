@@ -41,29 +41,10 @@
  * possibility of such damages.
  */
 
-#ifndef SERENITY_DUMMY_SOURCE_H
-#define SERENITY_DUMMY_SOURCE_H
+#ifndef SERENITY_MESSAGES_SERENITY_HPP
+#define SERENITY_MESSAGES_SERENITY_HPP
 
-#include <stout/none.hpp>
-#include <stout/nothing.hpp>
-#include <stout/try.hpp>
+// ONLY USEFUL AFTER RUNNING PROTOC.
+#include "serenity.pb.h"
 
-#include "serenity.hpp"
-
-namespace mesos {
-namespace serenity {
-
-class DummySource : Source<int>
-{
-public:
-  template <typename ...Any>
-  DummySource(Filter<int, Any>*... outputFilters) : Filter(outputFilters...) {};
-
-  ~DummySource() noexcept;
-
-};
-
-} // namespace serenity
-} // namespace mesos
-
-#endif // SERENITY_DUMMY_SOURCE_H
+#endif //SERENITY_MESSAGES_SERENITY_HPP

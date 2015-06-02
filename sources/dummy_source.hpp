@@ -41,33 +41,29 @@
  * possibility of such damages.
  */
 
-#include <stout/try.hpp>
+#ifndef SERENITY_DUMMY_SOURCE_H
+#define SERENITY_DUMMY_SOURCE_H
+
+#include <stout/none.hpp>
 #include <stout/nothing.hpp>
+#include <stout/try.hpp>
 
 #include "serenity/serenity.hpp"
-
 
 namespace mesos {
 namespace serenity {
 
+class DummySource : Source<int>
+{
+public:
+  template <typename ...Any>
+  DummySource(Filter<int, Any>*... outputFilters) : Filter(outputFilters...) {};
 
-Try<Nothing> BusSocket::registration(std::string topic){
-  return Nothing();
-}
+  ~DummySource() noexcept;
 
-
-//skonefal TODO: Waiting for serenity.proto generic serenity event
-Try<Nothing> BusSocket::subscribe(
-    std::string topic,
-    std::function<void(mesos::scheduler::Event)> callback) {
-  return Nothing();
-}
-
-
-//skonefal TODO: Waiting for serenity.proto generic serenity event
-Try<Nothing> BusSocket::publish(std::string topic, mesos::scheduler::Event event){
-  return  Nothing();
-}
+};
 
 } // namespace serenity
 } // namespace mesos
+
+#endif // SERENITY_DUMMY_SOURCE_H

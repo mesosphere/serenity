@@ -6,6 +6,8 @@
 #include "filters/exponential_moving_average.hpp"
 #include "qos_controllers/serenity_qos_controller.hpp"
 
+#include "messages/serenity.hpp"
+
 
 int main(int argc, char** argv)
 {
