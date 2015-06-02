@@ -46,11 +46,10 @@
 namespace mesos {
 namespace serenity {
 
-SerenityQoSController::~SerenityQoSController() {};
+SerenityQoSController::~SerenityQoSController() {}
 
-
-Try<None> SerenityQoSController::doWork(int in) {
-  return None();
+Try<Nothing> SerenityQoSController::input(int in) {
+  return Nothing();
 }
 
 } // namespace serenity

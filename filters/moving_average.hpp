@@ -50,18 +50,16 @@
 namespace mesos {
 namespace serenity {
 
-//TODO: Template it <IN, OUT> and add a strategy to constructor?
-class MovingAverageFilter : public Filter<int, int>
+class MovingAverageFilter : public FilterIn<int>, public FilterOut<int>
 {
 public:
-
-  template <typename ...Any>
-  MovingAverageFilter(Filter<int, Any>*... outputFilters) : Filter(outputFilters...) {};
-
+  MovingAverageFilter() {}
   ~MovingAverageFilter() noexcept;
 
+  Try<Nothing> input(int in);
+
 protected:
-  virtual Try<int> doWork(int in) override;
+  Try<int> handle(int in);
 
 private:
   MovingAverageFilter(MovingAverageFilter& other) {};

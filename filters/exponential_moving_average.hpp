@@ -51,19 +51,17 @@ namespace serenity {
 
 
 //TODO: Template it <IN, OUT> and add a strategy to constructor?
-class ExponentialMovingAverageFilter : public Filter<int, int>
+class ExponentialMovingAverageFilter : public FilterIn<int>, public FilterOut<int>
 {
 public:
 
   ExponentialMovingAverageFilter(){}; //test constructor
-
-  template <typename ...Any>
-  ExponentialMovingAverageFilter(Filter<int, Any>*... outputFilters) : Filter(outputFilters...) {};
-
   ~ExponentialMovingAverageFilter() noexcept;
 
+  Try<Nothing> input(int in);
+
 protected:
-  virtual Try<int> doWork(int in) override;
+  Try<int> handle(int in);
 
 private:
   ExponentialMovingAverageFilter(ExponentialMovingAverageFilter& other) {};

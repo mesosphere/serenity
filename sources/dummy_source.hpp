@@ -53,11 +53,11 @@
 namespace mesos {
 namespace serenity {
 
-class DummySource : Source<int>
+class DummySource : FilterOut<int>
 {
 public:
   template <typename ...Any>
-  DummySource(Filter<int, Any>*... outputFilters) : Filter(outputFilters...) {};
+  DummySource() {}
 
   ~DummySource() noexcept;
 

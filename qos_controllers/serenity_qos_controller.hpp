@@ -45,6 +45,7 @@
 #define SERENITY_SERENITY_QOS_CONTROLLER_HPP
 
 #include <stout/nothing.hpp>
+#include <stout/none.hpp>
 #include <stout/try.hpp>
 
 #include "serenity/serenity.hpp"
@@ -52,14 +53,16 @@
 namespace mesos {
 namespace serenity {
 
-class SerenityQoSController : public Sink<int>
+class SerenityQoSController : public FilterIn<int>
 {
 public:
   SerenityQoSController() {};
   ~SerenityQoSController() noexcept;
 
+  Try<Nothing> input(int in);
+
 protected:
-  Try<None> doWork(int in) override;
+  Try<None> handle(int in);
 
 };
 

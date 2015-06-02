@@ -2,9 +2,9 @@
 
 #include <stout/try.hpp>
 
-#include "filters/moving_average.hpp"
-#include "filters/exponential_moving_average.hpp"
-#include "qos_controllers/serenity_qos_controller.hpp"
+#include "filters/moving_average.cpp"
+#include "filters/exponential_moving_average.cpp"
+#include "qos_controllers/serenity_qos_controller.cpp"
 
 #include "messages/serenity.hpp"
 
@@ -15,19 +15,17 @@ int main(int argc, char** argv)
   std::cout << "pipe test" << "\n";
 
 
+  mesos::serenity::MovingAverageFilter defFilter;
+  mesos::serenity::ExponentialMovingAverageFilter expFilter;
+  expFilter.bind(&defFilter);
+  defFilter.input(0);
+  defFilter.send(0);
+
   mesos::serenity::SerenityQoSController qos;
+  defFilter.bind(&qos);
 
-//  mesos::serenity::MovingAverageFilter defFilter;
-//  mesos::serenity::ExponentialMovingAverageFilter expFilter(&defFilter);
-
-//  mesos::serenity::MovingAverageFilter defFilter2(defFilter);
-//  mesos::serenity::MovingAverageFilter mafilter
-
-  mesos::serenity::MovingAverageFilter mafilter3(&qos);
-
-  mesos::serenity::MovingAverageFilter mafilter2(&qos, &qos);
-
-  mesos::serenity::MovingAverageFilter mafilter4(&qos, &mafilter3);
+  // Copy contructor?
+  //mesos::serenity::MovingAverageFilter defFilter2(defFilter);
 
   return EXIT_SUCCESS;
 }
