@@ -1,4 +1,6 @@
-# Serenity
+# Serenity [![Build Status](https://teamcity.mesosphere.io/guestAuth/app/rest/builds/buildType:(id:SerenityModules_CI)/statusIcon)](https://teamcity.mesosphere.io/viewType.html?buildTypeId=SerenityModules_CI&guest=1)
+
+# Building the Modules
 
 Intel and Mesosphere are working on creating cutting-edge oversubscription
 technologies for Mesos. Follow the [Mesos Oversubscription Architecture](https://docs.google.com/document/d/1pUnElxHy1uWfHY_FOvvRC73QaOGgdXE0OXN-gbxdXA0/edit), it
@@ -53,27 +55,27 @@ make
 make install
 ```
 
-<<<<<<< HEAD
-Note that the `--prefix=$HOME/usr` is required only if you don't want to do a system-wide Mesos installation.
+## Building Serenity with Cmake
 
-## Build Mesos Modules (deprecated)
-=======
-### Build Serenity
->>>>>>> master
+Once Mesos is built and installed, clone the Serenity package.
+
+Build the serenity with those commands:
+
+```
+./setup.sh
+cd build
+cmake -DWITH_MESOS="/usr" ..
+make
+```
+
+
+### Build Serenity by autotools (deprecated)
 
 Once Mesos is built and installed, clone the Serenity package.
 
 The configuration phase needs to know some details about your Mesos build and installation
 location:
 
-<<<<<<< HEAD
-The configuration phase needs to know some details about your Mesos installation
-location, hence the following are used:
-`--with-mesos=/path/to/mesos/installation`
-
-## Example (deprecated)
-=======
->>>>>>> master
 ```
 ./bootstrap
 mkdir build && cd build
@@ -86,15 +88,3 @@ At this point, the Module libraries are ready in `build/.libs`.
 ### Using Mesos Modules
 
 See [Mesos Modules](http://mesos.apache.org/documentation/latest/modules/).
-
-## Building Serenity with Cmake
-
-Serenity now supports Cmake build system.
-
-Build the serenity with those commands:
-```
-./setup.sh
-cd build
-cmake -DWITH_MESOS="/usr" ..
-make
-```
