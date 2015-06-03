@@ -21,16 +21,31 @@ to as Filters with a shared bus.
 
 For more documentation, please refer to [docs](https://github.com/mesosphere/serenity/blob/master/docs/README.md).
 
-# Installing
+## Installing
 
-## Prerequisites
+### Quickstart: build-and-test with Docker
+
+With the Serenity repository cloned locally:
+
+```
+cd serenity
+docker build .
+```
+
+The `Dockerfile` located in the project root is based on the
+`mesosphere/mesos-modules-dev` image.  This image has Mesos
+`0.22.1` pre-built with unbundled dependencies for convenience.
+See the contents of that Dockerfile
+[here](https://raw.githubusercontent.com/mesosphere/docker-containers/master/mesos-modules-dev/Dockerfile).
+
+### Prerequisites
 
 Building Mesos modules requires system-wide installation of google-protobuf,
 glog, boost and picojson.
 
-## Build Mesos with some unbundled dependencies
+### Build Mesos with some unbundled dependencies
 
-### Preparing Mesos source code
+#### Preparing Mesos source code
 
 Start by pulling a recent version of [Apache Mesos](https://git-wip-us.apache.org/repos/asf/mesos.git):
 
@@ -38,7 +53,7 @@ Start by pulling a recent version of [Apache Mesos](https://git-wip-us.apache.or
 git clone https://git-wip-us.apache.org/repos/asf/mesos.git ~/mesos
 ```
 
-### Building and Installing Mesos
+#### Building and Installing Mesos
 
 Due to the fact that modules will need to have access to a couple of libprocess
 dependencies, Mesos itself should get built with unbundled dependencies to
@@ -55,11 +70,11 @@ make
 make install
 ```
 
-## Building Serenity with Cmake
+### Building Serenity with Cmake
 
 Once Mesos is built and installed, clone the Serenity package.
 
-Build the serenity with those commands:
+Build serenity with these commands:
 
 ```
 ./setup.sh
@@ -68,8 +83,13 @@ cmake -DWITH_MESOS="/usr" ..
 make
 ```
 
+Run the tests:
 
-### Build Serenity by autotools (deprecated)
+```
+make test
+```
+
+### Build Serenity with autotools (deprecated)
 
 Once Mesos is built and installed, clone the Serenity package.
 
