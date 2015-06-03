@@ -49,7 +49,12 @@ namespace serenity {
 
 MovingAverageFilter::~MovingAverageFilter() {}
 
-Try<int> MovingAverageFilter::doWork(int in)
+Try<Nothing> MovingAverageFilter::input(int in)
+{
+  return Nothing();
+}
+
+Try<int> MovingAverageFilter::handle(int in)
 {
   return in;
 }

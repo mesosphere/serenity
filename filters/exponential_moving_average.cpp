@@ -49,9 +49,14 @@ namespace serenity {
 
 ExponentialMovingAverageFilter::~ExponentialMovingAverageFilter() {}
 
-Try<int> ExponentialMovingAverageFilter::doWork(int in)
+Try<int> ExponentialMovingAverageFilter::handle(int in)
 {
   return in;
+}
+
+Try<Nothing> ExponentialMovingAverageFilter::input(int in)
+{
+  return Nothing();
 }
 
 } // namespace serenity

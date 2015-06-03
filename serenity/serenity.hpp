@@ -48,10 +48,7 @@
 #include <cstdlib>
 
 #include <stout/try.hpp>
-#include <stout/none.hpp>
 #include <stout/nothing.hpp>
-
-#include <functional>
 
 #include <mesos/scheduler/scheduler.hpp>
 
@@ -77,78 +74,41 @@ public:
 };
 
 
-template<typename T, typename S>
-class Filter : public BusSocket
+template<typename T>
+class FilterIn : public BusSocket
 {
 public:
-
-  // Variadic template to allow fanout.
-  template<typename ...Any>
-  Filter(Filter<S, Any>*... out) {
-    recursiveUnpacking(out...);
-  };
-
-  Try<Nothing> input(T in) {
-    Try<S> result = doWork(in);
-    if (result.isError()) {
-      //TODO error handling
-      return Nothing();
-    }
-    else if (result.isSome()) {
-      for (auto output : outputVector) {
-        output(result.get());
-      }
-      return Nothing();
-    }
-    else {
-      return Nothing();
-    }
-  }
-
-  std::vector<std::function<Try<Nothing>(S)>> outputVector;
-
-protected:
-  virtual Try<S> doWork(T in) = 0;
-
-private:
-  template<typename Some, typename ...Any>
-  void recursiveUnpacking(Filter<S, Some>* head, Filter<S, Any>*... tail) {
-    std::function<Try<Nothing>(S)> outputFunction =
-        std::bind(&Filter<S, Some>::input, head, std::placeholders::_1);
-    outputVector.push_back(outputFunction);
-
-    recursiveUnpacking(tail...);
-  }
-
-  // end condition
-  void recursiveUnpacking() {}
-
+  virtual ~FilterIn() {}
+  // Input in the entrypoint for any filter.
+  // a FilterIn takes in data and optionally
+  // processes it.
+  virtual Try<Nothing> input(T in) = 0;
 };
 
-
 template<typename T>
-class Source : public Filter<None, T>
+class FilterOut : public BusSocket
 {
 public:
-  template<typename ...Any>
-  Source(Filter<T, Any>*... out) {}
+  FilterOut() {}
 
+  virtual ~FilterOut() {}
+
+  Try<Nothing> bind(FilterIn<T>* cb)
+  {
+    outputs.push_back(cb);
+    return Nothing();
+  }
+
+  Try<Nothing> send(T out)
+  {
+    for (auto o : outputs) {
+      o->input(out);
+    }
+    return Nothing();
+  }
 
 protected:
-  virtual Try<T> doWork(None in){
-    Error err("Source cannot be inputted");
-    return err;
-  }
-};
-
-
-template<typename T>
-class Sink : public Filter<T, None>
-{
-public:
-
-  virtual Try<None> doWork(T in) = 0;
-
+  std::vector<FilterIn<T>*> outputs;
 };
 
 } // namespace serenity
