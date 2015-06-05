@@ -49,7 +49,7 @@ namespace serenity {
 
 MovingAverageFilter::~MovingAverageFilter() {}
 
-Try<Nothing> MovingAverageFilter::input(int in)
+Try<Nothing> MovingAverageFilter::consume(int in)
 {
   return Nothing();
 }

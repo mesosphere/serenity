@@ -75,40 +75,39 @@ public:
 
 
 template<typename T>
-class FilterIn : public BusSocket
+class Consumer : public BusSocket
 {
 public:
-  virtual ~FilterIn() {}
-  // Input in the entrypoint for any filter.
-  // a FilterIn takes in data and optionally
-  // processes it.
-  virtual Try<Nothing> input(T in) = 0;
+  virtual ~Consumer() {}
+
+  virtual Try<Nothing> consume(T in) = 0;
 };
 
 template<typename T>
-class FilterOut : public BusSocket
+class Producer : public BusSocket
 {
 public:
-  FilterOut() {}
+  Producer() {}
 
-  virtual ~FilterOut() {}
+  virtual ~Producer() {}
 
-  Try<Nothing> bind(FilterIn<T>* cb)
+  Try<Nothing> addConsumer(Consumer<T>* consumer)
   {
-    outputs.push_back(cb);
-    return Nothing();
-  }
-
-  Try<Nothing> send(T out)
-  {
-    for (auto o : outputs) {
-      o->input(out);
-    }
+    consumers.push_back(consumer);
     return Nothing();
   }
 
 protected:
-  std::vector<FilterIn<T>*> outputs;
+  std::vector<Consumer<T>*> consumers;
+
+  Try<Nothing> produce(T out)
+  {
+    for (auto c : consumers) {
+      c->consume(out);
+    }
+    return Nothing();
+  }
+
 };
 
 } // namespace serenity

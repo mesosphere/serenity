@@ -54,7 +54,7 @@ Try<int> ExponentialMovingAverageFilter::handle(int in)
   return in;
 }
 
-Try<Nothing> ExponentialMovingAverageFilter::input(int in)
+Try<Nothing> ExponentialMovingAverageFilter::consume(int in)
 {
   return Nothing();
 }

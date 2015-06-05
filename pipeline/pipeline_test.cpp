@@ -14,15 +14,13 @@ int main(int argc, char** argv)
   Try<int> foobar = 5;
   std::cout << "pipe test" << "\n";
 
-
   mesos::serenity::MovingAverageFilter defFilter;
   mesos::serenity::ExponentialMovingAverageFilter expFilter;
-  expFilter.bind(&defFilter);
-  defFilter.input(0);
-  defFilter.send(0);
+  expFilter.addConsumer(&defFilter);
+  defFilter.consume(0);
 
   mesos::serenity::SerenityQoSController qos;
-  defFilter.bind(&qos);
+  defFilter.addConsumer(&qos);
 
   // Copy contructor?
   //mesos::serenity::MovingAverageFilter defFilter2(defFilter);

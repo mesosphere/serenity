@@ -48,7 +48,7 @@ namespace serenity {
 
 SerenityQoSController::~SerenityQoSController() {}
 
-Try<Nothing> SerenityQoSController::input(int in) {
+Try<Nothing> SerenityQoSController::consume(int in) {
   return Nothing();
 }
 
