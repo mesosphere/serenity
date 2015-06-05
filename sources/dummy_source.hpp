@@ -53,7 +53,7 @@
 namespace mesos {
 namespace serenity {
 
-class DummySource : FilterOut<int>
+class DummySource : Producer<int>
 {
 public:
   template <typename ...Any>

@@ -51,14 +51,14 @@ namespace serenity {
 
 
 //TODO: Template it <IN, OUT> and add a strategy to constructor?
-class ExponentialMovingAverageFilter : public FilterIn<int>, public FilterOut<int>
+class ExponentialMovingAverageFilter : public Consumer<int>, public Producer<int>
 {
 public:
 
   ExponentialMovingAverageFilter(){}; //test constructor
   ~ExponentialMovingAverageFilter() noexcept;
 
-  Try<Nothing> input(int in);
+  Try<Nothing> consume(int in);
 
 protected:
   Try<int> handle(int in);

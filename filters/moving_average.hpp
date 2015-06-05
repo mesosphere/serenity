@@ -50,13 +50,13 @@
 namespace mesos {
 namespace serenity {
 
-class MovingAverageFilter : public FilterIn<int>, public FilterOut<int>
+class MovingAverageFilter : public Consumer<int>, public Producer<int>
 {
 public:
   MovingAverageFilter() {}
   ~MovingAverageFilter() noexcept;
 
-  Try<Nothing> input(int in);
+  Try<Nothing> consume(int in);
 
 protected:
   Try<int> handle(int in);

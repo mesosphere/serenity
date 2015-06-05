@@ -53,13 +53,13 @@
 namespace mesos {
 namespace serenity {
 
-class SerenityQoSController : public FilterIn<int>
+class SerenityQoSController : public Consumer<int>
 {
 public:
   SerenityQoSController() {};
   ~SerenityQoSController() noexcept;
 
-  Try<Nothing> input(int in);
+  Try<Nothing> consume(int in);
 
 protected:
   Try<None> handle(int in);
