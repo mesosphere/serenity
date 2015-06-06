@@ -55,6 +55,7 @@ set(PIPELINE_TEST_SOURCES
 set(SERENITY_TEST_SOURCES
     tests/main.cpp
     tests/filters/moving_average_test.cpp
+    tests/string_length_mapper.cpp
 )
 
 add_library(serenity ${SERENITY_SOURCES})
