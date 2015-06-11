@@ -41,78 +41,41 @@
  * possibility of such damages.
  */
 
-#include <list>
-#include <stdlib.h>
+#include <string>
 
-#include <process/dispatch.hpp>
-#include <process/process.hpp>
+#include <mesos/mesos.hpp>
+#include <mesos/module.hpp>
 
-#include <stout/error.hpp>
+#include <mesos/module/resource_estimator.hpp>
+
+#include <mesos/slave/resource_estimator.hpp>
+
+#include <stout/try.hpp>
 
 #include "estimator/serenity_estimator.hpp"
 
-using namespace process;
+using namespace mesos;
 
-using std::list;
+using mesos::serenity::SerenityEstimator;
 
-namespace mesos {
-namespace serenity {
+using mesos::slave::ResourceEstimator;
 
-class SerenityEstimatorProcess :
-    public Process<SerenityEstimatorProcess>
+static ResourceEstimator* createSerenityEstimator(const Parameters& parameters)
 {
-public:
-  SerenityEstimatorProcess(
-      const lambda::function<Future<list<ResourceUsage>>()>& usages_)
-  : usages(usages_) {}
-
-  Future<Resources> oversubscribable()
-  {
-    // TODO(bplotka) Set up the main estimation pipeline here.
-    std::cout << "pipe test" << "\n";
-
-    // For now return empty resources.
-    return Resources();
+  LOG(INFO) << "Loading Serenity Estimator module";
+  Try<ResourceEstimator*> result = SerenityEstimator::create(None());
+  if (result.isError()) {
+    return NULL;
   }
-
-private:
-  const lambda::function<Future<list<ResourceUsage>>()>& usages;
-};
-
-
-SerenityEstimator::~SerenityEstimator()
-{
-  if (process.get() != NULL) {
-    terminate(process.get());
-    wait(process.get());
-  }
+  return result.get();
 }
 
 
-Try<Nothing> SerenityEstimator::initialize(
-    const lambda::function<Future<list<ResourceUsage>>()>& usages)
-{
-  if (process.get() != NULL) {
-    return Error("Serenity estimator has already been initialized");
-  }
-
-  process.reset(new SerenityEstimatorProcess(usages));
-  spawn(process.get());
-
-  return Nothing();
-}
-
-
-Future<Resources> SerenityEstimator::oversubscribable()
-{
-  if (process.get() == NULL) {
-    return Failure("Serenity estimator is not initialized");
-  }
-
-  return dispatch(
-      process.get(),
-      &SerenityEstimatorProcess::oversubscribable);
-}
-
-} // namespace serenity {
-} // namespace mesos {
+mesos::modules::Module<ResourceEstimator> com_mesosphere_mesos_SerenityEstimator(
+    MESOS_MODULE_API_VERSION,
+    MESOS_VERSION,
+    "Mesosphere",
+    "support@mesosphere.com",
+    "Serenity Estimator",
+    NULL,
+    createSerenityEstimator);
