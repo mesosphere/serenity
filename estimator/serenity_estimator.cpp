@@ -41,78 +41,63 @@
  * possibility of such damages.
  */
 
-#include <list>
-#include <stdlib.h>
+#include <mesos/mesos.hpp>
+#include <mesos/module.hpp>
 
-#include <process/dispatch.hpp>
-#include <process/process.hpp>
+//#include <mesos/module/resource_estimator.hpp>
 
-#include <stout/error.hpp>
+#include <mesos/slave/resource_estimator.hpp>
 
-#include "estimator/serenity_estimator.hpp"
+#include <process/future.hpp>
+#include <process/owned.hpp>
+#include <process/subprocess.hpp>
 
-using namespace process;
+#include <stout/try.hpp>
+#include <stout/stringify.hpp>
+#include <stout/hashmap.hpp>
+#include <stout/option.hpp>
 
-using std::list;
+using namespace mesos;
 
-namespace mesos {
-namespace serenity {
+using mesos::slave::ResourceEstimator;
 
-class SerenityEstimatorProcess :
-    public Process<SerenityEstimatorProcess>
+class SerenityEstimator : public ResourceEstimator
 {
 public:
-  SerenityEstimatorProcess(
-      const lambda::function<Future<list<ResourceUsage>>()>& usages_)
-  : usages(usages_) {}
-
-  Future<Resources> oversubscribable()
-  {
-    // TODO(bplotka) Set up the main estimation pipeline here.
-    std::cout << "pipe test" << "\n";
-
-    // For now return empty resources.
-    return Resources();
+  static Try<ResourceEstimator*> create(const Parameters& parameters){
+    return new SerenityEstimator();
   }
 
-private:
-  const lambda::function<Future<list<ResourceUsage>>()>& usages;
+  virtual Try<Nothing> initialize() {
+    return Nothing();
+  }
+
+  virtual process::Future<Resources> oversubscribable(){
+    return mesos::Resources();
+  }
+
+
 };
 
 
-SerenityEstimator::~SerenityEstimator()
-{
-  if (process.get() != NULL) {
-    terminate(process.get());
-    wait(process.get());
-  }
-}
+// skonefal TODO: waint until the Resource Estimator module lands on mesos master
 
-
-Try<Nothing> SerenityEstimator::initialize(
-    const lambda::function<Future<list<ResourceUsage>>()>& usages)
-{
-  if (process.get() != NULL) {
-    return Error("Serenity estimator has already been initialized");
-  }
-
-  process.reset(new SerenityEstimatorProcess(usages));
-  spawn(process.get());
-
-  return Nothing();
-}
-
-
-Future<Resources> SerenityEstimator::oversubscribable()
-{
-  if (process.get() == NULL) {
-    return Failure("Serenity estimator is not initialized");
-  }
-
-  return dispatch(
-      process.get(),
-      &SerenityEstimatorProcess::oversubscribable);
-}
-
-} // namespace serenity {
-} // namespace mesos {
+//static ResourceEstimator* createSerenityEstimator(const Parameters& parameters)
+//{
+//  LOG(INFO) << "Loading Serenity Estimator module";
+//  Try<ResourceEstimator*> result = SerenityEstimator::create(parameters);
+//  if (result.isError()) {
+//    return NULL;
+//  }
+//  return result.get();
+//}
+//
+//
+//mesos::modules::Module<ResourceEstimator> com_mesosphere_mesos_SerenityEstimator(
+//    MESOS_MODULE_API_VERSION,
+//    MESOS_VERSION,
+//    "Mesosphere",
+//    "support@mesosphere.com",
+//    "Serenity Estimator",
+//    NULL,
+//    createSerenityEstimator);
