@@ -41,78 +41,54 @@
  * possibility of such damages.
  */
 
+#include <gtest/gtest.h>
+
 #include <list>
-#include <stdlib.h>
 
-#include <process/dispatch.hpp>
-#include <process/process.hpp>
+#include <mesos/resources.hpp>
 
-#include <stout/error.hpp>
+#include <mesos/slave/resource_estimator.hpp>
+
+#include <stout/gtest.hpp>
+
+#include <process/gtest.hpp>
 
 #include "estimator/serenity_estimator.hpp"
 
-using namespace process;
+#include "tests/serenity.hpp"
 
 using std::list;
 
+using mesos::slave::ResourceEstimator;
+
 namespace mesos {
-namespace serenity {
+namespace tests {
 
-class SerenityEstimatorProcess :
-    public Process<SerenityEstimatorProcess>
+// NOTE: For now checking only the interface.
+TEST(SerenityEstimatorTest, EmptySlackEstimation)
 {
-public:
-  SerenityEstimatorProcess(
-      const lambda::function<Future<list<ResourceUsage>>()>& usages_)
-  : usages(usages_) {}
+  Try<ResourceEstimator*> resourceEstimator =
+    serenity::SerenityEstimator::create(None());
+  ASSERT_SOME(resourceEstimator);
 
-  Future<Resources> oversubscribable()
-  {
-    // TODO(bplotka) Set up the main estimation pipeline here.
-    std::cout << "pipe test" << "\n";
+  ResourceEstimator* estimator = resourceEstimator.get();
 
-    // For now return empty resources.
-    return Resources();
+  MockUsage usage(5);
+
+  Try<Nothing> initialize = estimator->initialize(
+      lambda::bind(&MockUsage::usages, &usage));
+
+  process::Future<Resources> result = estimator->oversubscribable();
+
+  AWAIT_READY(result);
+
+  for(Resources slack : result.get()){
+    for(Resource slack_resource : slack) {
+      EXPECT_TRUE(Resources::isEmpty(slack_resource));
+    }
   }
 
-private:
-  const lambda::function<Future<list<ResourceUsage>>()>& usages;
-};
-
-
-SerenityEstimator::~SerenityEstimator()
-{
-  if (process.get() != NULL) {
-    terminate(process.get());
-    wait(process.get());
-  }
 }
 
-
-Try<Nothing> SerenityEstimator::initialize(
-    const lambda::function<Future<list<ResourceUsage>>()>& usages)
-{
-  if (process.get() != NULL) {
-    return Error("Serenity estimator has already been initialized");
-  }
-
-  process.reset(new SerenityEstimatorProcess(usages));
-  spawn(process.get());
-
-  return Nothing();
-}
-
-
-Future<Resources> SerenityEstimator::oversubscribable()
-{
-  if (process.get() == NULL) {
-    return Failure("Serenity estimator is not initialized");
-  }
-
-  return dispatch(
-      process.get(),
-      &SerenityEstimatorProcess::oversubscribable);
-}
-
-} // namespace serenity {
-} // namespace mesos {
+} // tests {
+} // mesos {
