@@ -41,76 +41,45 @@
  * possibility of such damages.
  */
 
-#include <list>
-#include <stdlib.h>
+#ifndef ESTIMATOR_SERENITY_ESTIMATOR_HPP
+#define ESTIMATOR_SERENITY_ESTIMATOR_HPP
 
-#include <process/dispatch.hpp>
-#include <process/process.hpp>
+#include <mesos/slave/resource_estimator.hpp>
 
-#include <stout/error.hpp>
+#include <stout/lambda.hpp>
 
-#include "estimator/serenity_estimator.hpp"
-
-using namespace process;
+#include <process/future.hpp>
+#include <process/owned.hpp>
 
 namespace mesos {
 namespace serenity {
 
-class SerenityEstimatorProcess :
-    public Process<SerenityEstimatorProcess>
+// Forward declaration.
+class SerenityEstimatorProcess;
+
+
+class SerenityEstimator : public slave::ResourceEstimator
 {
 public:
-  SerenityEstimatorProcess(
-      const lambda::function<Future<ResourceUsage>()>& usages_)
-  : usages(usages_) {}
+  SerenityEstimator() {}
 
-  Future<Resources> oversubscribable()
+  static Try<slave::ResourceEstimator*>create(const Option<std::string>& type)
   {
-    // TODO(bplotka) Set up the main estimation pipeline here.
-    std::cout << "pipe test" << "\n";
-
-    // For now return empty resources.
-    return Resources();
+    return new SerenityEstimator();
   }
 
-private:
-  const lambda::function<Future<ResourceUsage>()>& usages;
+  virtual ~SerenityEstimator();
+
+  virtual Try<Nothing> initialize(
+      const lambda::function<process::Future<ResourceUsage>()>& usages);
+
+  virtual process::Future<Resources> oversubscribable();
+
+protected:
+  process::Owned<SerenityEstimatorProcess> process;
 };
-
-
-SerenityEstimator::~SerenityEstimator()
-{
-  if (process.get() != NULL) {
-    terminate(process.get());
-    wait(process.get());
-  }
-}
-
-
-Try<Nothing> SerenityEstimator::initialize(
-    const lambda::function<Future<ResourceUsage>()>& usages)
-{
-  if (process.get() != NULL) {
-    return Error("Serenity estimator has already been initialized");
-  }
-
-  process.reset(new SerenityEstimatorProcess(usages));
-  spawn(process.get());
-
-  return Nothing();
-}
-
-
-Future<Resources> SerenityEstimator::oversubscribable()
-{
-  if (process.get() == NULL) {
-    return Failure("Serenity estimator is not initialized");
-  }
-
-  return dispatch(
-      process.get(),
-      &SerenityEstimatorProcess::oversubscribable);
-}
 
 } // namespace serenity {
 } // namespace mesos {
+
+#endif // ESTIMATOR_SERENITY_ESTIMATOR_HPP
