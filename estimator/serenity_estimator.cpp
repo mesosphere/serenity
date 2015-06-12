@@ -10,8 +10,6 @@
 
 using namespace process;
 
-using std::list;
-
 namespace mesos {
 namespace serenity {
 
@@ -20,7 +18,7 @@ class SerenityEstimatorProcess :
 {
 public:
   SerenityEstimatorProcess(
-      const lambda::function<Future<list<ResourceUsage>>()>& usages_)
+      const lambda::function<Future<ResourceUsage>()>& usages_)
   : usages(usages_) {}
 
   Future<Resources> oversubscribable()
@@ -33,7 +31,7 @@ public:
   }
 
 private:
-  const lambda::function<Future<list<ResourceUsage>>()>& usages;
+  const lambda::function<Future<ResourceUsage>()>& usages;
 };
 
 
@@ -47,7 +45,7 @@ SerenityEstimator::~SerenityEstimator()
 
 
 Try<Nothing> SerenityEstimator::initialize(
-    const lambda::function<Future<list<ResourceUsage>>()>& usages)
+    const lambda::function<Future<ResourceUsage>()>& usages)
 {
   if (process.get() != NULL) {
     return Error("Serenity estimator has already been initialized");
