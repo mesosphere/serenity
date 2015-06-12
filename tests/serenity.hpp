@@ -67,18 +67,13 @@ namespace tests {
         executor.mutable_command()->set_value(command);                 \
         executor; })
 
-#define CREATE_RESOURCE_USAGE(executorInfo, statistics)                 \
-      ({ ResourceUsage usage;                                           \
-        usage.mutable_executor_info()->CopyFrom(executorInfo);          \
-        usage.mutable_statistics()->CopyFrom(statistics);               \
-        usage; })
 
 // Factory for statistics stubs.
-class StatisticsFactory
+class ResourceHelper
 {
 public:
   // TODO(bplotka) parametrize that
-  static ResourceStatistics create()
+  static ResourceStatistics createStatistics()
   {
     ResourceStatistics statistics;
     statistics.set_cpus_nr_periods(100);
@@ -97,31 +92,42 @@ public:
     return statistics;
   }
 
+  static void addExecutor(
+      ResourceUsage& usage,
+      ExecutorInfo executorInfo,
+      Resources allocated,
+      ResourceStatistics statistics)
+  {
+    ResourceUsage::Executor* executor = usage.add_executors();
+    executor->mutable_executor_info()->CopyFrom(executorInfo);
+    executor->mutable_allocated()->CopyFrom(allocated);
+    executor->mutable_statistics()->CopyFrom(statistics);
+  }
 };
 
 
-// Fake usages function (same method as in mesos::slave::ResourceMonitor).
-// We are not mocking ResourceMonitor, because there are plans to kill RM.
-class MockUsage
+// Fake usages function (same method as in mesos::slave::Slave).
+class MockSlaveUsage
 {
 public:
-  MockUsage(int executors) : results(results)
+  MockSlaveUsage(int executors) : results(ResourceUsage())
   {
     for (int i = 0; i < executors; i++) {
-      results.push_back(
-          CREATE_RESOURCE_USAGE(
-              CREATE_EXECUTOR_INFO(std::to_string(i + 1), "exit 1"),
-              StatisticsFactory::create()));
+      ResourceHelper::addExecutor(
+          results,
+          CREATE_EXECUTOR_INFO(std::to_string(i + 1), "exit 1"),
+          Resources(),
+          ResourceHelper::createStatistics());
     }
   }
 
-  process::Future <std::list<ResourceUsage>> usages()
+  process::Future<ResourceUsage> usages()
   {
     return results;
   }
 
 private:
-  std::list<ResourceUsage> results;
+  ResourceUsage results;
 };
 
 } // tests {

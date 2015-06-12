@@ -48,6 +48,7 @@
 
 #include <stout/lambda.hpp>
 
+#include <process/future.hpp>
 #include <process/owned.hpp>
 
 namespace mesos {
@@ -57,20 +58,20 @@ namespace serenity {
 class SerenityEstimatorProcess;
 
 
-class SerenityEstimator : public mesos::slave::ResourceEstimator
+class SerenityEstimator : public slave::ResourceEstimator
 {
 public:
   SerenityEstimator() {}
 
-  static Try<ResourceEstimator*>create(const Option<std::string>& type){
+  static Try<slave::ResourceEstimator*>create(const Option<std::string>& type)
+  {
     return new SerenityEstimator();
   }
 
   virtual ~SerenityEstimator();
 
   virtual Try<Nothing> initialize(
-      const lambda::function<
-          process::Future<std::list<ResourceUsage>>()>& usages);
+      const lambda::function<process::Future<ResourceUsage>()>& usages);
 
   virtual process::Future<Resources> oversubscribable();
 
