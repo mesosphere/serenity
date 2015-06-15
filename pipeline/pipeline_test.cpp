@@ -4,7 +4,7 @@
 
 #include "filters/moving_average.cpp"
 #include "filters/exponential_moving_average.cpp"
-#include "qos_controllers/serenity_qos_controller.cpp"
+#include "qos_controller/serenity_controller.cpp"
 
 #include "messages/serenity.hpp"
 
@@ -19,8 +19,8 @@ int main(int argc, char** argv)
   expFilter.addConsumer(&defFilter);
   defFilter.consume(0);
 
-  mesos::serenity::SerenityQoSController qos;
-  defFilter.addConsumer(&qos);
+  mesos::serenity::SerenityController qos;
+  //defFilter.addConsumer(&qos);
 
   // Copy contructor?
   //mesos::serenity::MovingAverageFilter defFilter2(defFilter);
