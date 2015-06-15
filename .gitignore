@@ -1,5 +1,6 @@
 build/*
-lib/*
+lib/gmock-1.7.0/*
+lib/pbjson/*
 m4/
 Makefile.in
 aclocal.m4

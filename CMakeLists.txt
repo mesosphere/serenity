@@ -19,22 +19,34 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 
 # Protobuf stuff
-
 find_package(Protobuf REQUIRED)
 set(PROTOBUF_IMPORT_DIRS ${MESOS_INSTALLATION_DIR}/include/)
 file(GLOB ProtoFiles "${CMAKE_CURRENT_SOURCE_DIR}/messages/serenity.proto")
+file(GLOB TestProtoFiles "${CMAKE_CURRENT_SOURCE_DIR}/tests/sources/json_source.proto")
 PROTOBUF_GENERATE_CPP(ProtoSources ProtoHeaders ${ProtoFiles})
 add_library(messages STATIC ${ProtoSources} ${ProtoHeaders})
 
+PROTOBUF_GENERATE_CPP(TestProtoSources TestProtoHeaders ${TestProtoFiles})
+add_library(messages-test STATIC ${TestProtoSources} ${TestProtoHeaders})
+
+
+# pbjson + rapidjson
+add_library(pbjson lib/pbjson/src/pbjson.cpp)
+target_link_libraries(pbjson protobuf)
 
 
 include_directories(
+
     ./
     ../
     include/
     ${MESOS_INSTALLATION_DIR}/include
+
     ${gmock_SOURCE_DIR}/include/
     ${gmock_SOURCE_DIR}/gtest/include/
+
+    lib/pbjson/src/
+
     ${CMAKE_BINARY_DIR}/
 )
 
@@ -57,12 +69,15 @@ set(SERENITY_TEST_SOURCES
     tests/filters/moving_average_test.cpp
 )
 
+link_directories(${MESOS_INSTALLATION_DIR}/lib/)
+
 add_library(serenity ${SERENITY_SOURCES})
-target_link_libraries(serenity messages)
+target_link_libraries(serenity messages mesos)
 
 add_executable(pipeline_test ${PIPELINE_TEST_SOURCES})
-target_link_libraries(pipeline_test serenity)
+target_link_libraries(pipeline_test serenity pbjson messages-test)
 
 add_executable(serenity-tests ${SERENITY_TEST_SOURCES})
-target_link_libraries(serenity-tests serenity gtest gtest_main gmock gmock_main)
+target_link_libraries(serenity-tests serenity gtest gtest_main gmock
+gmock_main pbjson messages-test)
 add_test(serenity-tests serenity-tests)
