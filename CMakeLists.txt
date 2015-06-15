@@ -38,7 +38,7 @@ set(SERENITY_SOURCES
     filters/moving_average.cpp
     filters/moving_average.hpp
     observers/ipc_drop.cpp
-    qos_controllers/serenity_qos_controller.cpp
+    qos_controller/serenity_controller.cpp
     sources/dummy_source.cpp
 )
 
@@ -50,6 +50,7 @@ set(SERENITY_TEST_SOURCES
     tests/main.cpp
     tests/filters/moving_average_test.cpp
     tests/estimator_test.cpp
+    tests/qos_controller_test.cpp
     tests/serenity.hpp
 )
 
@@ -57,7 +58,7 @@ add_library(serenity ${SERENITY_SOURCES})
 target_link_libraries(serenity messages)
 
 add_executable(pipeline_test ${PIPELINE_TEST_SOURCES})
-target_link_libraries(pipeline_test serenity)
+target_link_libraries(pipeline_test serenity mesos)
 
 add_executable(serenity-tests ${SERENITY_TEST_SOURCES})
 target_link_libraries(serenity-tests

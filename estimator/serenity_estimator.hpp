@@ -4,6 +4,8 @@
 #include <mesos/slave/resource_estimator.hpp>
 
 #include <stout/lambda.hpp>
+#include <stout/nothing.hpp>
+#include <stout/try.hpp>
 
 #include <process/future.hpp>
 #include <process/owned.hpp>
@@ -18,7 +20,7 @@ class SerenityEstimatorProcess;
 class SerenityEstimator : public slave::ResourceEstimator
 {
 public:
-  SerenityEstimator() {}
+  SerenityEstimator() {};
 
   static Try<slave::ResourceEstimator*>create(const Option<std::string>& type)
   {
