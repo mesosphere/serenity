@@ -6,13 +6,6 @@ package mesos;
 option java_package = "org.apache.mesos";
 option java_outer_classname = "Protos";
 
-/**
-* Contains resource usage for running executors
-*/
-message Usage {
- repeated ResourceUsage resource_usage = 1;
-}
-
 
 /**
 * Necessary union to define executor or
