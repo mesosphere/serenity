@@ -7,6 +7,9 @@
 #include <gtest/gtest.h>
 
 #include <mesos/mesos.pb.h>
+#include <mesos/resources.hpp>
+
+#include <process/future.hpp>
 
 namespace mesos {
 namespace tests {

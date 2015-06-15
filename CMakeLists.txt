@@ -37,6 +37,8 @@ set(SERENITY_SOURCES
     estimator/serenity_estimator.cpp
     filters/moving_average.cpp
     filters/moving_average.hpp
+    filters/ema.cpp
+    filters/ema.hpp
     observers/ipc_drop.cpp
     qos_controller/serenity_controller.cpp
     sources/dummy_source.cpp
@@ -49,6 +51,7 @@ set(PIPELINE_TEST_SOURCES
 set(SERENITY_TEST_SOURCES
     tests/main.cpp
     tests/filters/moving_average_test.cpp
+    tests/filters/ema_test.cpp
     tests/estimator_test.cpp
     tests/qos_controller_test.cpp
     tests/serenity.hpp
