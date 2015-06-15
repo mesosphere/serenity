@@ -19,7 +19,7 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 find_package(Protobuf REQUIRED)
 set(PROTOBUF_IMPORT_DIRS ${MESOS_INSTALLATION_DIR}/include/)
 file(GLOB ProtoFiles "${CMAKE_CURRENT_SOURCE_DIR}/messages/serenity.proto")
-file(GLOB TestProtoFiles "${CMAKE_CURRENT_SOURCE_DIR}/tests/sources/json_source.proto")
+file(GLOB TestProtoFiles "tests/helpers/sources/json_source.proto")
 PROTOBUF_GENERATE_CPP(ProtoSources ProtoHeaders ${ProtoFiles})
 add_library(messages STATIC ${ProtoSources} ${ProtoHeaders})
 
@@ -56,20 +56,24 @@ set(SERENITY_SOURCES
 )
 
 set(PIPELINE_TEST_SOURCES
-    pipeline/pipeline_test.cpp
+    tests/integration/pipeline_test.cpp
 )
 
-set(SERENITY_TESTS_SOURCES
-    tests/estimator_test.cpp
-    tests/qos_controller_test.cpp
-    tests/filters/moving_average_test.cpp
+set(SERENITY_UT_TESTS_SOURCES
+    tests/ut/estimators/estimator_test.cpp
+    tests/ut/controllers/qos_controller_test.cpp
+    tests/ut/filters/moving_average_test.cpp
     tests/main.cpp
-    tests/serenity.hpp
+    tests/integration/sources/json_source_test.cpp
 )
 
 set(SERENITY_INTEGRATION_TESTS_SOURCES
-    tests/sources/json_source.cpp
-    tests/sinks/dummy_resource_usage_sink.cpp
+    tests/main.cpp
+    tests/integration/sources/json_source_test.cpp
+)
+
+set(SERENITY_TESTS_HELPERS_SOURCES
+    tests/helpers/sources/json_source.cpp
 )
 
 link_directories(${MESOS_INSTALLATION_DIR}/lib/)
@@ -79,21 +83,35 @@ add_library(serenity ${SERENITY_SOURCES})
 target_link_libraries(serenity messages mesos glog)
 
 #Integration tests library
-add_library(serenity-integration-tests ${SERENITY_INTEGRATION_TESTS_SOURCES})
-target_link_libraries(serenity-integration-tests serenity messages-test pbjson)
+add_library(serenity-tests-helpers ${SERENITY_TESTS_HELPERS_SOURCES})
+target_link_libraries(serenity-tests-helpers serenity messages-test pbjson)
 
 #Unit tests
-add_executable(serenity-tests ${SERENITY_TESTS_SOURCES})
+add_executable(serenity-tests ${SERENITY_UT_TESTS_SOURCES})
 target_link_libraries(serenity-tests
     serenity
-    serenity-integration-tests
+    serenity-tests-helpers
     gtest
     gtest_main
     gmock
     gmock_main
-    )
+)
 add_test(serenity-tests serenity-tests)
+
+
+#Integration tests
+add_executable(serenity-integration-tests ${SERENITY_INTEGRATION_TESTS_SOURCES})
+target_link_libraries(serenity-integration-tests
+    serenity
+    serenity-tests-helpers
+    gtest
+    gtest_main
+    gmock
+    gmock_main
+)
+add_test(serenity-integration-tests serenity-integration-tests)
+
 
 # Integration tests
 add_executable(pipeline_test ${PIPELINE_TEST_SOURCES})
-target_link_libraries(pipeline_test serenity-integration-tests)
+target_link_libraries(pipeline_test serenity-tests-helpers)

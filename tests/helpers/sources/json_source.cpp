@@ -13,8 +13,6 @@
 namespace mesos {
 namespace serenity {
 
-
-
 void JsonSource::RunTests(const std::string& jsonSource)
 {
   Try<mesos::FixtureResourceUsage> usages = JsonSource::ReadJson(jsonSource);
@@ -32,7 +30,7 @@ void JsonSource::RunTests(const std::string& jsonSource)
   return;
 }
 
-const Try<mesos::FixtureResourceUsage> JsonSource::ReadJson(
+const Try<FixtureResourceUsage> JsonSource::ReadJson(
     const std::string& relativePath)
 {
   Try<std::string> content = os::read(relativePath);
@@ -43,7 +41,7 @@ const Try<mesos::FixtureResourceUsage> JsonSource::ReadJson(
   }
 
   std::string err;
-  mesos::FixtureResourceUsage ru;
+  FixtureResourceUsage ru;
   int reply = pbjson::json2pb(content.get(), &ru, err);
   if (reply != 0){
     Try<std::string> emsg = strings::format(

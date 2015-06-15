@@ -6,7 +6,7 @@
 #include "filters/exponential_moving_average.cpp"
 #include "qos_controller/serenity_controller.cpp"
 
-#include "tests/sources/json_source.hpp"
+#include "tests/helpers/sources/json_source.hpp"
 
 #include "messages/serenity.hpp"
 
@@ -21,14 +21,9 @@ int main(int argc, char** argv)
   MovingAverageFilter defFilter;
   ExponentialMovingAverageFilter expFilter;
   expFilter.addConsumer(&defFilter);
-  defFilter.consume(0);
 
   SerenityController qos;
   //defFilter.addConsumer(&qos);
-
-  //TODO: add target in cmake to copy fixtures to build folder
-  JsonSource jsonSource;
-  jsonSource.RunTests("../tests/sources/fixtures/ut_fixture.json");
 
 
   return EXIT_SUCCESS;
