@@ -61,8 +61,8 @@ class SerenityEstimatorProcess :
 {
 public:
   SerenityEstimatorProcess(
-      const lambda::function<Future<ResourceUsage>()>& usages_)
-  : usages(usages_) {}
+      const lambda::function<Future<ResourceUsage>()>& usage_)
+  : usage(usage_) {}
 
   Future<Resources> oversubscribable()
   {
@@ -74,7 +74,7 @@ public:
   }
 
 private:
-  const lambda::function<Future<ResourceUsage>()>& usages;
+  const lambda::function<Future<ResourceUsage>()>& usage;
 };
 
 
@@ -88,13 +88,13 @@ SerenityEstimator::~SerenityEstimator()
 
 
 Try<Nothing> SerenityEstimator::initialize(
-    const lambda::function<Future<ResourceUsage>()>& usages)
+    const lambda::function<Future<ResourceUsage>()>& usage)
 {
   if (process.get() != NULL) {
     return Error("Serenity estimator has already been initialized");
   }
 
-  process.reset(new SerenityEstimatorProcess(usages));
+  process.reset(new SerenityEstimatorProcess(usage));
   spawn(process.get());
 
   return Nothing();

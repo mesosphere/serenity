@@ -76,7 +76,7 @@ TEST(SerenityEstimatorTest, EmptySlackEstimation)
   MockSlaveUsage usage(5);
 
   Try<Nothing> initialize = estimator->initialize(
-      lambda::bind(&MockSlaveUsage::usages, &usage));
+      lambda::bind(&MockSlaveUsage::usage, &usage));
 
   process::Future<Resources> result = estimator->oversubscribable();
 

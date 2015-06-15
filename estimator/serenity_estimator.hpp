@@ -71,7 +71,7 @@ public:
   virtual ~SerenityEstimator();
 
   virtual Try<Nothing> initialize(
-      const lambda::function<process::Future<ResourceUsage>()>& usages);
+      const lambda::function<process::Future<ResourceUsage>()>& usage);
 
   virtual process::Future<Resources> oversubscribable();
 

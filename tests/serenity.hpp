@@ -106,7 +106,7 @@ public:
 };
 
 
-// Fake usages function (same method as in mesos::slave::Slave).
+// Fake usage function (same method as in mesos::slave::Slave).
 class MockSlaveUsage
 {
 public:
@@ -121,7 +121,7 @@ public:
     }
   }
 
-  process::Future<ResourceUsage> usages()
+  process::Future<ResourceUsage> usage()
   {
     return results;
   }
