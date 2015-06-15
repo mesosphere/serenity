@@ -4,7 +4,7 @@
 
 #include "filters/moving_average.cpp"
 #include "filters/exponential_moving_average.cpp"
-#include "qos_controllers/serenity_qos_controller.cpp"
+#include "qos_controller/serenity_controller.cpp"
 
 #include "tests/sources/json_source.hpp"
 
@@ -23,8 +23,8 @@ int main(int argc, char** argv)
   expFilter.addConsumer(&defFilter);
   defFilter.consume(0);
 
-  SerenityQoSController qos;
-  defFilter.addConsumer(&qos);
+  SerenityController qos;
+  //defFilter.addConsumer(&qos);
 
   //TODO: add target in cmake to copy fixtures to build folder
   JsonSource jsonSource;

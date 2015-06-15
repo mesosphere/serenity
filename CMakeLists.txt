@@ -51,7 +51,7 @@ set(SERENITY_SOURCES
     filters/moving_average.cpp
     filters/moving_average.hpp
     observers/ipc_drop.cpp
-    qos_controllers/serenity_qos_controller.cpp
+    qos_controller/serenity_controller.cpp
     sources/dummy_source.cpp
 )
 
@@ -61,6 +61,7 @@ set(PIPELINE_TEST_SOURCES
 
 set(SERENITY_TESTS_SOURCES
     tests/estimator_test.cpp
+    tests/qos_controller_test.cpp
     tests/filters/moving_average_test.cpp
     tests/main.cpp
     tests/serenity.hpp
