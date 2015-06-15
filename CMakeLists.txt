@@ -7,16 +7,13 @@ SET(WITH_MESOS "/usr" CACHE STRING "Mesos installation directory")
 SET(MESOS_INSTALLATION_DIR ${WITH_MESOS})
 MESSAGE("Mesos installation directory set to: " ${MESOS_INSTALLATION_DIR})
 
-
 # Add gtest
 ADD_SUBDIRECTORY (lib/gmock-1.7.0)
 include_directories( ${gmock_SOURCE_DIR} include)
 include_directories( ${gtest_SOURCE_DIR} include)
 
-
 # CXX Flags
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-
 
 # Protobuf stuff
 find_package(Protobuf REQUIRED)
@@ -33,8 +30,6 @@ add_library(messages-test STATIC ${TestProtoSources} ${TestProtoHeaders})
 # pbjson + rapidjson
 add_library(pbjson lib/pbjson/src/pbjson.cpp)
 target_link_libraries(pbjson protobuf)
-
-
 include_directories(
 
     ./
@@ -50,9 +45,9 @@ include_directories(
     ${CMAKE_BINARY_DIR}/
 )
 
-
 set(SERENITY_SOURCES
     bus/bus_socket.cpp
+    estimator/serenity_estimator.cpp
     filters/moving_average.cpp
     filters/moving_average.hpp
     observers/ipc_drop.cpp
@@ -67,6 +62,8 @@ set(PIPELINE_TEST_SOURCES
 set(SERENITY_TEST_SOURCES
     tests/main.cpp
     tests/filters/moving_average_test.cpp
+    tests/estimator_test.cpp
+    tests/serenity.hpp
 )
 
 link_directories(${MESOS_INSTALLATION_DIR}/lib/)
@@ -78,6 +75,14 @@ add_executable(pipeline_test ${PIPELINE_TEST_SOURCES})
 target_link_libraries(pipeline_test serenity pbjson messages-test)
 
 add_executable(serenity-tests ${SERENITY_TEST_SOURCES})
-target_link_libraries(serenity-tests serenity gtest gtest_main gmock
-gmock_main pbjson messages-test)
+target_link_libraries(serenity-tests
+    serenity
+    messages-test)
+    pbjson
+    gtest
+    gtest_main
+    gmock
+    gmock_main
+    mesos
+    pbjson)
 add_test(serenity-tests serenity-tests)
