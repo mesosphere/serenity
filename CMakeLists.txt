@@ -59,30 +59,40 @@ set(PIPELINE_TEST_SOURCES
     pipeline/pipeline_test.cpp
 )
 
-set(SERENITY_TEST_SOURCES
-    tests/main.cpp
-    tests/filters/moving_average_test.cpp
+set(SERENITY_TESTS_SOURCES
     tests/estimator_test.cpp
+    tests/filters/moving_average_test.cpp
+    tests/main.cpp
     tests/serenity.hpp
+)
+
+set(SERENITY_INTEGRATION_TESTS_SOURCES
+    tests/sources/json_source.cpp
+    tests/sinks/dummy_resource_usage_sink.cpp
 )
 
 link_directories(${MESOS_INSTALLATION_DIR}/lib/)
 
+#Serenity library
 add_library(serenity ${SERENITY_SOURCES})
-target_link_libraries(serenity messages mesos)
+target_link_libraries(serenity messages mesos glog)
 
-add_executable(pipeline_test ${PIPELINE_TEST_SOURCES})
-target_link_libraries(pipeline_test serenity pbjson messages-test)
+#Integration tests library
+add_library(serenity-integration-tests ${SERENITY_INTEGRATION_TESTS_SOURCES})
+target_link_libraries(serenity-integration-tests serenity messages-test pbjson)
 
-add_executable(serenity-tests ${SERENITY_TEST_SOURCES})
+#Unit tests
+add_executable(serenity-tests ${SERENITY_TESTS_SOURCES})
 target_link_libraries(serenity-tests
     serenity
-    messages-test)
-    pbjson
+    serenity-integration-tests
     gtest
     gtest_main
     gmock
     gmock_main
-    mesos
-    pbjson)
+    )
 add_test(serenity-tests serenity-tests)
+
+# Integration tests
+add_executable(pipeline_test ${PIPELINE_TEST_SOURCES})
+target_link_libraries(pipeline_test serenity-integration-tests)
