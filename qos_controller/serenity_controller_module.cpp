@@ -3,14 +3,14 @@
 #include <mesos/mesos.hpp>
 #include <mesos/module.hpp>
 
-#include <mesos/module/resource_estimator.hpp>
+#include <mesos/module/qos_controller.hpp>
 
-#include <mesos/slave/resource_estimator.hpp>
+#include <mesos/slave/qos_controller.hpp>
 
 #include <stout/try.hpp>
 #include <mesos/slave/qos_controller.hpp>
 
-#include "estimator/serenity_estimator.hpp"
+#include "qos_controller/serenity_controller.hpp"
 
 using namespace mesos;
 
@@ -20,7 +20,7 @@ using mesos::slave::QoSController;
 
 static QoSController* createSerenityController(const Parameters& parameters)
 {
-  LOG(INFO) << "Loading Serenity Estimator module";
+  LOG(INFO) << "Loading Serenity QoS Controller module";
   Try<QoSController*> result = SerenityController::create(None());
   if (result.isError()) {
     return NULL;
