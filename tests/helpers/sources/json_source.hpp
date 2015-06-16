@@ -1,7 +1,5 @@
-
 #ifndef SERENITY_JSON_SOURCE_HPP
 #define SERENITY_JSON_SOURCE_HPP
-
 
 #include <stout/try.hpp>
 #include <stout/error.hpp>

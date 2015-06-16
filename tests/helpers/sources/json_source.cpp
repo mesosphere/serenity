@@ -7,8 +7,6 @@
 #include "json_source.hpp"
 #include "json_source.pb.h"
 
-
-
 namespace mesos {
 namespace serenity {
 
