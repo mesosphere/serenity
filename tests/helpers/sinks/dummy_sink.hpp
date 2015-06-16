@@ -1,13 +1,9 @@
-
 #ifndef SERENITY_DUMMYRESOURCEUSAGESINK_H
 #define SERENITY_DUMMYRESOURCEUSAGESINK_H
 
 #include <stout/try.hpp>
 
 #include "serenity/serenity.hpp"
-
-
-
 
 namespace mesos {
 namespace serenity {

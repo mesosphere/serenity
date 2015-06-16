@@ -1,14 +1,13 @@
-//#include <json2pb.h>
-
-
 #include <mesos/mesos.hpp>
+
+#include <pbjson.hpp>
 
 #include <stout/os.hpp>
 
-#include "pbjson.hpp"
 #include "json_source.hpp"
-
 #include "json_source.pb.h"
+
+
 
 namespace mesos {
 namespace serenity {
@@ -41,15 +40,15 @@ const Try<FixtureResourceUsage> JsonSource::ReadJson(
   }
 
   std::string err;
-  FixtureResourceUsage ru;
-  int reply = pbjson::json2pb(content.get(), &ru, err);
+  FixtureResourceUsage usages;
+  int reply = pbjson::json2pb(content.get(), &usages, err);
   if (reply != 0){
     Try<std::string> emsg = strings::format(
         "Error during json deserialization| errno: %d | err: %s", reply, err);
     return Error(emsg.get());
   }
 
-  return ru;
+  return usages;
 }
 
 } //namespace serenity
