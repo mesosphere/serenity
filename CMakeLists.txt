@@ -35,8 +35,6 @@ include_directories(
 set(SERENITY_SOURCES
     bus/bus_socket.cpp
     estimator/serenity_estimator.cpp
-    filters/moving_average.cpp
-    filters/moving_average.hpp
     filters/ema.cpp
     filters/ema.hpp
     observers/ipc_drop.cpp
@@ -50,7 +48,6 @@ set(PIPELINE_TEST_SOURCES
 
 set(SERENITY_TEST_SOURCES
     tests/main.cpp
-    tests/filters/moving_average_test.cpp
     tests/filters/ema_test.cpp
     tests/estimator_test.cpp
     tests/qos_controller_test.cpp

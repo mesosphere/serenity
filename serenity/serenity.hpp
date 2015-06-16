@@ -8,7 +8,6 @@
 
 #include <mesos/scheduler/scheduler.hpp>
 
-
 namespace mesos {
 namespace serenity {
 
@@ -28,11 +27,19 @@ public:
   virtual Try<Nothing> consume(T in) = 0;
 };
 
+
 template<typename T>
 class Producer : public BusSocket
 {
 public:
   Producer() {}
+
+  Producer(Consumer<T>* consumer)
+  {
+    addConsumer(consumer);
+  };
+
+  Producer(std::vector<Consumer<T>*> consumers_) : consumers(consumers_) {};
 
   virtual ~Producer() {}
 

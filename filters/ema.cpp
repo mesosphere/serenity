@@ -3,24 +3,21 @@
 namespace mesos {
 namespace serenity {
 
+IpcEMAFilter::~IpcEMAFilter() {}
 
 
-
-
-
-template <typename In, typename Out>
-EMAFilter<In,Out>::~EMAFilter() {}
-
-template <typename In, typename Out>
-Try<Out> EMAFilter<In,Out>::handle(In in)
+Try<Nothing> IpcEMAFilter::consume(ResourceUsage_Executor in)
 {
-  Out result;
-  return result;
-}
+  if (!in.statistics().has_perf()){
+    return Error("Perf statistics are necessary for IPC EMA Filter.");
+  }
 
-template <typename In, typename Out>
-Try<Nothing> EMAFilter<In,Out>::consume(In in)
-{
+  double cycles = in.statistics().perf().cycles();
+  double instructions = in.statistics().perf().instructions();
+  double current_ipc = instructions / cycles;
+
+  produce(calculateEMA(current_ipc, in.statistics().perf().timestamp()));
+
   return Nothing();
 }
 
