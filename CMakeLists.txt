@@ -18,7 +18,7 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 # Protobuf stuff
 find_package(Protobuf REQUIRED)
 set(PROTOBUF_IMPORT_DIRS ${MESOS_INSTALLATION_DIR}/include/)
-file(GLOB ProtoFiles "${CMAKE_CURRENT_SOURCE_DIR}/messages/serenity.proto")
+file(GLOB ProtoFiles "messages/serenity.proto")
 file(GLOB TestProtoFiles "tests/helpers/sources/json_source.proto")
 PROTOBUF_GENERATE_CPP(ProtoSources ProtoHeaders ${ProtoFiles})
 add_library(messages STATIC ${ProtoSources} ${ProtoHeaders})
