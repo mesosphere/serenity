@@ -37,3 +37,18 @@ message Contention{
   optional double timestamp = 4;
   optional float severity = 5;
 }
+
+
+/**
+* Describes a collection of task performance metrics.
+*/
+message TaskPerformance {
+  message Sample {
+    required string name = 1;
+    required double value = 2;
+    optional double minimum = 3;
+    optional double maximum = 4;
+  }
+  required TaskID task = 1;
+  repeated Sample samples = 2;
+}
