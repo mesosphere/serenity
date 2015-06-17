@@ -6,24 +6,25 @@
 #include "filters/exponential_moving_average.cpp"
 #include "qos_controller/serenity_controller.cpp"
 
+#include "tests/helpers/sources/json_source.hpp"
+
 #include "messages/serenity.hpp"
 
+
+using namespace mesos::serenity;
 
 int main(int argc, char** argv)
 {
   Try<int> foobar = 5;
   std::cout << "pipe test" << "\n";
 
-  mesos::serenity::MovingAverageFilter defFilter;
-  mesos::serenity::ExponentialMovingAverageFilter expFilter;
+  MovingAverageFilter defFilter;
+  ExponentialMovingAverageFilter expFilter;
   expFilter.addConsumer(&defFilter);
-  defFilter.consume(0);
 
-  mesos::serenity::SerenityController qos;
+  SerenityController qos;
   //defFilter.addConsumer(&qos);
 
-  // Copy contructor?
-  //mesos::serenity::MovingAverageFilter defFilter2(defFilter);
 
   return EXIT_SUCCESS;
 }

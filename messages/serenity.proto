@@ -1,4 +1,3 @@
-//Because serenity is a separate project, you have to copy mesos.proto to same directory
 import "mesos/mesos.proto";
 
 package mesos;

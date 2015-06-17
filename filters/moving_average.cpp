@@ -5,7 +5,7 @@ namespace serenity {
 
 MovingAverageFilter::~MovingAverageFilter() {}
 
-Try<Nothing> MovingAverageFilter::consume(int in)
+Try<Nothing> MovingAverageFilter::consume(int& in)
 {
   return Nothing();
 }
