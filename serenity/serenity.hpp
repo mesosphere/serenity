@@ -24,7 +24,7 @@ class Consumer : public BusSocket
 public:
   virtual ~Consumer() {}
 
-  virtual Try<Nothing> consume(T in) = 0;
+  virtual Try<Nothing> consume(T& in) = 0;
 };
 
 

@@ -35,7 +35,7 @@ public:
 
   ~EMAFilter() {};
 
-  virtual Try<Nothing> consume(In in) = 0;
+  virtual Try<Nothing> consume(In& in) = 0;
 
   void setAlpha(double _alpha)
   {
@@ -99,7 +99,7 @@ public:
 
   ~IpcEMAFilter();
 
-  Try<Nothing> consume(ResourceUsage_Executor in);
+  Try<Nothing> consume(ResourceUsage_Executor& in);
 };
 
 

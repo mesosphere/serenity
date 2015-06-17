@@ -1,0 +1,11 @@
+
+import "mesos/mesos.proto";
+
+package mesos;
+
+/**
+* Contains resource usage for running executors
+*/
+message FixtureResourceUsage {
+ repeated ResourceUsage resource_usage = 1;
+}

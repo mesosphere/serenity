@@ -12,6 +12,7 @@
 #include <process/future.hpp>
 
 namespace mesos {
+namespace serenity {
 namespace tests {
 
 
@@ -90,7 +91,8 @@ private:
   ResourceUsage results;
 };
 
-} // tests {
-} // mesos {
+} // namespace tests {
+} // namespace serenity {
+} // namespace mesos {
 
 #endif //TESTS_SERENITY_HPP

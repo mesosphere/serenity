@@ -6,7 +6,7 @@ namespace serenity {
 IpcEMAFilter::~IpcEMAFilter() {}
 
 
-Try<Nothing> IpcEMAFilter::consume(ResourceUsage_Executor in)
+Try<Nothing> IpcEMAFilter::consume(ResourceUsage_Executor& in)
 {
   if (!in.statistics().has_perf()){
     return Error("Perf statistics are necessary for IPC EMA Filter.");

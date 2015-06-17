@@ -2,7 +2,7 @@
 
 #include "filters/ema.hpp"
 
-#include "tests/serenity.hpp"
+#include "tests/common/serenity.hpp"
 
 namespace mesos {
 namespace tests {

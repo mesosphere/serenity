@@ -1,4 +1,3 @@
-//Because serenity is a separate project, you have to copy mesos.proto to same directory
 import "mesos/mesos.proto";
 
 package mesos;
@@ -36,4 +35,19 @@ message Contention{
   optional Type type = 3;
   optional double timestamp = 4;
   optional float severity = 5;
+}
+
+
+/**
+* Describes a collection of task performance metrics.
+*/
+message TaskPerformance {
+  message Sample {
+    required string name = 1;
+    required double value = 2;
+    optional double minimum = 3;
+    optional double maximum = 4;
+  }
+  required TaskID task = 1;
+  repeated Sample samples = 2;
 }
