@@ -1,5 +1,5 @@
-#ifndef SERENITY_EXPONENTIAL_MOVING_AVERAGE_H
-#define SERENITY_EXPONENTIAL_MOVING_AVERAGE_H
+#ifndef SERENITY_EXPONENTIAL_MOVING_AVERAGE_HPP
+#define SERENITY_EXPONENTIAL_MOVING_AVERAGE_HPP
 
 #include "messages/serenity.hpp"
 
@@ -103,13 +103,7 @@ public:
 };
 
 
-
-
-
-
-
-
 } // namespace serenity
 } // namespace mesos
 
-#endif //SERENITY_EXPONENTIAL_MOVING_AVERAGE_H
+#endif //SERENITY_EXPONENTIAL_MOVING_AVERAGE_HPP

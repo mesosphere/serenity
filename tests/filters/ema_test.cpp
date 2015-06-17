@@ -5,6 +5,7 @@
 #include "tests/common/serenity.hpp"
 
 namespace mesos {
+namespace serenity {
 namespace tests {
 
 TEST(EMATest, Test) {
@@ -13,6 +14,7 @@ TEST(EMATest, Test) {
 
 }
 
-} // tests {
-} // mesos {
+} // namespace tests {
+} // namespace serenity {
+} // namespace mesos {
 
