@@ -12,7 +12,7 @@ public:
   MovingAverageFilter() {}
   ~MovingAverageFilter() noexcept;
 
-  Try<Nothing> consume(int in);
+  Try<Nothing> consume(int& in);
 
 protected:
   Try<int> handle(int in);
