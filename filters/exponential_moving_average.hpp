@@ -15,7 +15,7 @@ public:
   ExponentialMovingAverageFilter(){}; //test constructor
   ~ExponentialMovingAverageFilter() noexcept;
 
-  Try<Nothing> consume(int in);
+  Try<Nothing> consume(int& in);
 
 protected:
   Try<int> handle(int in);
