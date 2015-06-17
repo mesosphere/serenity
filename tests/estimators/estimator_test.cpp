@@ -12,13 +12,14 @@
 
 #include "estimator/serenity_estimator.hpp"
 
-#include "tests/serenity.hpp"
+#include "tests/common/serenity.hpp"
 
 using std::list;
 
 using mesos::slave::ResourceEstimator;
 
 namespace mesos {
+namespace serenity {
 namespace tests {
 
 // NOTE: For now checking only the interface.
@@ -47,5 +48,7 @@ TEST(SerenityEstimatorTest, EmptySlackEstimation)
 
 }
 
-} // tests {
-} // mesos {
+} // namespace tests {
+} // namespace serenity {
+} // namespace mesos {
+

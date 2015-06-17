@@ -5,12 +5,15 @@
 #include <stout/error.hpp>
 
 #include <mesos/mesos.hpp>
-#include "serenity/serenity.hpp"
 
 #include "json_source.pb.h"
 
+#include "serenity/serenity.hpp"
+
 namespace mesos {
 namespace serenity {
+namespace tests {
+
 
 class JsonSource : public Producer<ResourceUsage>
 {
@@ -25,7 +28,9 @@ protected:
 
 };
 
-} // namespace serenity
-} // namespace mesos
+} // namespace tests {
+} // namespace serenity {
+} // namespace mesos {
+
 
 #endif //SERENITY_JSON_SOURCE_HPP

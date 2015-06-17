@@ -2,32 +2,37 @@ cmake_minimum_required(VERSION 3.0.0)
 project(serenity)
 enable_testing()
 
-#Command line options
+#Command line options.
 SET(WITH_MESOS "/usr" CACHE STRING "Mesos installation directory")
 SET(MESOS_INSTALLATION_DIR ${WITH_MESOS})
 MESSAGE("Mesos installation directory set to: " ${MESOS_INSTALLATION_DIR})
 
-# Add gtest
+# Add gtest.
 ADD_SUBDIRECTORY (lib/gmock-1.7.0)
 include_directories( ${gmock_SOURCE_DIR} include)
 include_directories( ${gtest_SOURCE_DIR} include)
 
-# CXX Flags
+# Add pbjson - it doesn't have CMakeList.txt so include it manually.
+set(pbjson_SOURCE_DIR lib/pbjson)
+
+# CXX Flags.
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
-# Protobuf stuff
+# Protobuf stuff.
 find_package(Protobuf REQUIRED)
 set(PROTOBUF_IMPORT_DIRS ${MESOS_INSTALLATION_DIR}/include/)
+
+# Add message proto files.
 file(GLOB ProtoFiles "messages/serenity.proto")
-file(GLOB TestProtoFiles "tests/helpers/sources/json_source.proto")
 PROTOBUF_GENERATE_CPP(ProtoSources ProtoHeaders ${ProtoFiles})
 add_library(messages STATIC ${ProtoSources} ${ProtoHeaders})
 
+# Add message-test proto files.
+file(GLOB TestProtoFiles "tests/common/sources/json_source.proto")
 PROTOBUF_GENERATE_CPP(TestProtoSources TestProtoHeaders ${TestProtoFiles})
 add_library(messages-test STATIC ${TestProtoSources} ${TestProtoHeaders})
 
-# pbjson + rapidjson
-add_library(pbjson lib/pbjson/src/pbjson.cpp)
+add_library(pbjson ${pbjson_SOURCE_DIR}/src/pbjson.cpp)
 target_link_libraries(pbjson protobuf)
 
 link_directories(${MESOS_INSTALLATION_DIR}/lib/)
@@ -36,10 +41,10 @@ include_directories(
     ./
     ../
     include/
-    ${MESOS_INSTALLATION_DIR}/include
     ${gmock_SOURCE_DIR}/include/
     ${gmock_SOURCE_DIR}/gtest/include/
-    lib/pbjson/src/
+    ${pbjson_SOURCE_DIR}/src/
+    ${MESOS_INSTALLATION_DIR}/include
     ${CMAKE_BINARY_DIR}/
 )
 
@@ -52,59 +57,32 @@ set(SERENITY_SOURCES
     sources/dummy_source.cpp
 )
 
-set(PIPELINE_TEST_SOURCES
-    tests/integration/pipeline_test.cpp
-)
-
-set(SERENITY_UNIT_TESTS_SOURCES
-    tests/integration/sources/json_source_test.cpp
+set(SERENITY_TEST_SOURCES
     tests/main.cpp
-    tests/ut/controllers/qos_controller_test.cpp
-    tests/ut/estimators/estimator_test.cpp
-    tests/ut/filters/moving_average_test.cpp
+    tests/common/sources/json_source.cpp
+    tests/controllers/qos_controller_test.cpp
+    tests/estimators/estimator_test.cpp
+    tests/filters/moving_average_test.cpp
+    tests/sources/json_source_test.cpp
 )
 
-set(SERENITY_INTEGRATION_TESTS_SOURCES
-    tests/integration/sources/json_source_test.cpp
-    tests/main.cpp
-)
+# Copy fixtures.
+file(GLOB TestFixtures "tests/fixtures/*.json")
+file(COPY ${TestFixtures} DESTINATION tests/fixtures)
 
-set(SERENITY_TESTS_HELPERS_SOURCES
-    tests/helpers/sources/json_source.cpp
-)
-
-#Serenity library
+# Serenity library.
 add_library(serenity ${SERENITY_SOURCES})
 target_link_libraries(serenity messages mesos glog)
 
-#Integration tests library
-add_library(serenity-tests-helpers ${SERENITY_TESTS_HELPERS_SOURCES})
-target_link_libraries(serenity-tests-helpers serenity messages-test pbjson)
-
-#Unit tests
-add_executable(serenity-tests ${SERENITY_UNIT_TESTS_SOURCES})
+# Tests.
+add_executable(serenity-tests ${SERENITY_TEST_SOURCES})
 target_link_libraries(serenity-tests
     gmock
     gmock_main
     gtest
     gtest_main
+    messages-test
+    pbjson
     serenity
-    serenity-tests-helpers
 )
 add_test(serenity-tests serenity-tests)
-
-#Integration tests
-add_executable(serenity-integration-tests ${SERENITY_INTEGRATION_TESTS_SOURCES})
-target_link_libraries(serenity-integration-tests
-    gmock
-    gmock_main
-    gtest
-    gtest_main
-    serenity
-    serenity-tests-helpers
-)
-add_test(serenity-integration-tests serenity-integration-tests)
-
-# Integration tests
-add_executable(pipeline_test ${PIPELINE_TEST_SOURCES})
-target_link_libraries(pipeline_test serenity-tests-helpers)

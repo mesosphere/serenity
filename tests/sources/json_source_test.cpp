@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 #include <mesos/mesos.hpp>
 
-#include "tests/helpers/sinks/dummy_sink.hpp"
-#include "tests/helpers/sources/json_source.hpp"
+#include "tests/common/sinks/dummy_sink.hpp"
+#include "tests/common/sources/json_source.hpp"
 
 namespace mesos {
 namespace serenity {
@@ -13,12 +13,12 @@ TEST(JsonSource, ProduceRuFromFile) {
   DummySink<ResourceUsage> dummySink;
   JsonSource jsonSource;
   jsonSource.addConsumer(&dummySink);
-  //TODO: add target in cmake to copy fixtures to build folder
-  jsonSource.RunTests("../tests/fixtures/json_source_ut.json");
+  jsonSource.RunTests("tests/fixtures/json_source_test.json");
 
   ASSERT_EQ(dummySink.numberOfMessagesConsumed, 2);
 }
 
-}
-}
-}
+} // namespace tests {
+} // namespace serenity {
+} // namespace mesos {
+

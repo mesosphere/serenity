@@ -4,11 +4,12 @@
 
 #include <stout/os.hpp>
 
-#include "json_source.hpp"
+#include "tests/common/sources/json_source.hpp"
 #include "json_source.pb.h"
 
 namespace mesos {
 namespace serenity {
+namespace tests {
 
 void JsonSource::RunTests(const std::string& jsonSource)
 {
@@ -49,5 +50,7 @@ const Try<FixtureResourceUsage> JsonSource::ReadJson(
   return usages;
 }
 
-} //namespace serenity
-} //namespace mesos
+} // namespace tests {
+} // namespace serenity {
+} // namespace mesos {
+
