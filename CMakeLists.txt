@@ -81,6 +81,7 @@ target_link_libraries(serenity-tests
     gmock_main
     gtest
     gtest_main
+    mesos
     messages-test
     pbjson
     serenity

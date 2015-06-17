@@ -18,4 +18,4 @@ RUN rm -rf build && \
     export LD_LIBRARY_PATH=LD_LIBRARY_PATH:/usr/local/lib && \
     cmake -DWITH_MESOS="/mesos" .. && \
     make -j 2 && \
-    make test
+    ./serenity-tests
