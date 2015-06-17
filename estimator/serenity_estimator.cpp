@@ -18,8 +18,8 @@ class SerenityEstimatorProcess :
 {
 public:
   SerenityEstimatorProcess(
-      const lambda::function<Future<ResourceUsage>()>& usage_)
-  : usage(usage_) {}
+      const lambda::function<Future<ResourceUsage>()>& _usage)
+  : usage(_usage) {}
 
   Future<Resources> oversubscribable()
   {

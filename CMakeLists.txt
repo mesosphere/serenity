@@ -51,7 +51,8 @@ include_directories(
 set(SERENITY_SOURCES
     bus/bus_socket.cpp
     estimator/serenity_estimator.cpp
-    filters/moving_average.cpp
+    filters/ema.cpp
+    filters/ema.hpp
     observers/ipc_drop.cpp
     qos_controller/serenity_controller.cpp
     sources/dummy_source.cpp
@@ -62,7 +63,7 @@ set(SERENITY_TEST_SOURCES
     tests/common/sources/json_source.cpp
     tests/controllers/qos_controller_test.cpp
     tests/estimators/estimator_test.cpp
-    tests/filters/moving_average_test.cpp
+    tests/filters/ema_test.cpp
     tests/sources/json_source_test.cpp
 )
 
