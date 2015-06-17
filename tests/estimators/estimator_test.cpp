@@ -12,7 +12,7 @@
 
 #include "estimator/serenity_estimator.hpp"
 
-#include "tests/common/serenity.hpp"
+#include "tests/common/usage_helper.hpp"
 
 using std::list;
 
@@ -31,7 +31,7 @@ TEST(SerenityEstimatorTest, EmptySlackEstimation)
 
   ResourceEstimator* estimator = resourceEstimator.get();
 
-  MockSlaveUsage usage(5);
+  MockSlaveUsage usage("tests/fixtures/json_source_test.json");
 
   Try<Nothing> initialize = estimator->initialize(
       lambda::bind(&MockSlaveUsage::usage, &usage));
