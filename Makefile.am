@@ -65,6 +65,7 @@ libserenity_la_SOURCES = bus/bus_socket.cpp
 #libserenity_la_SOURCES += estimator/serenity_estimator.cpp
 libserenity_la_SOURCES += filters/moving_average.cpp
 libserenity_la_SOURCES += filters/exponential_moving_average.cpp
+libserenity_la_SOURCES += sources/apm_source.cpp
 libserenity_la_SOURCES += sources/dummy_source.cpp
 libserenity_la_SOURCES += qos_controllers/serenity_qos_controller.cpp
 #libserenity_la_SOURCES += ${GMOCK_DIR}/src/gmock-all.cc
