@@ -6,28 +6,32 @@
 
 #include <stout/error.hpp>
 
-#include "estimator/serenity_estimator.hpp"
+#include "qos_controller/serenity_controller.hpp"
 
 using namespace process;
+
+using std::list;
+
+using mesos::slave::QoSCorrection;
 
 namespace mesos {
 namespace serenity {
 
-class SerenityEstimatorProcess :
-    public Process<SerenityEstimatorProcess>
+class SerenityControllerProcess :
+    public Process<SerenityControllerProcess>
 {
 public:
-  SerenityEstimatorProcess(
+  SerenityControllerProcess(
       const lambda::function<Future<ResourceUsage>()>& _usage)
-  : usage(_usage) {}
+      : usage(_usage) {}
 
-  Future<Resources> oversubscribable()
+  Future<list<QoSCorrection>> corrections()
   {
-    // TODO(bplotka) Set up the main estimation pipeline here.
+    // TODO(bplotka) Set up the main qos correction pipeline here.
     std::cout << "pipe test" << "\n";
 
     // For now return empty resources.
-    return Resources();
+    return list<QoSCorrection>();
   }
 
 private:
@@ -35,7 +39,7 @@ private:
 };
 
 
-SerenityEstimator::~SerenityEstimator()
+SerenityController::~SerenityController()
 {
   if (process.get() != NULL) {
     terminate(process.get());
@@ -44,29 +48,29 @@ SerenityEstimator::~SerenityEstimator()
 }
 
 
-Try<Nothing> SerenityEstimator::initialize(
+Try<Nothing> SerenityController::initialize(
     const lambda::function<Future<ResourceUsage>()>& usage)
 {
   if (process.get() != NULL) {
-    return Error("Serenity estimator has already been initialized");
+    return Error("Serenity QoS Controller has already been initialized");
   }
 
-  process.reset(new SerenityEstimatorProcess(usage));
+  process.reset(new SerenityControllerProcess(usage));
   spawn(process.get());
 
   return Nothing();
 }
 
 
-Future<Resources> SerenityEstimator::oversubscribable()
+Future<list<QoSCorrection>> SerenityController::corrections()
 {
   if (process.get() == NULL) {
-    return Failure("Serenity estimator is not initialized");
+    return Failure("Serenity QoS Correction is not initialized");
   }
 
   return dispatch(
       process.get(),
-      &SerenityEstimatorProcess::oversubscribable);
+      &SerenityControllerProcess::corrections);
 }
 
 } // namespace serenity {
