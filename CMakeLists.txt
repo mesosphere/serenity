@@ -52,7 +52,6 @@ set(SERENITY_SOURCES
     bus/bus_socket.cpp
     estimator/serenity_estimator.cpp
     filters/ema.cpp
-    filters/ema.hpp
     observers/ipc_drop.cpp
     qos_controller/serenity_controller.cpp
     sources/dummy_source.cpp
