@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <mesos/mesos.hpp>
 
-#include "tests/common/sinks/dummy_sink.hpp"
+#include "tests/common/sinks/mock_sink.hpp"
 #include "tests/common/sources/json_source.hpp"
 
 namespace mesos {
@@ -10,12 +10,12 @@ namespace tests {
 
 TEST(JsonSource, ProduceRuFromFile) {
 
-  DummySink<ResourceUsage> dummySink;
+  MockSink<ResourceUsage> sink;
   JsonSource jsonSource;
-  jsonSource.addConsumer(&dummySink);
+  jsonSource.addConsumer(&sink);
   jsonSource.RunTests("tests/fixtures/json_source_test.json");
 
-  ASSERT_EQ(dummySink.numberOfMessagesConsumed, 2);
+  ASSERT_EQ(sink.numberOfMessagesConsumed, 2);
 }
 
 } // namespace tests {
