@@ -1,6 +1,8 @@
 #ifndef SERENITY_EXPONENTIAL_MOVING_AVERAGE_HPP
 #define SERENITY_EXPONENTIAL_MOVING_AVERAGE_HPP
 
+#include <math.h>
+
 #include "messages/serenity.hpp"
 
 #include "serenity/serenity.hpp"
