@@ -8,5 +8,5 @@ namespace mesos {
 namespace serenity {
 
 
-} // namespace serenity
-} // namespace mesos
+}  // namespace serenity
+}  // namespace mesos
