@@ -49,7 +49,11 @@ public:
 };
 
 
-// Fake usage function (same method as in mesos::slave::Slave).
+/**
+ * Fake usage function (same method as in mesos::slave::Slave).
+ * This is used only to test integration with mesos.
+ * For internal or filter tests use JsonSource.
+ */
 class MockSlaveUsage
 {
 public:
@@ -57,11 +61,9 @@ public:
   {
     Try<mesos::FixtureResourceUsage> usages = JsonUsage::ReadJson(jsonSource);
     if (usages.isError()){
-      LOG(ERROR) << "JsonSource failed: " << usages.error() << std::endl;
+      LOG(ERROR) << "Json Usage failed: " << usages.error() << std::endl;
     }
-
-    // TODO(bplotka) in future we may want to return each fixture for each
-    // test.
+    // Take first fixture only.
     results = usages.get().resource_usage(0);
   }
 
