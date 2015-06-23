@@ -106,7 +106,7 @@ At this point, the Module libraries are ready in `build/.libs`.
 
 ### Deploying Serenity Module
 
-Create json and point there built serenity shared library:
+Create a JSON file that describes the shared library and its parameters to the Mesos slave process:
 
 ```
 {
