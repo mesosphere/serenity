@@ -131,8 +131,8 @@ You can reuse sample `serenity.json.in`.
 In order to use serenity, add these lines to your mesos-slave command line options:
 
 ```
---modules=file://serenity.json.in \\
---resource_estimator="com_mesosphere_mesos_SerenityEstimator" \\
+--modules=file://serenity.json.in \
+--resource_estimator="com_mesosphere_mesos_SerenityEstimator" \
 --qos_controller="com_mesosphere_mesos_SerenityController"
 ```
 
