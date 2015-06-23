@@ -77,7 +77,6 @@ Once Mesos is built and installed, clone the Serenity package.
 Build serenity with these commands:
 
 ```
-./setup.sh
 cd build
 cmake -DWITH_MESOS="/usr" ..
 make

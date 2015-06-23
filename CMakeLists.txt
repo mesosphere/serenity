@@ -53,7 +53,6 @@ set(SERENITY_SOURCES
     estimator/serenity_estimator.cpp
     estimator/serenity_estimator_module.cpp
     filters/ema.cpp
-    filters/ema.hpp
     observers/ipc_drop.cpp
     qos_controller/serenity_controller.cpp
     qos_controller/serenity_controller_module.cpp
