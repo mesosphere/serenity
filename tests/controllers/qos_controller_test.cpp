@@ -40,9 +40,8 @@ TEST(SerenityControllerTest, NoQoSCorrections)
 
   process::Future<list<QoSCorrection>> result = controller->corrections();
 
-  AWAIT_READY(result);
-
-  EXPECT_EQ(0u, result.get().size());
+  // So far we did not expect QoSCorrections.
+  EXPECT_FALSE(result.isReady());
 }
 
 } // namespace tests {
