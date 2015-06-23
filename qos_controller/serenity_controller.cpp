@@ -28,10 +28,9 @@ public:
   Future<list<QoSCorrection>> corrections()
   {
     // TODO(bplotka) Set up the main qos correction pipeline here.
-    std::cout << "pipe test" << "\n";
-
+    std::cout << "Serenity QoS Controller pipeline run." << "\n";
     // For now return empty resources.
-    return list<QoSCorrection>();
+    return Future<list<QoSCorrection>>();
   }
 
 private:

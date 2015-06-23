@@ -24,7 +24,7 @@ public:
   Future<Resources> oversubscribable()
   {
     // TODO(bplotka) Set up the main estimation pipeline here.
-    std::cout << "pipe test" << "\n";
+    std::cout << "Serenity Estimator pipeline run." << "\n";
 
     // For now return empty resources.
     return Resources();
