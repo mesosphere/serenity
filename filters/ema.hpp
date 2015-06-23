@@ -14,42 +14,43 @@ namespace serenity {
 
 #define DEFAULT_EMA_FILTER_ALPHA 0.2
 
-/*
+/**
  * EMAFilter returns Exponential Moving Average (double) for
  * given input.
  */
 template <typename In>
-class EMAFilter : public Consumer<In>, public Producer<double>
-{
-public:
-  EMAFilter(Option<double> _alpha)
-  {
-    if (_alpha.isSome()) setAlpha(_alpha.get());
-    else setAlpha(DEFAULT_EMA_FILTER_ALPHA);
-  };
+class EMAFilter : public Consumer<In>, public Producer<double> {
+ public:
+  explicit EMAFilter(Option<double> _alpha) {
+    if (_alpha.isSome()) {
+      setAlpha(_alpha.get());
+    } else {
+      setAlpha(DEFAULT_EMA_FILTER_ALPHA);
+    }
+  }
 
   EMAFilter(Consumer<double>* _consumer, Option<double> _alpha) :
-      Producer(_consumer)
-  {
-    if (_alpha.isSome()) setAlpha(_alpha.get());
-    else setAlpha(DEFAULT_EMA_FILTER_ALPHA);
-  };
+      Producer(_consumer) {
+    if (_alpha.isSome()) {
+      setAlpha(_alpha.get());
+    } else {
+      setAlpha(DEFAULT_EMA_FILTER_ALPHA);
+    }
+  }
 
-  ~EMAFilter() {};
+  ~EMAFilter() {}
 
-  virtual Try<Nothing> consume(In& in) = 0;
+  virtual Try<Nothing> consume(const In& in) = 0;
 
-  void setAlpha(double _alpha)
-  {
+  void setAlpha(double _alpha) {
     alpha = _alpha;
-  };
+  }
 
-  double getAlpha()
-  {
+  double getAlpha() {
     return alpha;
-  };
+  }
 
-protected:
+ protected:
   // Constant describing how the window weights decrease over time.
   double alpha;
   // Previous exponential moving average value.
@@ -63,28 +64,26 @@ protected:
    * Exponential Moving Average for irregular time series.
    * Inspired by: oroboro.com/irregular-ema/
    */
-  double exponentialMovingAverage(double sample, double sampleTimestamp)
-  {
+  double exponentialMovingAverage(double sample, double sampleTimestamp) {
     double deltaTime = sampleTimestamp - prevSampleTimestamp;
     double dynamic_alpha = deltaTime / alpha;
     double weight = exp(dynamic_alpha * -1);
     double dynamic_weight = (1 - weight) / dynamic_alpha;
 
     return (weight * prevEma) + (( dynamic_weight - weight ) * prevSample) +
-        ((1.0 - dynamic_weight ) * sample);
-  };
+      ((1.0 - dynamic_weight) * sample);
+  }
 
   /*
    * Calculate EMA and save needed values for next calculation.
    */
-  double calculateEMA(double sample, double sampleTimestamp)
-  {
+  double calculateEMA(double sample, double sampleTimestamp) {
     prevEma = exponentialMovingAverage(sample, sampleTimestamp);
     prevSample = sample;
     prevSampleTimestamp = sampleTimestamp;
 
     return prevEma;
-  };
+  }
 };
 
 
@@ -93,19 +92,18 @@ protected:
  * IPC value.
  * It gets IPC from perf statistics in ResourceUsage_Executor.
  */
-class IpcEMAFilter : EMAFilter<ResourceUsage_Executor>
-{
-public:
+class IpcEMAFilter : EMAFilter<ResourceUsage_Executor> {
+ public:
   IpcEMAFilter(Consumer<double>* _consumer, Option<double> _alpha) :
-      EMAFilter(_consumer, _alpha) {};
+      EMAFilter(_consumer, _alpha) {}
 
   ~IpcEMAFilter();
 
-  Try<Nothing> consume(ResourceUsage_Executor& in);
+  Try<Nothing> consume(const ResourceUsage_Executor& in);
 };
 
 
-} // namespace serenity
-} // namespace mesos
+}  // namespace serenity
+}  // namespace mesos
 
-#endif //SERENITY_EXPONENTIAL_MOVING_AVERAGE_HPP
+#endif  // SERENITY_EXPONENTIAL_MOVING_AVERAGE_HPP

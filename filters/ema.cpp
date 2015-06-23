@@ -6,9 +6,8 @@ namespace serenity {
 IpcEMAFilter::~IpcEMAFilter() {}
 
 
-Try<Nothing> IpcEMAFilter::consume(ResourceUsage_Executor& in)
-{
-  if (!in.statistics().has_perf()){
+Try<Nothing> IpcEMAFilter::consume(const ResourceUsage_Executor& in) {
+  if (!in.statistics().has_perf()) {
     return Error("Perf statistics are necessary for IPC EMA Filter.");
   }
 
@@ -21,5 +20,5 @@ Try<Nothing> IpcEMAFilter::consume(ResourceUsage_Executor& in)
   return Nothing();
 }
 
-} // namespace serenity
-} // namespace mesos
+}  // namespace serenity
+}  // namespace mesos

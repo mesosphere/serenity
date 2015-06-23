@@ -1,15 +1,14 @@
 #include <gtest/gtest.h>
 
-#include <list>
-
 #include <mesos/resources.hpp>
 
-#include <mesos/slave/oversubscription.pb.h> // ONLY USEFUL AFTER RUNNING PROTOC
+#include <mesos/slave/oversubscription.pb.h>  // ONLY USEFUL AFTER RUNNING PROTOC
 #include <mesos/slave/qos_controller.hpp>
 
 #include <stout/gtest.hpp>
 
 #include <process/gtest.hpp>
+#include <list>
 
 #include "qos_controller/serenity_controller.hpp"
 
@@ -25,8 +24,7 @@ namespace serenity {
 namespace tests {
 
 // NOTE: For now checking only the interface.
-TEST(SerenityControllerTest, NoQoSCorrections)
-{
+TEST(SerenityControllerTest, NoQoSCorrections) {
   Try<QoSController*> qoSController =
     serenity::SerenityController::create(None());
   ASSERT_SOME(qoSController);
@@ -44,7 +42,7 @@ TEST(SerenityControllerTest, NoQoSCorrections)
   EXPECT_FALSE(result.isReady());
 }
 
-} // namespace tests {
-} // namespace serenity {
-} // namespace mesos {
+}  // namespace tests
+}  // namespace serenity
+}  // namespace mesos
 
