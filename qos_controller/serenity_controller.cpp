@@ -1,4 +1,3 @@
-#include <list>
 #include <stdlib.h>
 
 #include <process/dispatch.hpp>
@@ -6,9 +5,12 @@
 
 #include <stout/error.hpp>
 
+#include <list>
+
 #include "qos_controller/serenity_controller.hpp"
 
-using namespace process;
+// TODO(nnielsen): Break up with explicit using-declarations instead.
+using namespace process;  // NOLINT(build/namespaces)
 
 using std::list;
 
@@ -18,29 +20,25 @@ namespace mesos {
 namespace serenity {
 
 class SerenityControllerProcess :
-    public Process<SerenityControllerProcess>
-{
-public:
+    public Process<SerenityControllerProcess> {
+ public:
   SerenityControllerProcess(
       const lambda::function<Future<ResourceUsage>()>& _usage)
       : usage(_usage) {}
 
-  Future<list<QoSCorrection>> corrections()
-  {
+  Future<list<QoSCorrection>> corrections() {
     // TODO(bplotka) Set up the main qos correction pipeline here.
-    std::cout << "pipe test" << "\n";
-
+    std::cout << "Serenity QoS Controller pipeline run." << "\n";
     // For now return empty resources.
-    return list<QoSCorrection>();
+    return Future<list<QoSCorrection>>();
   }
 
-private:
+ private:
   const lambda::function<Future<ResourceUsage>()>& usage;
 };
 
 
-SerenityController::~SerenityController()
-{
+SerenityController::~SerenityController() {
   if (process.get() != NULL) {
     terminate(process.get());
     wait(process.get());
@@ -49,8 +47,7 @@ SerenityController::~SerenityController()
 
 
 Try<Nothing> SerenityController::initialize(
-    const lambda::function<Future<ResourceUsage>()>& usage)
-{
+    const lambda::function<Future<ResourceUsage>()>& usage) {
   if (process.get() != NULL) {
     return Error("Serenity QoS Controller has already been initialized");
   }
@@ -62,8 +59,7 @@ Try<Nothing> SerenityController::initialize(
 }
 
 
-Future<list<QoSCorrection>> SerenityController::corrections()
-{
+Future<list<QoSCorrection>> SerenityController::corrections() {
   if (process.get() == NULL) {
     return Failure("Serenity QoS Correction is not initialized");
   }
@@ -73,5 +69,5 @@ Future<list<QoSCorrection>> SerenityController::corrections()
       &SerenityControllerProcess::corrections);
 }
 
-} // namespace serenity {
-} // namespace mesos {
+}  // namespace serenity
+}  // namespace mesos

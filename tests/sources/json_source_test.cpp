@@ -9,7 +9,6 @@ namespace serenity {
 namespace tests {
 
 TEST(JsonSource, ProduceRuFromFile) {
-
   DummySink<ResourceUsage> dummySink;
   JsonSource jsonSource;
   jsonSource.addConsumer(&dummySink);
@@ -18,7 +17,7 @@ TEST(JsonSource, ProduceRuFromFile) {
   ASSERT_EQ(dummySink.numberOfMessagesConsumed, 2);
 }
 
-} // namespace tests {
-} // namespace serenity {
-} // namespace mesos {
+}  // namespace tests
+}  // namespace serenity
+}  // namespace mesos
 

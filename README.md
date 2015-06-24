@@ -33,8 +33,8 @@ docker build .
 ```
 
 The `Dockerfile` located in the project root is based on the
-`mesosphere/mesos-modules-dev` image.  This image has Mesos
-`0.22.1` pre-built with unbundled dependencies for convenience.
+`mesosphere/mesos-modules-dev` image.  This image has newest Mesos (from master)
+pre-built with unbundled dependencies for convenience.
 See the contents of that Dockerfile
 [here](https://raw.githubusercontent.com/mesosphere/docker-containers/master/mesos-modules-dev/Dockerfile).
 
@@ -77,7 +77,6 @@ Once Mesos is built and installed, clone the Serenity package.
 Build serenity with these commands:
 
 ```
-./setup.sh
 cd build
 cmake -DWITH_MESOS="/usr" ..
 make
@@ -105,6 +104,38 @@ make
 
 At this point, the Module libraries are ready in `build/.libs`.
 
-### Using Mesos Modules
+### Deploying Serenity Module
 
-See [Mesos Modules](http://mesos.apache.org/documentation/latest/modules/).
+Create a JSON file that describes the shared library and its parameters to the Mesos slave process:
+
+```
+{
+    "libraries": [
+    {
+        "file": "./build/libserenity.so",
+        "modules": [
+        {
+            "name": "com_mesosphere_mesos_SerenityEstimator"
+        },
+        {
+            "name": "com_mesosphere_mesos_SerenityController"
+        }
+      ]
+    }
+  ]
+}
+
+```
+
+You can reuse sample `serenity.json.in`.
+In order to use serenity, add these lines to your mesos-slave command line options:
+
+```
+--modules=file://serenity.json.in \
+--resource_estimator="com_mesosphere_mesos_SerenityEstimator" \
+--qos_controller="com_mesosphere_mesos_SerenityController"
+```
+
+### Details about using Mesos Modules
+
+See [Mesos Modules](http://mesos.apache.org/documentation/latest/modules/)

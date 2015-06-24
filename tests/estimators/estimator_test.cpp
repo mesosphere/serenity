@@ -1,7 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <list>
-
 #include <mesos/resources.hpp>
 
 #include <mesos/slave/resource_estimator.hpp>
@@ -10,9 +8,11 @@
 
 #include <process/gtest.hpp>
 
+#include <list>
+
 #include "estimator/serenity_estimator.hpp"
 
-#include "tests/common/serenity.hpp"
+#include "tests/common/usage_helper.hpp"
 
 using std::list;
 
@@ -23,15 +23,14 @@ namespace serenity {
 namespace tests {
 
 // NOTE: For now checking only the interface.
-TEST(SerenityEstimatorTest, EmptySlackEstimation)
-{
+TEST(SerenityEstimatorTest, EmptySlackEstimation) {
   Try<ResourceEstimator*> resourceEstimator =
     serenity::SerenityEstimator::create(None());
   ASSERT_SOME(resourceEstimator);
 
   ResourceEstimator* estimator = resourceEstimator.get();
 
-  MockSlaveUsage usage(5);
+  MockSlaveUsage usage("tests/fixtures/json_source_test.json");
 
   Try<Nothing> initialize = estimator->initialize(
       lambda::bind(&MockSlaveUsage::usage, &usage));
@@ -40,15 +39,14 @@ TEST(SerenityEstimatorTest, EmptySlackEstimation)
 
   AWAIT_READY(result);
 
-  for(Resources slack : result.get()){
-    for(Resource slack_resource : slack) {
+  for (Resources slack : result.get()) {
+    for (Resource slack_resource : slack) {
       EXPECT_TRUE(Resources::isEmpty(slack_resource));
     }
   }
-
 }
 
-} // namespace tests {
-} // namespace serenity {
-} // namespace mesos {
+}  // namespace tests
+}  // namespace serenity
+}  // namespace mesos
 

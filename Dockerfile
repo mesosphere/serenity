@@ -5,10 +5,11 @@ ADD . /serenity
 
 WORKDIR /serenity
 
+# Check for style errors.
+RUN ./scripts/lint.sh
+
 # Install the picojson headers.
 RUN wget https://raw.githubusercontent.com/kazuho/picojson/v1.3.0/picojson.h -O /usr/local/include/picojson.h
-
-RUN ./setup.sh
 
 # Build serenity.
 # We need libmesos which is located in /usr/local/lib.
