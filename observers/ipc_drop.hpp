@@ -1,10 +1,7 @@
 #ifndef SERENITY_IPCDROPOBSERVER_H
 #define SERENITY_IPCDROPOBSERVER_H
 
-
-class IpcDropObserver
-{
+class IpcDropObserver {
 };
 
-
-#endif //SERENITY_IPCDROPOBSERVER_H
+#endif  // SERENITY_IPCDROPOBSERVER_H

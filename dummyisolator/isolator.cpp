@@ -14,15 +14,17 @@
 #include <stout/hashmap.hpp>
 #include <stout/option.hpp>
 
-using namespace mesos;
+#include <list>
+#include <string>
+
+// TODO(nnielsen): Break into explicit using-declarations instead.
+using namespace mesos;  // NOLINT(build/namespaces)
 
 using mesos::slave::Isolator;
 
-class DummyIsolatorProcess : public mesos::slave::IsolatorProcess
-{
-public:
-  static Try<mesos::slave::Isolator*> create(const Parameters& parameters)
-  {
+class DummyIsolatorProcess : public mesos::slave::IsolatorProcess {
+ public:
+  static Try<mesos::slave::Isolator*> create(const Parameters& parameters) {
     return new Isolator(process::Owned<IsolatorProcess>(
         new DummyIsolatorProcess(parameters)));
   }
@@ -31,8 +33,7 @@ public:
 
   virtual process::Future<Nothing> recover(
       const std::list<mesos::slave::ExecutorRunState>& states,
-      const hashset<mesos::ContainerID>& containerId)
-  {
+      const hashset<mesos::ContainerID>& containerId) {
     return Nothing();
   }
 
@@ -40,50 +41,43 @@ public:
       const ContainerID& containerId,
       const ExecutorInfo& executorInfo,
       const std::string& directory,
-      const Option<std::string>& user)
-  {
+      const Option<std::string>& user) {
     return None();
   }
 
   virtual process::Future<Nothing> isolate(
       const ContainerID& containerId,
-      pid_t pid)
-  {
+      pid_t pid) {
     return Nothing();
   }
 
   virtual process::Future<mesos::slave::Limitation> watch(
-      const ContainerID& containerId)
-  {
+      const ContainerID& containerId) {
     return process::Future<mesos::slave::Limitation>();
   }
 
   virtual process::Future<Nothing> update(
       const ContainerID& containerId,
-      const Resources& resources)
-  {
+      const Resources& resources) {
     return Nothing();
   }
 
   virtual process::Future<ResourceStatistics> usage(
-      const ContainerID& containerId)
-  {
+      const ContainerID& containerId) {
     return ResourceStatistics();
   }
 
   virtual process::Future<Nothing> cleanup(
-      const ContainerID& containerId)
-  {
+      const ContainerID& containerId) {
     return Nothing();
   }
 
-private:
-  DummyIsolatorProcess(const Parameters& parameters_) {}
+ private:
+  explicit DummyIsolatorProcess(const Parameters& parameters_) {}
 };
 
 
-static Isolator* createDummyIsolator(const Parameters& parameters)
-{
+static Isolator* createDummyIsolator(const Parameters& parameters) {
   LOG(INFO) << "Loading Dummy Isolator module";
   Try<Isolator*> result = DummyIsolatorProcess::create(parameters);
   if (result.isError()) {

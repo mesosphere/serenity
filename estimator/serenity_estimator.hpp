@@ -10,6 +10,8 @@
 #include <process/future.hpp>
 #include <process/owned.hpp>
 
+#include <string>
+
 namespace mesos {
 namespace serenity {
 
@@ -17,13 +19,11 @@ namespace serenity {
 class SerenityEstimatorProcess;
 
 
-class SerenityEstimator : public slave::ResourceEstimator
-{
-public:
-  SerenityEstimator() {};
+class SerenityEstimator : public slave::ResourceEstimator {
+ public:
+  SerenityEstimator() {}
 
-  static Try<slave::ResourceEstimator*>create(const Option<std::string>& type)
-  {
+  static Try<slave::ResourceEstimator*>create(const Option<std::string>& type) {
     return new SerenityEstimator();
   }
 
@@ -34,11 +34,11 @@ public:
 
   virtual process::Future<Resources> oversubscribable();
 
-protected:
+ protected:
   process::Owned<SerenityEstimatorProcess> process;
 };
 
-} // namespace serenity {
-} // namespace mesos {
+}  // namespace serenity
+}  // namespace mesos
 
-#endif // ESTIMATOR_SERENITY_ESTIMATOR_HPP
+#endif  // ESTIMATOR_SERENITY_ESTIMATOR_HPP

@@ -1,7 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <list>
-
 #include <mesos/resources.hpp>
 
 #include <mesos/slave/resource_estimator.hpp>
@@ -9,6 +7,8 @@
 #include <stout/gtest.hpp>
 
 #include <process/gtest.hpp>
+
+#include <list>
 
 #include "estimator/serenity_estimator.hpp"
 
@@ -23,8 +23,7 @@ namespace serenity {
 namespace tests {
 
 // NOTE: For now checking only the interface.
-TEST(SerenityEstimatorTest, EmptySlackEstimation)
-{
+TEST(SerenityEstimatorTest, EmptySlackEstimation) {
   Try<ResourceEstimator*> resourceEstimator =
     serenity::SerenityEstimator::create(None());
   ASSERT_SOME(resourceEstimator);
@@ -40,15 +39,14 @@ TEST(SerenityEstimatorTest, EmptySlackEstimation)
 
   AWAIT_READY(result);
 
-  for(Resources slack : result.get()){
-    for(Resource slack_resource : slack) {
+  for (Resources slack : result.get()) {
+    for (Resource slack_resource : slack) {
       EXPECT_TRUE(Resources::isEmpty(slack_resource));
     }
   }
-
 }
 
-} // namespace tests {
-} // namespace serenity {
-} // namespace mesos {
+}  // namespace tests
+}  // namespace serenity
+}  // namespace mesos
 
