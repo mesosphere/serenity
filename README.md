@@ -136,6 +136,31 @@ In order to use serenity, add these lines to your mesos-slave command line optio
 --qos_controller="com_mesosphere_mesos_SerenityController"
 ```
 
+### Contributing
+
+Send pull requests for code review before merging.
+Make sure that commits describes the changes and can be applied atomically.
+
+The code base follows the [Google C++ Style Guide](https://google-styleguide.googlecode.com/svn/trunk/cppguide.html) and is linted by [cpplint](https://google-styleguide.googlecode.com/svn/trunk/cpplint/cpplint.py).
+
+Before submitting code, make sure to run:
+
+```bash
+$ # Run style checker
+$ ./scripts/lint.sh
+```
+
+```bash
+$ # Make sure newly added APIs are documented
+$ doxygen
+```
+
+To install the style checker as a git pre-commit hook:
+
+```bash
+$ ln -s scripts/pre-commit .git/hooks/pre-commit
+```
+
 ### Details about using Mesos Modules
 
 See [Mesos Modules](http://mesos.apache.org/documentation/latest/modules/)
