@@ -18,7 +18,7 @@ public:
 
   PrinterSink<T>() : numberOfMessagesConsumed(0) {};
 
-  Try<Nothing> consume(T& in)
+  Try<Nothing> consume(const T& in) override
   {
     JSON::Protobuf buffer(in);
     std::cout << "Msg #" << this->numberOfMessagesConsumed << std::endl

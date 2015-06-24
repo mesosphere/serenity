@@ -14,7 +14,7 @@ TEST(JsonSource, ProduceRuFromFile) {
   jsonSource.addConsumer(&dummySink);
   jsonSource.RunTests("tests/fixtures/json_source_test.json");
 
-  ASSERT_EQ(dummySink.numberOfMessagesConsumed, 2);
+  ASSERT_EQ(dummySink.numberOfMessagesConsumed, 4);
 }
 
 }  // namespace tests

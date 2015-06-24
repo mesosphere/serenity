@@ -69,7 +69,7 @@ public:
 
   };
 
-  virtual Try<Nothing> consume(ResourceUsage& usage) override;
+  virtual Try<Nothing> consume(const ResourceUsage& usage) override;
 
 protected:
   Result<Resource> CalculateSlack(const ExecutorSnapshot& prev,

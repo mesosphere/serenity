@@ -7,7 +7,7 @@
 namespace mesos {
 namespace serenity {
 
-Try<Nothing> SlackResourceObserver::consume(ResourceUsage& usage)
+Try<Nothing> SlackResourceObserver::consume(const ResourceUsage& usage)
 {
   std::unique_ptr<std::unordered_set<ExecutorSnapshot,
       ExecutorSnapshotHasher>> newSamples(new std::unordered_set<ExecutorSnapshot,

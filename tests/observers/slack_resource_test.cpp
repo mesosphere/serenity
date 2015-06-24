@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <mesos/mesos.hpp>
+#include <tests/common/sinks/dummy_sink.hpp>
 
 #include "observers/slack_resource.hpp"
 
@@ -16,16 +17,15 @@ namespace tests {
 TEST(SlackResourceObserer, BasicTest) {
   SlackResourceObserver observer;
   JsonSource jsonSource;
-  PrinterSink<Resource> dummySink;
+//  PrinterSink<Resource> dummySink;
+  DummySink<Resource> dummySink;
 
   jsonSource.addConsumer(&observer);
   observer.addConsumer(&dummySink);
 
-  jsonSource.RunTests("tests/fixtures/json_source_test2.json");
+  jsonSource.RunTests("tests/fixtures/json_source_test.json");
 
-  ASSERT_EQ(dummySink.numberOfMessagesConsumed, 4);
-
-
+  ASSERT_EQ(dummySink.numberOfMessagesConsumed, 3);
 }
 
 } // namespace tests {
