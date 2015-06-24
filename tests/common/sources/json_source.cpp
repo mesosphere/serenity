@@ -4,24 +4,25 @@
 
 #include <stout/os.hpp>
 
+#include <string>
+
 #include "tests/common/sources/json_source.hpp"
-#include "json_source.pb.h"
+
+#include "json_source.pb.h"  // NOLINT(build/include)
 
 namespace mesos {
 namespace serenity {
 namespace tests {
 
-void JsonSource::RunTests(const std::string& jsonSource)
-{
+void JsonSource::RunTests(const std::string& jsonSource) {
   Try<mesos::FixtureResourceUsage> usages = JsonSource::ReadJson(jsonSource);
-  if (usages.isError()){
+  if (usages.isError()) {
     LOG(ERROR) << "JsonSource failed: " << usages.error() << std::endl;
   }
 
-  for(auto itr = usages.get().resource_usage().begin();
+  for (auto itr = usages.get().resource_usage().begin();
       itr != usages.get().resource_usage().end();
-      itr++)
-  {
+      itr++) {
     produce(*itr);
   }
 
@@ -29,19 +30,18 @@ void JsonSource::RunTests(const std::string& jsonSource)
 }
 
 const Try<FixtureResourceUsage> JsonSource::ReadJson(
-    const std::string& relativePath)
-{
+    const std::string& relativePath) {
   Try<std::string> content = os::read(relativePath);
   if (content.isError()) {
     return Error("Read error: " + content.error());
-  } else if (!content.isSome()){
+  } else if (!content.isSome()) {
     return Error("Readed file is none");
   }
 
   std::string err;
   FixtureResourceUsage usages;
   int reply = pbjson::json2pb(content.get(), &usages, err);
-  if (reply != 0){
+  if (reply != 0) {
     Try<std::string> emsg = strings::format(
         "Error during json deserialization| errno: %d | err: %s", reply, err);
     return Error(emsg.get());
@@ -50,7 +50,7 @@ const Try<FixtureResourceUsage> JsonSource::ReadJson(
   return usages;
 }
 
-} // namespace tests {
-} // namespace serenity {
-} // namespace mesos {
+}  // namespace tests
+}  // namespace serenity
+}  // namespace mesos
 

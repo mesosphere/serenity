@@ -62,10 +62,12 @@ include_directories(
 set(SERENITY_SOURCES
     bus/bus_socket.cpp
     estimator/serenity_estimator.cpp
+    estimator/serenity_estimator_module.cpp
     filters/ema.cpp
     observers/ipc_drop.cpp
     observers/slack_resource.cpp
     qos_controller/serenity_controller.cpp
+    qos_controller/serenity_controller_module.cpp
     sources/dummy_source.cpp
 )
 
@@ -91,7 +93,7 @@ file(GLOB TestFixtures "tests/fixtures/*.json")
 file(COPY ${TestFixtures} DESTINATION tests/fixtures)
 
 # Serenity library.
-add_library(serenity ${SERENITY_SOURCES})
+add_library(serenity SHARED ${SERENITY_SOURCES})
 target_link_libraries(serenity messages mesos glog)
 
 # Tests.

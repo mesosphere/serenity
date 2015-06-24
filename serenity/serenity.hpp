@@ -1,12 +1,13 @@
 #ifndef SERENITY_SERENITY_HPP
 #define SERENITY_SERENITY_HPP
 
-#include <cstdlib>
-
 #include <stout/try.hpp>
 #include <stout/nothing.hpp>
 
 #include <mesos/scheduler/scheduler.hpp>
+
+#include <cstdlib>
+#include <vector>
 
 namespace mesos {
 namespace serenity {
@@ -14,56 +15,50 @@ namespace serenity {
 // The bus socket allows peers to communicate (subscribe and publish)
 // asynchronously.
 class BusSocket {
-
 };
 
 
 template<typename T>
-class Consumer : public BusSocket
-{
-public:
+class Consumer : public BusSocket {
+ public:
   virtual ~Consumer() {}
 
-  virtual Try<Nothing> consume(T& in) = 0;
+  virtual Try<Nothing> consume(const T& in) = 0;
 };
 
 
 template<typename T>
-class Producer : public BusSocket
-{
-public:
+class Producer : public BusSocket {
+ public:
   Producer() {}
 
-  Producer(Consumer<T>* consumer)
-  {
+  explicit Producer(Consumer<T>* consumer) {
     addConsumer(consumer);
-  };
+  }
 
-  Producer(std::vector<Consumer<T>*> consumers_) : consumers(consumers_) {};
+  explicit Producer(std::vector<Consumer<T>*> consumers_)
+    : consumers(consumers_) {}
 
   virtual ~Producer() {}
 
-  Try<Nothing> addConsumer(Consumer<T>* consumer)
-  {
+  Try<Nothing> addConsumer(Consumer<T>* consumer) {
     consumers.push_back(consumer);
     return Nothing();
   }
 
-protected:
+ protected:
   std::vector<Consumer<T>*> consumers;
 
-  Try<Nothing> produce(T out)
-  {
+  Try<Nothing> produce(T out) {
     for (auto c : consumers) {
       c->consume(out);
     }
     return Nothing();
   }
-
 };
 
-} // namespace serenity
-} // namespace mesos
+}  // namespace serenity
+}  // namespace mesos
 
 
-#endif //SERENITY_SERENITY_HPP
+#endif  // SERENITY_SERENITY_HPP

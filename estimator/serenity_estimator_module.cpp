@@ -1,5 +1,3 @@
-#include <string>
-
 #include <mesos/mesos.hpp>
 #include <mesos/module.hpp>
 
@@ -9,16 +7,19 @@
 
 #include <stout/try.hpp>
 
+#include <string>
+
 #include "estimator/serenity_estimator.hpp"
 
-using namespace mesos;
+// TODO(nnielsen): Break up into explicit using-declarations instead.
+using namespace mesos;  // NOLINT(build/namespaces).
 
 using mesos::serenity::SerenityEstimator;
 
 using mesos::slave::ResourceEstimator;
 
-static ResourceEstimator* createSerenityEstimator(const Parameters& parameters)
-{
+static ResourceEstimator* createSerenityEstimator(
+    const Parameters& parameters) {
   LOG(INFO) << "Loading Serenity Estimator module";
   Try<ResourceEstimator*> result = SerenityEstimator::create(None());
   if (result.isError()) {
@@ -28,7 +29,8 @@ static ResourceEstimator* createSerenityEstimator(const Parameters& parameters)
 }
 
 
-mesos::modules::Module<ResourceEstimator> com_mesosphere_mesos_SerenityEstimator(
+mesos::modules::Module<ResourceEstimator>
+com_mesosphere_mesos_SerenityEstimator(
     MESOS_MODULE_API_VERSION,
     MESOS_VERSION,
     "Mesosphere",

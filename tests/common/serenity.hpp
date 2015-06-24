@@ -1,15 +1,16 @@
 #ifndef TESTS_SERENITY_HPP
 #define TESTS_SERENITY_HPP
 
-#include <list>
-#include <string>
-
 #include <gtest/gtest.h>
 
 #include <mesos/mesos.pb.h>
 #include <mesos/resources.hpp>
 
 #include <process/future.hpp>
+
+
+#include <list>
+#include <string>
 
 namespace mesos {
 namespace serenity {
@@ -30,12 +31,10 @@ namespace tests {
 
 
 // Factory for statistics stubs.
-class ResourceHelper
-{
-public:
+class ResourceHelper {
+ public:
   // TODO(bplotka) parametrize that
-  static ResourceStatistics createStatistics()
-  {
+  static ResourceStatistics createStatistics() {
     ResourceStatistics statistics;
     statistics.set_cpus_nr_periods(100);
     statistics.set_cpus_nr_throttled(2);
@@ -57,8 +56,7 @@ public:
       ResourceUsage& usage,
       ExecutorInfo executorInfo,
       Resources allocated,
-      ResourceStatistics statistics)
-  {
+      ResourceStatistics statistics) {
     ResourceUsage::Executor* executor = usage.add_executors();
     executor->mutable_executor_info()->CopyFrom(executorInfo);
     executor->mutable_allocated()->CopyFrom(allocated);
@@ -68,11 +66,9 @@ public:
 
 
 // Fake usage function (same method as in mesos::slave::Slave).
-class MockSlaveUsage
-{
-public:
-  MockSlaveUsage(int executors) : results(ResourceUsage())
-  {
+class MockSlaveUsage {
+ public:
+  MockSlaveUsage(int executors) : results(ResourceUsage()) {
     for (int i = 0; i < executors; i++) {
       ResourceHelper::addExecutor(
           results,
@@ -82,17 +78,16 @@ public:
     }
   }
 
-  process::Future<ResourceUsage> usage()
-  {
+  process::Future<ResourceUsage> usage() {
     return results;
   }
 
-private:
+ private:
   ResourceUsage results;
 };
 
-} // namespace tests {
-} // namespace serenity {
-} // namespace mesos {
+}  // namespace tests
+}  // namespace serenity
+}  // namespace mesos
 
-#endif //TESTS_SERENITY_HPP
+#endif  // TESTS_SERENITY_HPP

@@ -12,11 +12,10 @@ namespace tests {
 template<typename T>
 class DummySink : public Consumer<T>
 {
-public:
+ public:
+  DummySink<T>() : numberOfMessagesConsumed(0) {}
 
-  DummySink<T>() : numberOfMessagesConsumed(0) {};
-
-  Try<Nothing> consume(T& in)
+  Try<Nothing> consume(const T& in)
   {
     this->numberOfMessagesConsumed++;
     return Nothing();
@@ -25,8 +24,8 @@ public:
   uint32_t numberOfMessagesConsumed;
 };
 
-} // namespace tests {
-} // namespace serenity {
-} // namespace mesos {
+}  // namespace tests
+}  // namespace serenity
+}  // namespace mesos
 
 #endif //SERENITY_DUMMY_SINK_HPP

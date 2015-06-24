@@ -1,19 +1,18 @@
 #include <gtest/gtest.h>
 
-#include <list>
-
 #include <mesos/resources.hpp>
 
-#include <mesos/slave/oversubscription.pb.h> // ONLY USEFUL AFTER RUNNING PROTOC
+#include <mesos/slave/oversubscription.pb.h>  // ONLY USEFUL AFTER RUNNING PROTOC
 #include <mesos/slave/qos_controller.hpp>
 
 #include <stout/gtest.hpp>
 
 #include <process/gtest.hpp>
+#include <list>
 
 #include "qos_controller/serenity_controller.hpp"
 
-#include "tests/common/serenity.hpp"
+#include "tests/common/usage_helper.hpp"
 
 using std::list;
 
@@ -25,27 +24,25 @@ namespace serenity {
 namespace tests {
 
 // NOTE: For now checking only the interface.
-TEST(SerenityControllerTest, NoQoSCorrections)
-{
+TEST(SerenityControllerTest, NoQoSCorrections) {
   Try<QoSController*> qoSController =
     serenity::SerenityController::create(None());
   ASSERT_SOME(qoSController);
 
   QoSController* controller = qoSController.get();
 
-  MockSlaveUsage usage(5);
+  MockSlaveUsage usage("tests/fixtures/json_source_test.json");
 
   Try<Nothing> initialize = controller->initialize(
       lambda::bind(&MockSlaveUsage::usage, &usage));
 
   process::Future<list<QoSCorrection>> result = controller->corrections();
 
-  AWAIT_READY(result);
-
-  EXPECT_EQ(0u, result.get().size());
+  // So far we did not expect QoSCorrections.
+  EXPECT_FALSE(result.isReady());
 }
 
-} // namespace tests {
-} // namespace serenity {
-} // namespace mesos {
+}  // namespace tests
+}  // namespace serenity
+}  // namespace mesos
 

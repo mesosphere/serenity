@@ -10,17 +10,13 @@
 namespace mesos {
 namespace serenity {
 
-class DummySource : Producer<int>
-{
-public:
+class DummySource : Producer<int> {
+ public:
   template <typename ...Any>
   DummySource() {}
-
-  ~DummySource() noexcept;
-
 };
 
-} // namespace serenity
-} // namespace mesos
+}  // namespace serenity
+}  // namespace mesos
 
-#endif // SERENITY_DUMMY_SOURCE_H
+#endif  // SERENITY_DUMMY_SOURCE_H
