@@ -7,6 +7,17 @@ SET(WITH_MESOS "/usr" CACHE STRING "Mesos installation directory")
 SET(MESOS_INSTALLATION_DIR ${WITH_MESOS})
 MESSAGE("Mesos installation directory set to: " ${MESOS_INSTALLATION_DIR})
 
+SET(MESOS_INSTALLATION_DIR /home/skonefal/usr/)
+
+# Compiler things.
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+if(COMPILER_SUPPORTS_CXX11)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+else()
+    message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
+endif()
+
 # Add gtest.
 ADD_SUBDIRECTORY (lib/gmock-1.7.0)
 include_directories( ${gmock_SOURCE_DIR} include)
@@ -53,6 +64,7 @@ set(SERENITY_SOURCES
     estimator/serenity_estimator.cpp
     filters/ema.cpp
     observers/ipc_drop.cpp
+    observers/slack_resource.cpp
     qos_controller/serenity_controller.cpp
     sources/dummy_source.cpp
 )
@@ -63,8 +75,16 @@ set(SERENITY_TEST_SOURCES
     tests/controllers/qos_controller_test.cpp
     tests/estimators/estimator_test.cpp
     tests/filters/ema_test.cpp
+    tests/observers/slack_resource_test.cpp
     tests/sources/json_source_test.cpp
 )
+
+set(LIBC_MOCK_SOURCES
+    tests/common/mocks/time.cpp
+)
+
+#libc mock library
+add_library(libc_mock SHARED ${LIBC_MOCK_SOURCES})
 
 # Copy fixtures.
 file(GLOB TestFixtures "tests/fixtures/*.json")
