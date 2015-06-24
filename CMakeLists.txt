@@ -7,8 +7,6 @@ SET(WITH_MESOS "/usr" CACHE STRING "Mesos installation directory")
 SET(MESOS_INSTALLATION_DIR ${WITH_MESOS})
 MESSAGE("Mesos installation directory set to: " ${MESOS_INSTALLATION_DIR})
 
-SET(MESOS_INSTALLATION_DIR /home/skonefal/usr/)
-
 # Compiler things.
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
@@ -80,13 +78,6 @@ set(SERENITY_TEST_SOURCES
     tests/observers/slack_resource_test.cpp
     tests/sources/json_source_test.cpp
 )
-
-set(LIBC_MOCK_SOURCES
-    tests/common/mocks/time.cpp
-)
-
-#libc mock library
-add_library(libc_mock SHARED ${LIBC_MOCK_SOURCES})
 
 # Copy fixtures.
 file(GLOB TestFixtures "tests/fixtures/*.json")

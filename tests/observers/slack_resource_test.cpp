@@ -8,7 +8,6 @@
 #include "tests/common/serenity.hpp"
 #include "tests/common/sinks/printer_sink.hpp"
 #include "tests/common/sources/json_source.hpp"
-#include "tests/observers/slack_resource_test.hpp"
 
 namespace mesos {
 namespace serenity {
@@ -28,6 +27,6 @@ TEST(SlackResourceObserer, BasicTest) {
   ASSERT_EQ(dummySink.numberOfMessagesConsumed, 3);
 }
 
-} // namespace tests {
-} // namespace serenity {
-} // namespace mesos {
+}  //  namespace tests
+}  //  namespace serenity
+}  //  namespace mesos

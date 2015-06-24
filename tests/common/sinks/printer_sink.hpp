@@ -12,14 +12,11 @@ namespace serenity {
 namespace tests {
 
 template<typename T>
-class PrinterSink : public Consumer<T>
-{
-public:
+class PrinterSink : public Consumer<T> {
+ public:
+  PrinterSink<T>() : numberOfMessagesConsumed(0) {}
 
-  PrinterSink<T>() : numberOfMessagesConsumed(0) {};
-
-  Try<Nothing> consume(const T& in) override
-  {
+  Try<Nothing> consume(const T& in) override {
     JSON::Protobuf buffer(in);
     std::cout << "Msg #" << this->numberOfMessagesConsumed << std::endl
       << buffer << std::endl;
@@ -30,8 +27,8 @@ public:
   uint32_t numberOfMessagesConsumed;
 };
 
-} // namespace tests {
-} // namespace serenity {
-} // namespace mesos {
+}  // namespace tests
+}  // namespace serenity
+}  // namespace mesos
 
-#endif //SERENITY_PRINTER_SINK_HPP
+#endif  // SERENITY_PRINTER_SINK_HPP
