@@ -1,43 +1,34 @@
 #include <memory>
-#include <string>
 #include <vector>
+
+#include "glog/logging.h"
 
 #include "mesos/mesos.hpp"
 
 #include "slack_resource.hpp"
 
+#include "serenity/executor_set.hpp"
+#include "serenity/metrics_helpers.hpp"
 
 namespace mesos {
 namespace serenity {
 
 Try<Nothing> SlackResourceObserver::consume(const ResourceUsage& usage) {
-  std::unique_ptr<std::unordered_set<ExecutorSnapshot,
-      ExecutorSnapshotHasher>> newSamples(new
-        std::unordered_set<ExecutorSnapshot, ExecutorSnapshotHasher>);
-
+  std::unique_ptr<ExecutorSet> newSamples(new ExecutorSet());
   std::vector<Resource> slackResources;
-  for (auto itr = usage.executors().begin();
-      itr != usage.executors().end();
-      ++itr) {
-    if (itr->has_statistics() && itr->has_executor_info()) {
-      std::string executorId = itr->executor_info().executor_id().value();
-      std::string frameworkId = itr->executor_info().framework_id().value();
-      double_t timestamp = itr->statistics().timestamp();
-      double_t cpu_limit = itr->statistics().cpus_limit();
-      double_t cpus_us = itr->statistics().cpus_user_time_secs();
-      double_t cpus_sy = itr->statistics().cpus_system_time_secs();
-      double_t cpus_time = cpus_sy + cpus_us;
 
-      ExecutorSnapshot currExecutor(frameworkId, executorId,
-                                timestamp, cpus_time);
-      newSamples->insert(currExecutor);
+  for (const auto& executor : usage.executors()) {
+    if (executor.has_statistics() && executor.has_executor_info()) {
+      newSamples->insert(executor);
 
-      auto previousSample = this->previousSamples->find(currExecutor);
+      auto previousSample = this->previousSamples->find(executor);
       if (previousSample != this->previousSamples->end()) {
         Result<Resource> slackResource = CalculateSlack(
-            (*previousSample), currExecutor, cpu_limit);
+            (*previousSample), executor);
         if (slackResource.isSome()) {
           slackResources.push_back(slackResource.get());
+        } else if (slackResource.isError()) {
+          LOG(ERROR) << slackResource.error();
         }
       }
     }
@@ -59,16 +50,21 @@ Try<Nothing> SlackResourceObserver::consume(const ResourceUsage& usage) {
 
 /**
  * CPU slack resource is counted by equation
- * cpu_allocation - ((cpu_secs_used * cpu_allocation)/sampling_duration)
+ * cpu_allocation - ((cpu_secs_used)/sampling_duration)
  */
 Result<Resource> SlackResourceObserver::CalculateSlack(
-    const ExecutorSnapshot& prev, const ExecutorSnapshot& current,
-    double_t cpuAllocation) const {
-  double_t samplingDuration = current.timestamp - prev.timestamp;
-  double_t cpuTimeUsage = current.cpuUsageTime - prev.cpuUsageTime;
+    const ResourceUsage_Executor& prev,
+    const ResourceUsage_Executor& current) const {
 
-  double_t cpuSlack =
-      cpuAllocation - ((cpuTimeUsage * cpuAllocation) / samplingDuration);
+  Try<double_t> cpuUsage = CountCpuUsage(prev, current);
+  if (cpuUsage.isError()) {
+    return Error(cpuUsage.error());
+  } else if (!current.statistics().has_cpus_limit()) {
+    return Error("Cannot count slack. You lack cpus_limit in statistcs");
+  }
+
+  double_t cpuLimit = current.statistics().cpus_limit();
+  double_t cpuSlack = cpuLimit - cpuUsage.get();
 
   if (cpuSlack < SLACK_EPSILON) {
     return None();

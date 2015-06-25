@@ -10,50 +10,12 @@
 #include <string>
 #include <vector>
 
+#include "serenity/executor_set.hpp"
 #include "serenity/serenity.hpp"
+
 
 namespace mesos {
 namespace serenity {
-
-/**
- * Struct that contains snapshot of metrics that concern us of previous
- * sampling
- */
-struct ExecutorSnapshot {
-  ExecutorSnapshot(std::string _frameworkId,
-                   std::string _executorId,
-                   double_t _timestamp,
-                   double_t  _cpus_time) :
-                      frameworkID(_frameworkId),
-                      executorID(_executorId),
-                      timestamp(_timestamp),
-                      cpuUsageTime(_cpus_time) {}
-
-  size_t countHash() {
-    std::string hashKey = this->executorID + this->frameworkID;
-    std::hash<std::string> hashFunc;
-    return hashFunc(hashKey);
-  }
-
-  inline bool operator == (const ExecutorSnapshot &rhs) const {
-    return this->executorID == rhs.executorID &&
-          this->frameworkID == rhs.frameworkID;
-  }
-
-  double_t timestamp;
-  std::string frameworkID;
-  std::string executorID;
-  double_t cpuUsageTime;  //<! CPU time for userspace+kernel in [s]
-};
-
-struct ExecutorSnapshotHasher{
-  size_t operator()(const ExecutorSnapshot& that) const {
-    std::string hashKey = that.executorID + that.frameworkID;
-    std::hash<std::string> hashFunc;
-    return hashFunc(hashKey);
-  }
-};
-
 
 /**
  * SlackResourceObserver observes incoming ResourceUsage
@@ -64,23 +26,20 @@ struct ExecutorSnapshotHasher{
 class SlackResourceObserver : public Consumer<ResourceUsage>,
                               public Producer<Resource> {
  public:
-  SlackResourceObserver() : previousSamples(
-      new std::unordered_set<ExecutorSnapshot, ExecutorSnapshotHasher>()) {}
+  SlackResourceObserver() : previousSamples(new ExecutorSet()) {}
 
   ~SlackResourceObserver() {}
 
   Try<Nothing> consume(const ResourceUsage& usage) override;
 
  protected:
-  Result<Resource> CalculateSlack(const ExecutorSnapshot& prev,
-                                  const ExecutorSnapshot& current,
-                                  double_t cpu_allocation) const;
+  Result<Resource> CalculateSlack(const ResourceUsage_Executor& prev,
+                                  const ResourceUsage_Executor& current) const;
 
   Result<Resource> CombineSlack(
       const std::vector<Resource>& slackResources) const;
 
-  std::unique_ptr<std::unordered_set<ExecutorSnapshot,
-      ExecutorSnapshotHasher>> previousSamples;
+  std::unique_ptr<ExecutorSet> previousSamples;
 
   /** Don't report slack when it's less than this value */
   static constexpr double_t SLACK_EPSILON = 0.001;

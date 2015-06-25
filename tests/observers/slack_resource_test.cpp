@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <mesos/mesos.hpp>
+
 #include <tests/common/sinks/dummy_sink.hpp>
 
 #include "observers/slack_resource.hpp"
@@ -13,10 +14,9 @@ namespace mesos {
 namespace serenity {
 namespace tests {
 
-TEST(SlackResourceObserer, BasicTest) {
+TEST(SlackResourceObserver, BasicTest) {
   SlackResourceObserver observer;
   JsonSource jsonSource;
-//  PrinterSink<Resource> dummySink;
   DummySink<Resource> dummySink;
 
   jsonSource.addConsumer(&observer);
