@@ -5,10 +5,10 @@
 
 #include "mesos/mesos.hpp"
 
-#include "slack_resource.hpp"
-
 #include "serenity/executor_set.hpp"
 #include "serenity/metrics_helpers.hpp"
+
+#include "observers/slack_resource.hpp"
 
 namespace mesos {
 namespace serenity {
@@ -50,7 +50,7 @@ Try<Nothing> SlackResourceObserver::consume(const ResourceUsage& usage) {
 
 /**
  * CPU slack resource is counted by equation
- * cpu_allocation - ((cpu_secs_used)/sampling_duration)
+ * cpu_allocation - (cpu_secs_used / sampling_duration)
  */
 Result<Resource> SlackResourceObserver::CalculateSlack(
     const ResourceUsage_Executor& prev,

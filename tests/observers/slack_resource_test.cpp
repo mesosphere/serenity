@@ -1,14 +1,12 @@
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
-#include <mesos/mesos.hpp>
-
-#include <tests/common/sinks/dummy_sink.hpp>
+#include "mesos/mesos.hpp"
 
 #include "observers/slack_resource.hpp"
 
-#include "tests/common/serenity.hpp"
-#include "tests/common/sinks/printer_sink.hpp"
 #include "tests/common/sources/json_source.hpp"
+
+#include "tests/common/sinks/dummy_sink.hpp"
 
 namespace mesos {
 namespace serenity {

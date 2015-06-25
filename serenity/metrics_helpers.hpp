@@ -1,8 +1,8 @@
 #ifndef SERENITY_METRICS_HELPERS_HPP
 #define SERENITY_METRICS_HELPERS_HPP
 
-#include "stout/error.hpp"
-#include "stout/try.hpp"
+#include <stout/error.hpp>
+#include <stout/try.hpp>
 
 #include "mesos/mesos.hpp"
 

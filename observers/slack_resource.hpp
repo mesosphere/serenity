@@ -1,18 +1,17 @@
 #ifndef SERENITY_SLACK_RESOURCE_HPP
 #define SERENITY_SLACK_RESOURCE_HPP
 
-#include <mesos/mesos.hpp>
-
-#include <stout/result.hpp>
-
 #include <memory>
-#include <unordered_set>
 #include <string>
+#include <unordered_set>
 #include <vector>
+
+#include "mesos/mesos.hpp"
+
+#include "stout/result.hpp"
 
 #include "serenity/executor_set.hpp"
 #include "serenity/serenity.hpp"
-
 
 namespace mesos {
 namespace serenity {
