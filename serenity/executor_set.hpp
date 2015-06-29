@@ -45,8 +45,10 @@ struct ExecutorSetEquals {
 
 /**
  * Unordered set for storing ResourceUsage_Executor objects.
+ * It has Hash and Equals function based on frameworkId and executorId.
+ *
  * Don't put here objects without executor_info() or the equals and hashcode
- * function won't have any sense,
+ * function won't have any sense.
  */
 typedef std::unordered_set<ResourceUsage_Executor,
                            ExecutorSetHasher,

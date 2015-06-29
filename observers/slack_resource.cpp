@@ -5,17 +5,16 @@
 
 #include "mesos/mesos.hpp"
 
-#include "serenity/executor_set.hpp"
-#include "serenity/metrics_helpers.hpp"
-
 #include "observers/slack_resource.hpp"
+
+#include "serenity/metrics_helpers.hpp"
 
 namespace mesos {
 namespace serenity {
 
 Try<Nothing> SlackResourceObserver::consume(const ResourceUsage& usage) {
   std::unique_ptr<ExecutorSet> newSamples(new ExecutorSet());
-  std::vector<Resource> slackResources;
+  double_t cpuSlack = 0;
 
   for (const auto& executor : usage.executors()) {
     if (executor.has_statistics() && executor.has_executor_info()) {
@@ -23,10 +22,10 @@ Try<Nothing> SlackResourceObserver::consume(const ResourceUsage& usage) {
 
       auto previousSample = this->previousSamples->find(executor);
       if (previousSample != this->previousSamples->end()) {
-        Result<Resource> slackResource = CalculateSlack(
+        Result<double_t> slackResource = CalculateCpuSlack(
             (*previousSample), executor);
         if (slackResource.isSome()) {
-          slackResources.push_back(slackResource.get());
+            cpuSlack += slackResource.get();
         } else if (slackResource.isError()) {
           LOG(ERROR) << slackResource.error();
         }
@@ -34,12 +33,18 @@ Try<Nothing> SlackResourceObserver::consume(const ResourceUsage& usage) {
     }
   }
 
-  if (!slackResources.empty()) {
-    Result<Resource> result = CombineSlack(slackResources);
-    if (result.isSome()) {
-      produce(result.get());
-    }
-  }
+  Resource slackResult;
+  Value_Scalar *cpuSlackScalar = new Value_Scalar();
+  cpuSlackScalar->set_value(cpuSlack);
+
+  slackResult.set_name("cpus");
+  slackResult.set_type(Value::SCALAR);
+  slackResult.set_allocated_scalar(cpuSlackScalar);
+  slackResult.set_allocated_revocable(new Resource_RevocableInfo());
+
+  Resources result(slackResult);
+
+  produce(result);
 
   this->previousSamples->clear();
   this->previousSamples = std::move(newSamples);
@@ -52,7 +57,7 @@ Try<Nothing> SlackResourceObserver::consume(const ResourceUsage& usage) {
  * CPU slack resource is counted by equation
  * cpu_allocation - (cpu_secs_used / sampling_duration)
  */
-Result<Resource> SlackResourceObserver::CalculateSlack(
+Result<double_t> SlackResourceObserver::CalculateCpuSlack(
     const ResourceUsage_Executor& prev,
     const ResourceUsage_Executor& current) const {
 
@@ -69,40 +74,8 @@ Result<Resource> SlackResourceObserver::CalculateSlack(
   if (cpuSlack < SLACK_EPSILON) {
     return None();
   } else {
-    Resource result;
-
-    Value_Scalar *cpuSlackScalar = new Value_Scalar();
-    cpuSlackScalar->set_value(cpuSlack);
-    Resource_RevocableInfo *revocableInfo = new Resource_RevocableInfo();
-
-    result.set_name("cpus");
-    result.set_type(Value::SCALAR);
-    result.set_allocated_scalar(cpuSlackScalar);
-    result.set_allocated_revocable(revocableInfo);
-    return result;
+    return cpuSlack;
   }
-}
-
-/**
- * Combine vector of slack resources into one
- */
-Result<Resource> SlackResourceObserver::CombineSlack(
-    const std::vector<Resource>& slackResources) const {
-  double_t cpuSlack = 0;
-  for (const auto& resource : slackResources) {
-    cpuSlack += resource.scalar().value();
-  }
-
-  Resource slackResult;
-  Value_Scalar *cpuSlackScalar = new Value_Scalar();
-  cpuSlackScalar->set_value(cpuSlack);
-  Resource_RevocableInfo *revocableInfo = new Resource_RevocableInfo();
-  slackResult.set_name("cpus");
-  slackResult.set_type(Value::SCALAR);
-  slackResult.set_allocated_scalar(cpuSlackScalar);
-  slackResult.set_allocated_revocable(revocableInfo);
-
-  return slackResult;
 }
 
 }  // namespace serenity

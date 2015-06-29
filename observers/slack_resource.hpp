@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "mesos/mesos.hpp"
+#include "mesos/resources.hpp"
 
 #include "stout/result.hpp"
 
@@ -23,7 +24,7 @@ namespace serenity {
  * Currently it only counts CPU slack
  */
 class SlackResourceObserver : public Consumer<ResourceUsage>,
-                              public Producer<Resource> {
+                              public Producer<Resources> {
  public:
   SlackResourceObserver() : previousSamples(new ExecutorSet()) {}
 
@@ -32,11 +33,12 @@ class SlackResourceObserver : public Consumer<ResourceUsage>,
   Try<Nothing> consume(const ResourceUsage& usage) override;
 
  protected:
-  Result<Resource> CalculateSlack(const ResourceUsage_Executor& prev,
-                                  const ResourceUsage_Executor& current) const;
+  Result<double_t> CalculateCpuSlack(const ResourceUsage_Executor& prev,
+                                     const ResourceUsage_Executor& current)
+                                     const;
 
-  Result<Resource> CombineSlack(
-      const std::vector<Resource>& slackResources) const;
+//  Result<Resource> CombineSlack(
+//      const std::vector<Resource>& slackResources) const;
 
   std::unique_ptr<ExecutorSet> previousSamples;
 
