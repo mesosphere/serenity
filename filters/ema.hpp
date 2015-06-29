@@ -1,109 +1,156 @@
-#ifndef SERENITY_EXPONENTIAL_MOVING_AVERAGE_HPP
-#define SERENITY_EXPONENTIAL_MOVING_AVERAGE_HPP
+#ifndef SERENITY_EXPONENTIAL_MOVING_AVERAGE_FILTER_HPP
+#define SERENITY_EXPONENTIAL_MOVING_AVERAGE_FILTER_HPP
 
 #include <math.h>
 
+#include <bits/unique_ptr.h>
+
+#include <glog/logging.h>
+
+
 #include "messages/serenity.hpp"
 
+#include "serenity/executor_map.hpp"
+#include "serenity/executor_set.hpp"
 #include "serenity/serenity.hpp"
 
-#include "stout/option.hpp"
+#include "stout/lambda.hpp"
+#include "stout/nothing.hpp"
 
 namespace mesos {
 namespace serenity {
 
-#define DEFAULT_EMA_FILTER_ALPHA 0.2
+/**
+ * The smaller alpha becomes, the longer your moving average is.
+ * It becomer smoother, but less reactive to new samples.
+ */
+constexpr double_t DEFAULT_EMA_FILTER_ALPHA = 0.2;
+
 
 /**
- * EMAFilter returns Exponential Moving Average (double) for
- * given input.
+ * EMA calculation can be more sophisticated for irregular
+ * time series, since it can influence how 'old' are our previous samples.
+ * We can choose between two algorithms.
  */
-template <typename In>
-class EMAFilter : public Consumer<In>, public Producer<double> {
+enum EMASeriesType {
+  EMA_REGULAR_SERIES,
+  EMA_IRRERGULAR_SERIES
+};
+
+
+class ExponentialMovingAverage {
  public:
-  explicit EMAFilter(Option<double> _alpha) {
-    if (_alpha.isSome()) {
-      setAlpha(_alpha.get());
-    } else {
-      setAlpha(DEFAULT_EMA_FILTER_ALPHA);
-    }
-  }
+  ExponentialMovingAverage(
+      EMASeriesType _seriesType = EMA_REGULAR_SERIES,
+      double_t _alpha = DEFAULT_EMA_FILTER_ALPHA)
+      : alpha(_alpha),
+        seriesType(_seriesType),
+        uninitialized(true) {}
 
-  EMAFilter(Consumer<double>* _consumer, Option<double> _alpha) :
-      Producer(_consumer) {
-    if (_alpha.isSome()) {
-      setAlpha(_alpha.get());
-    } else {
-      setAlpha(DEFAULT_EMA_FILTER_ALPHA);
-    }
-  }
-
-  ~EMAFilter() {}
-
-  virtual Try<Nothing> consume(const In& in) = 0;
-
-  void setAlpha(double _alpha) {
+  void setAlpha(double_t _alpha) {
     alpha = _alpha;
   }
 
-  double getAlpha() {
+  double_t getAlpha() {
     return alpha;
   }
 
- protected:
+  /**
+  * Calculate EMA and save needed values for next calculation.
+  */
+  double_t calculateEMA(double_t sample, double_t sampleTimestamp);
+
+ private:
   // Constant describing how the window weights decrease over time.
-  double alpha;
+  double_t alpha;
   // Previous exponential moving average value.
-  double prevEma;
+  double_t prevEma;
   // Previous sample.
-  double prevSample;
+  double_t prevSample;
   // Used for counting deltaTime.
-  double prevSampleTimestamp;
+  double_t prevSampleTimestamp;
+  EMASeriesType seriesType;
+  bool uninitialized;
 
-  /*
+  /**
    * Exponential Moving Average for irregular time series.
+   * TODO(bplotka): Test it - strong dependence on time normalization.
    * Inspired by: oroboro.com/irregular-ema/
+   * Timestamp is absolute.
+   * Sample should be normalized always to the same unit.
    */
-  double exponentialMovingAverage(double sample, double sampleTimestamp) {
-    double deltaTime = sampleTimestamp - prevSampleTimestamp;
-    double dynamic_alpha = deltaTime / alpha;
-    double weight = exp(dynamic_alpha * -1);
-    double dynamic_weight = (1 - weight) / dynamic_alpha;
+  double_t exponentialMovingAverageIrregular(
+      double_t sample, double_t sampleTimestamp) const;
 
-    return (weight * prevEma) + (( dynamic_weight - weight ) * prevSample) +
-      ((1.0 - dynamic_weight) * sample);
-  }
-
-  /*
-   * Calculate EMA and save needed values for next calculation.
+  /**
+   * Exponential Moving Average for regular time series.
+   * Sample should be normalized always to the same unit.
    */
-  double calculateEMA(double sample, double sampleTimestamp) {
-    prevEma = exponentialMovingAverage(sample, sampleTimestamp);
-    prevSample = sample;
-    prevSampleTimestamp = sampleTimestamp;
-
-    return prevEma;
-  }
+  double_t exponentialMovingAverageRegular(double_t sample) const;
 };
 
+typedef Try<Nothing> (EMATypeFilterFunction)
+    (ExponentialMovingAverage*,
+     const ResourceUsage_Executor&,
+     const ResourceUsage_Executor&,
+     ResourceUsage_Executor*);
 
-/*
- * IpcEMAFilter returns Exponential Moving Average (double) for
- * IPC value.
- * It gets IPC from perf statistics in ResourceUsage_Executor.
+
+/**
+ * It is possible to calculate EMA on any value. For every value
+ * seperate filter function have to be implemented to fetch
+ * specified valye and store it.
+ *
+ * - filterIpc calculates Exponential Moving Average of IPC.
+ * It gets IPC from perf statistics in ResourceStatistics.
+ * It stores the calculated value in statistics.net_tcp_active_connections
+ * field.
+ * NOTE: It requires perf enabled on slave node.
+ *
+ * - filterCpuUsage calculates Exponential Moving Average of cpu usage.
+ * It gets CpuUsage from statistics in ResourceUsage_Executor.
+ * It stores the calculated value in statistics.net_tcp_time_wait_connections
+ * field.
  */
-class IpcEMAFilter : EMAFilter<ResourceUsage_Executor> {
+
+class EMATypes {
  public:
-  IpcEMAFilter(Consumer<double>* _consumer, Option<double> _alpha) :
-      EMAFilter(_consumer, _alpha) {}
+  static EMATypeFilterFunction filterIpc;
 
-  ~IpcEMAFilter();
-
-  Try<Nothing> consume(const ResourceUsage_Executor& in);
+  static EMATypeFilterFunction filterCpuUsage;
 };
 
+
+/**
+ * EMAFilter is able to calculate Exponential Moving Average on
+ * ResourceUsage. Classes based on EMAFilter can define filter
+ * for smoothing defined value.
+ */
+class EMAFilter :
+    public Consumer<ResourceUsage>, public Producer<ResourceUsage> {
+ public:
+  EMAFilter(
+      Consumer<ResourceUsage>* _consumer,
+      const lambda::function<EMATypeFilterFunction>& _emaTypeFunction,
+      double_t _alpha = DEFAULT_EMA_FILTER_ALPHA)
+    : Producer<ResourceUsage>(_consumer),
+      previousSamples(new ExecutorSet),
+      emaSamples(new MapHelper<ExponentialMovingAverage>::ExecutorMap),
+      emaTypeFunction(_emaTypeFunction),
+      alpha(_alpha) {}
+
+  ~EMAFilter() {}
+
+  Try<Nothing> consume(const ResourceUsage& in);
+
+ protected:
+  double_t alpha;
+  const lambda::function<EMATypeFilterFunction>& emaTypeFunction;
+  std::unique_ptr<ExecutorSet> previousSamples;
+  std::unique_ptr<MapHelper<ExponentialMovingAverage>::ExecutorMap> emaSamples;
+};
 
 }  // namespace serenity
 }  // namespace mesos
 
-#endif  // SERENITY_EXPONENTIAL_MOVING_AVERAGE_HPP
+#endif  // SERENITY_EXPONENTIAL_MOVING_AVERAGE_FILTER_HPP

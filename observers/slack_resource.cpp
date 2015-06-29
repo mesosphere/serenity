@@ -7,7 +7,7 @@
 
 #include "observers/slack_resource.hpp"
 
-#include "serenity/metrics_helpers.hpp"
+#include "serenity/metrics_helper.hpp"
 
 namespace mesos {
 namespace serenity {
