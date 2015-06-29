@@ -3,8 +3,6 @@
 
 #include <math.h>
 
-#include "messages/serenity.hpp"
-
 #include "serenity/serenity.hpp"
 
 #include "stout/option.hpp"
@@ -12,16 +10,15 @@
 namespace mesos {
 namespace serenity {
 
+// The smaller alpha becomes, the longer your moving average is.
+// It becomer smoother, but less reactive to new samples.
 #define DEFAULT_EMA_FILTER_ALPHA 0.2
 
-/**
- * EMAFilter returns Exponential Moving Average (double) for
- * given input.
- */
-template <typename In>
-class EMAFilter : public Consumer<In>, public Producer<double> {
+class ExponentialMovingAverage {
  public:
-  explicit EMAFilter(Option<double> _alpha) {
+  ExponentialMovingAverage(
+        Option<double_t> _alpha)
+      : uninitialized(true) {
     if (_alpha.isSome()) {
       setAlpha(_alpha.get());
     } else {
@@ -29,77 +26,64 @@ class EMAFilter : public Consumer<In>, public Producer<double> {
     }
   }
 
-  EMAFilter(Consumer<double>* _consumer, Option<double> _alpha) :
-      Producer(_consumer) {
-    if (_alpha.isSome()) {
-      setAlpha(_alpha.get());
-    } else {
-      setAlpha(DEFAULT_EMA_FILTER_ALPHA);
-    }
-  }
-
-  ~EMAFilter() {}
-
-  virtual Try<Nothing> consume(const In& in) = 0;
-
-  void setAlpha(double _alpha) {
+  void setAlpha(double_t _alpha) {
     alpha = _alpha;
   }
 
-  double getAlpha() {
+  double_t getAlpha() {
     return alpha;
   }
 
- protected:
-  // Constant describing how the window weights decrease over time.
-  double alpha;
-  // Previous exponential moving average value.
-  double prevEma;
-  // Previous sample.
-  double prevSample;
-  // Used for counting deltaTime.
-  double prevSampleTimestamp;
-
   /*
-   * Exponential Moving Average for irregular time series.
-   * Inspired by: oroboro.com/irregular-ema/
-   */
-  double exponentialMovingAverage(double sample, double sampleTimestamp) {
-    double deltaTime = sampleTimestamp - prevSampleTimestamp;
-    double dynamic_alpha = deltaTime / alpha;
-    double weight = exp(dynamic_alpha * -1);
-    double dynamic_weight = (1 - weight) / dynamic_alpha;
-
-    return (weight * prevEma) + (( dynamic_weight - weight ) * prevSample) +
-      ((1.0 - dynamic_weight) * sample);
-  }
-
-  /*
-   * Calculate EMA and save needed values for next calculation.
-   */
-  double calculateEMA(double sample, double sampleTimestamp) {
-    prevEma = exponentialMovingAverage(sample, sampleTimestamp);
+  * Calculate EMA and save needed values for next calculation.
+  */
+  double_t calculateEMA(double_t sample, double_t sampleTimestamp) {
+    if (uninitialized) {
+      prevEma = sample;
+      uninitialized = false;
+    }
+    prevEma = exponentialMovingAverageRegular(sample);
     prevSample = sample;
     prevSampleTimestamp = sampleTimestamp;
 
     return prevEma;
   }
-};
 
+ private:
+  // Constant describing how the window weights decrease over time.
+  double_t alpha;
+  // Previous exponential moving average value.
+  double_t prevEma;
+  // Previous sample.
+  double_t prevSample;
+  // Used for counting deltaTime.
+  double_t prevSampleTimestamp;
+  bool uninitialized;
 
-/*
- * IpcEMAFilter returns Exponential Moving Average (double) for
- * IPC value.
- * It gets IPC from perf statistics in ResourceUsage_Executor.
- */
-class IpcEMAFilter : EMAFilter<ResourceUsage_Executor> {
- public:
-  IpcEMAFilter(Consumer<double>* _consumer, Option<double> _alpha) :
-      EMAFilter(_consumer, _alpha) {}
+  /*
+   * Exponential Moving Average for irregular time series.
+   * TODO(bplotka): Test it - strong dependence on time normalization.
+   * Inspired by: oroboro.com/irregular-ema/
+   * Timestamp is absolute.
+   * Sample should be normalized always to the same unit.
+   */
+  double_t exponentialMovingAverageIrregular(double_t sample, double_t
+  sampleTimestamp) {
+    double_t deltaTime = sampleTimestamp - prevSampleTimestamp;
+    double_t dynamicAlpha = deltaTime / alpha;
+    double_t weight = exp(dynamicAlpha * -1);
+    double_t dynamicWeight = (1 - weight) / dynamicAlpha;
+    return (weight * prevEma) + (( dynamicWeight - weight ) * prevSample) +
+           ((1.0 - dynamicWeight) * sample);
+  }
 
-  ~IpcEMAFilter();
-
-  Try<Nothing> consume(const ResourceUsage_Executor& in);
+  /*
+   * Exponential Moving Average for regular time series.
+   * Sample should be normalized always to the same unit.
+   */
+  double_t exponentialMovingAverageRegular(double_t sample) {
+    return (alpha*sample) + ((1 - alpha)*prevEma);
+  }
 };
 
 
