@@ -89,3 +89,22 @@ target_link_libraries(serenity-tests
     serenity
 )
 add_test(serenity-tests serenity-tests)
+
+# For framework compilation we need mesos_source.
+# Test framework resuses utility classes from apache mesos.
+SET(WITH_SOURCE_MESOS "" CACHE STRING "Mesos source directory")
+SET(MESOS_SOURCE_DIR ${WITH_SOURCE_MESOS})
+
+if (MESOS_SOURCE_DIR)
+    MESSAGE("Mesos source directory set to: " ${MESOS_SOURCE_DIR})
+
+    include_directories(
+        ${MESOS_SOURCE_DIR}/build/src/
+        ${MESOS_SOURCE_DIR}/src/
+    )
+    # Serenity test framework exe.
+    add_executable(test-framework
+        ${MESOS_SOURCE_DIR}/src/examples/no_executor_framework.cpp)
+    target_link_libraries(test-framework mesos glog)
+
+endif(MESOS_SOURCE_DIR)
