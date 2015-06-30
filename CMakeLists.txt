@@ -106,7 +106,7 @@ if (MESOS_SOURCE_DIR)
     # Serenity test framework exe.
     add_executable(test-framework
         ${MESOS_SOURCE_DIR}/src/examples/no_executor_framework.cpp)
-    target_link_libraries(test-framework mesos glog)
+    target_link_libraries(test-framework mesos protobuf glog)
 
 else(MESOS_SOURCE_DIR)
     MESSAGE(
