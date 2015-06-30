@@ -28,7 +28,8 @@ double_t constFunction(double_t x) {
 TEST(EMATest, SmoothingConstSample) {
   const double_t THRESHOLD = 0.01;
   const int32_t LOAD_ITERATIONS = 100;
-  ExponentialMovingAverage ema(0.2);
+  ExponentialMovingAverage ema(
+      EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
   LoadGenerator loadGen(
       constFunction, new NoNoise(), LOAD_ITERATIONS);
 
@@ -44,7 +45,8 @@ TEST(EMATest, SmoothingNoisyConstSample) {
   const double_t THRESHOLD = 4;
   const double_t MAX_NOISE = 30;
   const int32_t LOAD_ITERATIONS = 100;
-  ExponentialMovingAverage ema(0.2);
+  ExponentialMovingAverage ema(
+      EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
   LoadGenerator loadGen(
       constFunction, new SymetricNoiseGenerator(MAX_NOISE), LOAD_ITERATIONS);
 
@@ -65,7 +67,8 @@ TEST(EMATest, SmoothingNoisyLinearSample) {
   const double_t THRESHOLD = 11;
   const double_t MAX_NOISE = 50;
   const int32_t LOAD_ITERATIONS = 100;
-  ExponentialMovingAverage ema(0.2);
+  ExponentialMovingAverage ema(
+      EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
   LoadGenerator loadGen(
       linearFunction, new SymetricNoiseGenerator(MAX_NOISE), LOAD_ITERATIONS);
 
@@ -86,7 +89,8 @@ TEST(EMATest, SmoothingNoisySinSample) {
   const double_t THRESHOLD = 7;
   const double_t MAX_NOISE = 50;
   const int32_t LOAD_ITERATIONS = 100;
-  ExponentialMovingAverage ema(0.2);
+  ExponentialMovingAverage ema(
+      EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
   LoadGenerator loadGen(
       sinFunction, new SymetricNoiseGenerator(MAX_NOISE), LOAD_ITERATIONS);
 
@@ -103,7 +107,8 @@ TEST(EMATest, SmoothingNoisySinSampleDrop) {
   const double_t MAX_NOISE = 50;
   const double_t DROP = 10;
   const int32_t LOAD_ITERATIONS = 200;
-  ExponentialMovingAverage ema(0.2);
+  ExponentialMovingAverage ema(
+      EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
   LoadGenerator loadGen(
       sinFunction, new SymetricNoiseGenerator(MAX_NOISE), LOAD_ITERATIONS);
 
@@ -123,7 +128,8 @@ TEST(EMATest, SmoothingNoisySinStableDrop) {
   const double_t MAX_NOISE = 50;
   const double_t DROP_PROGRES = 0.2;
   const int32_t LOAD_ITERATIONS = 200;
-  ExponentialMovingAverage ema(0.2);
+  ExponentialMovingAverage ema(
+      EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
   LoadGenerator loadGen(
       sinFunction, new SymetricNoiseGenerator(MAX_NOISE), LOAD_ITERATIONS);
 
@@ -158,7 +164,7 @@ TEST(EMATest, IpcEMATest) {
   JsonSource jsonSource(&ipcEMAFilter);
 
   // Start test.
-  ASSERT_SOME(jsonSource.RunTests("tests/fixtures/ema_test.json"));
+  ASSERT_SOME(jsonSource.RunTests("tests/fixtures/ema/test.json"));
 
   ASSERT_TRUE(usage.isReady());
   ASSERT_EQ(2u, usage.get().executors().size());
@@ -187,7 +193,7 @@ TEST(EMATest, IpcEMATestNoPerf) {
 
   // Start test.
   ASSERT_SOME(jsonSource.RunTests(
-      "tests/fixtures/insufficient_metrics_ema_test.json"));
+      "tests/fixtures/ema/insufficient_metrics_test.json"));
 
   EXPECT_EQ(0, mockSink.numberOfMessagesConsumed);
 }
@@ -210,7 +216,7 @@ TEST(EMATest, IpcEMATestNoisyConstSample) {
   PublicSource source(&ipcEMAFilter);
 
   Try<mesos::FixtureResourceUsage> usages =
-      JsonUsage::ReadJson("tests/fixtures/start_json_ema_test.json");
+      JsonUsage::ReadJson("tests/fixtures/ema/start_json_test.json");
   if (usages.isError()) {
     LOG(ERROR) << "JsonSource failed: " << usages.error() << std::endl;
   }
@@ -222,7 +228,8 @@ TEST(EMATest, IpcEMATestNoisyConstSample) {
   const double_t THRESHOLD = 1.2;
   const double_t MAX_NOISE = 5;
   const int32_t LOAD_ITERATIONS = 100;
-  ExponentialMovingAverage ema(DEFAULT_EMA_FILTER_ALPHA);
+  ExponentialMovingAverage ema(
+      EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
   LoadGenerator loadGen(
       constFunction, new SymetricNoiseGenerator(MAX_NOISE), LOAD_ITERATIONS);
 
@@ -271,7 +278,7 @@ TEST(EMATest, CpuUsageEMATest) {
   JsonSource jsonSource(&cpuUsageEMAFilter);
 
   // Start test.
-  ASSERT_SOME(jsonSource.RunTests("tests/fixtures/ema_test.json"));
+  ASSERT_SOME(jsonSource.RunTests("tests/fixtures/ema/test.json"));
 
   ASSERT_TRUE(usage.isReady());
   ASSERT_EQ(2u, usage.get().executors().size());
@@ -301,7 +308,7 @@ TEST(EMATest, CpuUsageEMATestNoCpuStatistics) {
 
   // Start test.
   ASSERT_SOME(jsonSource.RunTests(
-      "tests/fixtures/insufficient_metrics_ema_test.json"));
+      "tests/fixtures/ema/insufficient_metrics_test.json"));
 
   EXPECT_EQ(0, mockSink.numberOfMessagesConsumed);
 }
@@ -324,7 +331,7 @@ TEST(EMATest, CpuUsageEMATestNoisyConstSample) {
   PublicSource source(&cpuUsageEMAFilter);
 
   Try<mesos::FixtureResourceUsage> usages =
-      JsonUsage::ReadJson("tests/fixtures/start_json_ema_test.json");
+      JsonUsage::ReadJson("tests/fixtures/ema/start_json_test.json");
   if (usages.isError()) {
     LOG(ERROR) << "JsonSource failed: " << usages.error() << std::endl;
   }
@@ -336,7 +343,8 @@ TEST(EMATest, CpuUsageEMATestNoisyConstSample) {
   const double_t THRESHOLD = 1.2;
   const double_t MAX_NOISE = 5;
   const int32_t LOAD_ITERATIONS = 100;
-  ExponentialMovingAverage ema(DEFAULT_EMA_FILTER_ALPHA);
+  ExponentialMovingAverage ema(
+      EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
   LoadGenerator loadGen(
       constFunction, new SymetricNoiseGenerator(MAX_NOISE), LOAD_ITERATIONS);
 

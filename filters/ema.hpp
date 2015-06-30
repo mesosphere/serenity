@@ -14,17 +14,25 @@ namespace serenity {
 // It becomer smoother, but less reactive to new samples.
 #define DEFAULT_EMA_FILTER_ALPHA 0.2
 
+/**
+ * EMA calculation can be more sophisticated for irregular
+ * time series, since it can influence how 'old' are our previous samples.
+ * We can choose between two algorithms.
+ */
+enum EMASeriesType {
+  EMA_REGULAR_SERIES,
+  EMA_IRRERGULAR_SERIES
+};
+
+
 class ExponentialMovingAverage {
  public:
   ExponentialMovingAverage(
-        Option<double_t> _alpha)
-      : uninitialized(true) {
-    if (_alpha.isSome()) {
-      setAlpha(_alpha.get());
-    } else {
-      setAlpha(DEFAULT_EMA_FILTER_ALPHA);
-    }
-  }
+      EMASeriesType _seriesType = EMA_REGULAR_SERIES,
+      double_t _alpha = DEFAULT_EMA_FILTER_ALPHA)
+      : alpha(_alpha),
+        seriesType(_seriesType),
+      uninitialized(true) {}
 
   void setAlpha(double_t _alpha) {
     alpha = _alpha;
@@ -34,17 +42,28 @@ class ExponentialMovingAverage {
     return alpha;
   }
 
-  /*
+  /**
   * Calculate EMA and save needed values for next calculation.
   */
   double_t calculateEMA(double_t sample, double_t sampleTimestamp) {
-    if (uninitialized) {
-      prevEma = sample;
-      uninitialized = false;
+    if (this->uninitialized) {
+      this->prevEma = sample;
+      this->uninitialized = false;
     }
-    prevEma = exponentialMovingAverageRegular(sample);
-    prevSample = sample;
-    prevSampleTimestamp = sampleTimestamp;
+
+    switch (seriesType) {
+      case EMA_REGULAR_SERIES:
+        this->prevEma = this->exponentialMovingAverageRegular(sample);
+        break;
+      case EMA_IRRERGULAR_SERIES:
+        // TODO(bplotka): Test irregular series EMA.
+        this->prevEma = this->exponentialMovingAverageIrregular(
+            sample, sampleTimestamp);
+        break;
+    }
+
+    this->prevSample = sample;
+    this->prevSampleTimestamp = sampleTimestamp;
 
     return prevEma;
   }
@@ -58,31 +77,32 @@ class ExponentialMovingAverage {
   double_t prevSample;
   // Used for counting deltaTime.
   double_t prevSampleTimestamp;
+  EMASeriesType seriesType;
   bool uninitialized;
 
-  /*
+  /**
    * Exponential Moving Average for irregular time series.
    * TODO(bplotka): Test it - strong dependence on time normalization.
    * Inspired by: oroboro.com/irregular-ema/
    * Timestamp is absolute.
    * Sample should be normalized always to the same unit.
    */
-  double_t exponentialMovingAverageIrregular(double_t sample, double_t
-  sampleTimestamp) {
-    double_t deltaTime = sampleTimestamp - prevSampleTimestamp;
-    double_t dynamicAlpha = deltaTime / alpha;
+  double_t exponentialMovingAverageIrregular(
+      double_t sample, double_t sampleTimestamp) const {
+    double_t deltaTime = sampleTimestamp - this->prevSampleTimestamp;
+    double_t dynamicAlpha = deltaTime / this->alpha;
     double_t weight = exp(dynamicAlpha * -1);
     double_t dynamicWeight = (1 - weight) / dynamicAlpha;
-    return (weight * prevEma) + (( dynamicWeight - weight ) * prevSample) +
-           ((1.0 - dynamicWeight) * sample);
+    return (weight * this->prevEma) + (( dynamicWeight - weight )
+           * this->prevSample) + ((1.0 - dynamicWeight) * sample);
   }
 
-  /*
+  /**
    * Exponential Moving Average for regular time series.
    * Sample should be normalized always to the same unit.
    */
-  double_t exponentialMovingAverageRegular(double_t sample) {
-    return (alpha*sample) + ((1 - alpha)*prevEma);
+  double_t exponentialMovingAverageRegular(double_t sample) const {
+    return (this->alpha * sample) + ((1 - this->alpha) * this->prevEma);
   }
 };
 

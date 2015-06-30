@@ -73,7 +73,9 @@ set(SERENITY_TEST_SOURCES
 
 # Copy fixtures.
 file(GLOB TestFixtures "tests/fixtures/*.json")
+file(GLOB EmaTestFixtures "tests/fixtures/ema/*.json")
 file(COPY ${TestFixtures} DESTINATION tests/fixtures)
+file(COPY ${EmaTestFixtures} DESTINATION tests/fixtures/ema)
 
 # Serenity library.
 add_library(serenity SHARED ${SERENITY_SOURCES})

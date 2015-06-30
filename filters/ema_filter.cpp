@@ -1,7 +1,5 @@
 #include "ema_filter.hpp"
 
-#include <stout/foreach.hpp>
-
 #include <utility>
 
 namespace mesos {
@@ -12,11 +10,11 @@ Try<Nothing> EMAFilter::consume(const ResourceUsage& in) {
   std::unique_ptr<ExecutorSet> newSamples(new ExecutorSet());
   ResourceUsage product;
 
-  foreach(ResourceUsage_Executor inExec, in.executors()) {
+  for (ResourceUsage_Executor inExec : in.executors()) {
     if (!inExec.has_statistics() || !inExec.has_executor_info()) {
       LOG(ERROR) << "Executor "
-                 << inExec.executor_info().executor_id().value()
-                 << " has not proper statistics or executor_info";
+                    << inExec.executor_info().executor_id().value()
+                    << " has not proper statistics or executor_info";
     }
     newSamples->insert(inExec);
 
@@ -24,7 +22,7 @@ Try<Nothing> EMAFilter::consume(const ResourceUsage& in) {
     auto emaSample = this->emaSamples->find(inExec.executor_info());
     if (emaSample == this->emaSamples->end()) {
       // If not insert new one.
-      ExponentialMovingAverage ema(alpha);
+      ExponentialMovingAverage ema;
       emaSamples->insert(std::pair<ExecutorInfo, ExponentialMovingAverage>(
           inExec.executor_info(), ema));
 
@@ -32,7 +30,9 @@ Try<Nothing> EMAFilter::consume(const ResourceUsage& in) {
       // Check if previousSample for given executor exists.
       auto previousSample = this->previousSamples->find(inExec);
       if (previousSample != this->previousSamples->end()) {
-        ResourceUsage_Executor* outExec = new ResourceUsage_Executor();
+        ResourceUsage_Executor* outExec(
+            new ResourceUsage_Executor());
+
         outExec->CopyFrom(inExec);
 
         // Perform EMA filtering.
@@ -40,6 +40,7 @@ Try<Nothing> EMAFilter::consume(const ResourceUsage& in) {
             &((*emaSample).second), (*previousSample), inExec, outExec);
         if (result.isError()) {
           LOG(ERROR) << result.error();
+          delete outExec;
           continue;
         }
 
