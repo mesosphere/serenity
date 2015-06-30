@@ -90,8 +90,9 @@ target_link_libraries(serenity-tests
 )
 add_test(serenity-tests serenity-tests)
 
-# For framework compilation we need mesos_source.
-# Test framework resuses utility classes from apache mesos.
+# For our smoke-test-framework we use NoExecutorFramework
+# which is sufficient for us. It requires mesos source directory.
+# If WITH_SOURCE_MESOS is not specify, test-framework is omitted.
 SET(WITH_SOURCE_MESOS "" CACHE STRING "Mesos source directory")
 SET(MESOS_SOURCE_DIR ${WITH_SOURCE_MESOS})
 
@@ -107,4 +108,8 @@ if (MESOS_SOURCE_DIR)
         ${MESOS_SOURCE_DIR}/src/examples/no_executor_framework.cpp)
     target_link_libraries(test-framework mesos glog)
 
+else(MESOS_SOURCE_DIR)
+    MESSAGE(
+        "Mesos source directory was not set. "
+        "Test-framework compilation will be omitted.")
 endif(MESOS_SOURCE_DIR)
