@@ -13,8 +13,6 @@
 
 #include "serenity/serenity.hpp"
 
-
-
 namespace mesos {
 namespace serenity {
 namespace tests {

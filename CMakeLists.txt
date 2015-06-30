@@ -77,7 +77,7 @@ file(COPY ${TestFixtures} DESTINATION tests/fixtures)
 
 # Serenity library.
 add_library(serenity SHARED ${SERENITY_SOURCES})
-target_link_libraries(serenity messages mesos)
+target_link_libraries(serenity messages mesos glog)
 
 # Tests.
 add_executable(serenity-tests ${SERENITY_TEST_SOURCES})
