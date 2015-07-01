@@ -14,7 +14,7 @@ namespace mesos {
 namespace serenity {
 namespace tests {
 
-Try<Nothing> JsonSource::RunTests(const std::string& jsonSource) {
+void JsonSource::RunTests(const std::string& jsonSource) {
   Try<mesos::FixtureResourceUsage> usages = JsonSource::ReadJson(jsonSource);
   if (usages.isError()) {
     LOG(ERROR) << "JsonSource failed: " << usages.error() << std::endl;
@@ -23,13 +23,10 @@ Try<Nothing> JsonSource::RunTests(const std::string& jsonSource) {
   for (auto itr = usages.get().resource_usage().begin();
       itr != usages.get().resource_usage().end();
       itr++) {
-    Try<Nothing> ret = produce(*itr);
-
-    // Stop the pipeline in case of error.
-    if (ret.isError()) return ret;
+    produce(*itr);
   }
 
-  return Nothing();
+  return;
 }
 
 const Try<FixtureResourceUsage> JsonSource::ReadJson(
