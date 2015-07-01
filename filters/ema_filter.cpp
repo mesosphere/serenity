@@ -36,7 +36,7 @@ Try<Nothing> EMAFilter::consume(const ResourceUsage& in) {
         outExec->CopyFrom(inExec);
 
         // Perform EMA filtering.
-        Try<Nothing> result = filter(
+        Try<Nothing> result = emaTypeFunction(
             &((*emaSample).second), (*previousSample), inExec, outExec);
         if (result.isError()) {
           LOG(ERROR) << result.error();
@@ -61,14 +61,11 @@ Try<Nothing> EMAFilter::consume(const ResourceUsage& in) {
 }
 
 
-IpcEMAFilter::~IpcEMAFilter() {}
-
-
-Try<Nothing> IpcEMAFilter::filter(
-      ExponentialMovingAverage* ema,
-      const ResourceUsage_Executor& previousExec,
-      const ResourceUsage_Executor& currentExec,
-      ResourceUsage_Executor* outExec) {
+Try<Nothing> EMATypes::filterIpc(
+    ExponentialMovingAverage* ema,
+    const ResourceUsage_Executor& previousExec,
+    const ResourceUsage_Executor& currentExec,
+    ResourceUsage_Executor* outExec) {
   Try<double_t> Ipc = CountIpc(previousExec, currentExec);
   if (Ipc.isError()) return Error(Ipc.error());
 
@@ -81,10 +78,7 @@ Try<Nothing> IpcEMAFilter::filter(
 }
 
 
-CpuUsageEMAFilter::~CpuUsageEMAFilter() {}
-
-
-Try<Nothing> CpuUsageEMAFilter::filter(
+Try<Nothing> EMATypes::filterCpuUsage(
     ExponentialMovingAverage* ema,
     const ResourceUsage_Executor& previousExec,
     const ResourceUsage_Executor& currentExec,

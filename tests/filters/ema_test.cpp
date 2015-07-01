@@ -158,7 +158,8 @@ TEST(EMATest, IpcEMATest) {
        InvokeConsumePrintIpcEma(&mockSink)));
 
   // Second component in pipeline.
-  IpcEMAFilter ipcEMAFilter(&mockSink, DEFAULT_EMA_FILTER_ALPHA);
+  EMAFilter ipcEMAFilter(
+      &mockSink, EMATypes::filterIpc, DEFAULT_EMA_FILTER_ALPHA);
 
   // First component in pipeline.
   JsonSource jsonSource(&ipcEMAFilter);
@@ -186,7 +187,8 @@ TEST(EMATest, IpcEMATestNoPerf) {
       .Times(0);
 
   // Second component in pipeline.
-  IpcEMAFilter ipcEMAFilter(&mockSink, DEFAULT_EMA_FILTER_ALPHA);
+  EMAFilter ipcEMAFilter(
+      &mockSink, EMATypes::filterIpc, DEFAULT_EMA_FILTER_ALPHA);
 
   // First component in pipeline.
   JsonSource jsonSource(&ipcEMAFilter);
@@ -210,7 +212,8 @@ TEST(EMATest, IpcEMATestNoisyConstSample) {
     .WillRepeatedly(InvokeConsumeUsage(&mockSink));
 
   // Second component in pipeline.
-  IpcEMAFilter ipcEMAFilter(&mockSink, DEFAULT_EMA_FILTER_ALPHA);
+  EMAFilter ipcEMAFilter(
+      &mockSink, EMATypes::filterIpc, DEFAULT_EMA_FILTER_ALPHA);
 
   // First component in pipeline.
   PublicSource source(&ipcEMAFilter);
@@ -272,7 +275,8 @@ TEST(EMATest, CpuUsageEMATest) {
           InvokeConsumePrintCPuUsageEma(&mockSink)));
 
   // Second component in pipeline.
-  CpuUsageEMAFilter cpuUsageEMAFilter(&mockSink, DEFAULT_EMA_FILTER_ALPHA);
+  EMAFilter cpuUsageEMAFilter(
+      &mockSink, EMATypes::filterCpuUsage, DEFAULT_EMA_FILTER_ALPHA);
 
   // First component in pipeline.
   JsonSource jsonSource(&cpuUsageEMAFilter);
@@ -301,7 +305,8 @@ TEST(EMATest, CpuUsageEMATestNoCpuStatistics) {
       .Times(0);
 
   // Second component in pipeline.
-  CpuUsageEMAFilter cpuUsageEMAFilter(&mockSink, DEFAULT_EMA_FILTER_ALPHA);
+  EMAFilter cpuUsageEMAFilter(
+      &mockSink, EMATypes::filterCpuUsage, DEFAULT_EMA_FILTER_ALPHA);
 
   // First component in pipeline.
   JsonSource jsonSource(&cpuUsageEMAFilter);
@@ -325,7 +330,8 @@ TEST(EMATest, CpuUsageEMATestNoisyConstSample) {
       .WillRepeatedly(InvokeConsumeUsage(&mockSink));
 
   // Second component in pipeline.
-  CpuUsageEMAFilter cpuUsageEMAFilter(&mockSink, DEFAULT_EMA_FILTER_ALPHA);
+  EMAFilter cpuUsageEMAFilter(
+      &mockSink, EMATypes::filterCpuUsage, DEFAULT_EMA_FILTER_ALPHA);
 
   // First component in pipeline.
   PublicSource source(&cpuUsageEMAFilter);
