@@ -1,5 +1,5 @@
-#ifndef SERENITY_DUMMYRESOURCEUSAGESINK_H
-#define SERENITY_DUMMYRESOURCEUSAGESINK_H
+#ifndef SERENITY_DUMMY_SINK_HPP
+#define SERENITY_DUMMY_SINK_HPP
 
 #include <stout/try.hpp>
 
@@ -19,11 +19,11 @@ class DummySink : public Consumer<T> {
     return Nothing();
   }
 
-  int numberOfMessagesConsumed;
+  uint32_t numberOfMessagesConsumed;
 };
 
 }  // namespace tests
 }  // namespace serenity
 }  // namespace mesos
 
-#endif  // SERENITY_DUMMY_RESOURCE_USAGE_SINK_HPP
+#endif  // SERENITY_DUMMY_SINK_HPP

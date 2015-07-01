@@ -7,6 +7,15 @@ SET(WITH_MESOS "/usr" CACHE STRING "Mesos installation directory")
 SET(MESOS_INSTALLATION_DIR ${WITH_MESOS})
 MESSAGE("Mesos installation directory set to: " ${MESOS_INSTALLATION_DIR})
 
+# Compiler things.
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+if(COMPILER_SUPPORTS_CXX11)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+else()
+    message(STATUS "Error: ${CMAKE_CXX_COMPILER} has no C++11 support")
+endif()
+
 # Add gtest.
 ADD_SUBDIRECTORY (lib/gmock-1.7.0)
 include_directories( ${gmock_SOURCE_DIR} include)
@@ -54,6 +63,7 @@ set(SERENITY_SOURCES
     estimator/serenity_estimator_module.cpp
     filters/ema.cpp
     observers/ipc_drop.cpp
+    observers/slack_resource.cpp
     qos_controller/serenity_controller.cpp
     qos_controller/serenity_controller_module.cpp
     sources/dummy_source.cpp
@@ -65,6 +75,7 @@ set(SERENITY_TEST_SOURCES
     tests/controllers/qos_controller_test.cpp
     tests/estimators/estimator_test.cpp
     tests/filters/ema_test.cpp
+    tests/observers/slack_resource_test.cpp
     tests/sources/json_source_test.cpp
 )
 
