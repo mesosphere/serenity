@@ -1,6 +1,8 @@
 #ifndef SERENITY_MATH_UTILS_HPP
 #define SERENITY_MATH_UTILS_HPP
 
+#include <limits>
+
 namespace mesos {
 namespace serenity {
 namespace tests {

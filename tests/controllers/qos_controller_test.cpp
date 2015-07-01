@@ -31,7 +31,8 @@ TEST(SerenityControllerTest, NoQoSCorrections) {
 
   QoSController* controller = qoSController.get();
 
-  MockSlaveUsage usage("tests/fixtures/baseline_smoke_test_resource_usage.json");
+  MockSlaveUsage usage(
+      "tests/fixtures/baseline_smoke_test_resource_usage.json");
 
   Try<Nothing> initialize = controller->initialize(
       lambda::bind(&MockSlaveUsage::usage, &usage));
