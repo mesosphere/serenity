@@ -51,7 +51,10 @@ class Producer : public BusSocket {
 
   Try<Nothing> produce(T out) {
     for (auto c : consumers) {
-      c->consume(out);
+      Try<Nothing> ret = c->consume(out);
+
+      // Stop the pipeline in case of error.
+      if (ret.isError()) return ret;
     }
     return Nothing();
   }
