@@ -11,7 +11,7 @@
 
 #include "messages/serenity.hpp"
 
-#include "serenity/ema_map.hpp"
+#include "serenity/executor_map.hpp"
 #include "serenity/executor_set.hpp"
 #include "serenity/metrics_helper.hpp"
 #include "serenity/serenity.hpp"
@@ -32,7 +32,7 @@ class EMAFilter :
   EMAFilter(Consumer<ResourceUsage>* _consumer, double_t _alpha) :
       Producer<ResourceUsage>(_consumer),
       previousSamples(new ExecutorSet),
-      emaSamples(new EmaMap),
+      emaSamples(new MapHelper<ExponentialMovingAverage>::ExecutorMap),
       alpha(_alpha) {}
 
   ~EMAFilter() {}
@@ -48,7 +48,7 @@ class EMAFilter :
  protected:
   double_t alpha;
   std::unique_ptr<ExecutorSet> previousSamples;
-  std::unique_ptr<EmaMap> emaSamples;
+  std::unique_ptr<MapHelper<ExponentialMovingAverage>::ExecutorMap> emaSamples;
 };
 
 

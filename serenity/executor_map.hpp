@@ -1,5 +1,5 @@
-#ifndef SERENITY_EMA_MAP_HPP
-#define SERENITY_EMA_MAP_HPP
+#ifndef SERENITY_EXECUTOR_MAP_HPP
+#define SERENITY_EXECUTOR_MAP_HPP
 
 #include <string>
 
@@ -14,9 +14,9 @@ namespace mesos {
 namespace serenity {
 
 /**
- * Hasher functor for EmaMap
+ * Hasher functor for Executor Map
  */
-struct EmaMapHasher{
+struct ExecutorMapHasher{
   size_t operator()(const ExecutorInfo& that) const {
     std::string hashKey = that.executor_id().value() +
                           that.framework_id().value();
@@ -27,9 +27,9 @@ struct EmaMapHasher{
 
 
 /**
- * Equals functor for EmaMap
+ * Equals functor for Executor Map
  */
-struct EmaMapEquals {
+struct ExecutorMapEquals {
   bool operator()(const ExecutorInfo& lhs,
                   const ExecutorInfo& rhs) const {
     return (lhs.executor_id().value()   ==
@@ -43,12 +43,16 @@ struct EmaMapEquals {
 /**
  * Unordered map for storing ExponentialMovingAverage objects.
  */
-typedef std::unordered_map<ExecutorInfo,
-    ExponentialMovingAverage,
-    EmaMapHasher,
-    EmaMapEquals> EmaMap;
+template<typename T>
+struct MapHelper {
+  typedef std::unordered_map<
+      ExecutorInfo,
+      T,
+      ExecutorMapHasher,
+      ExecutorMapEquals> ExecutorMap;
+};
 
 }  // namespace serenity
 }  // namespace mesos
 
-#endif  // SERENITY_EMA_MAP_HPP
+#endif  // SERENITY_EXECUTOR_MAP_HPP
