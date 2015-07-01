@@ -12,7 +12,7 @@ TEST(JsonSource, ProduceRuFromFile) {
   DummySink<ResourceUsage> dummySink;
   JsonSource jsonSource;
   jsonSource.addConsumer(&dummySink);
-  jsonSource.RunTests("tests/fixtures/json_source_test.json");
+  jsonSource.RunTests("tests/fixtures/baseline_smoke_test_resource_usage.json");
 
   ASSERT_EQ(dummySink.numberOfMessagesConsumed, 4);
 }

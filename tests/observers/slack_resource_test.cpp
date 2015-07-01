@@ -10,6 +10,7 @@
 
 #include "tests/common/sources/json_source.hpp"
 #include "tests/common/sinks/mock_sink.hpp"
+#include "tests/common/math_utils.hpp"
 
 namespace mesos {
 namespace serenity {
@@ -23,7 +24,7 @@ using ::testing::_;
 ACTION_P(BasicTestAction, check) {
   Resources resources = arg0;
 
-  if (abs(check) < 0.0001) {
+  if (AlmostZero(check)) {
     EXPECT_TRUE(resources.empty());
   } else {
     EXPECT_FALSE(resources.empty());

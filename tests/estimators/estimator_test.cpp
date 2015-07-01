@@ -30,7 +30,7 @@ TEST(SerenityEstimatorTest, EmptySlackEstimation) {
 
   ResourceEstimator* estimator = resourceEstimator.get();
 
-  MockSlaveUsage usage("tests/fixtures/json_source_test.json");
+  MockSlaveUsage usage("tests/fixtures/baseline_smoke_test_resource_usage.json");
 
   Try<Nothing> initialize = estimator->initialize(
       lambda::bind(&MockSlaveUsage::usage, &usage));
