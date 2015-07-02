@@ -1,12 +1,10 @@
 #ifndef SERENITY_EXPONENTIAL_MOVING_AVERAGE_FILTER_HPP
 #define SERENITY_EXPONENTIAL_MOVING_AVERAGE_FILTER_HPP
 
-#include <math.h>
-
-#include <bits/unique_ptr.h>
-
 #include <glog/logging.h>
 
+#include <cmath>
+#include <memory>
 
 #include "messages/serenity.hpp"
 
@@ -21,8 +19,9 @@ namespace mesos {
 namespace serenity {
 
 /**
+ * Alpha controls how long is the moving average period.
  * The smaller alpha becomes, the longer your moving average is.
- * It becomer smoother, but less reactive to new samples.
+ * It becomes smoother, but less reactive to new samples.
  */
 constexpr double_t DEFAULT_EMA_FILTER_ALPHA = 0.2;
 
@@ -51,23 +50,23 @@ class ExponentialMovingAverage {
     alpha = _alpha;
   }
 
-  double_t getAlpha() {
+  double_t getAlpha() const {
     return alpha;
   }
 
   /**
-  * Calculate EMA and save needed values for next calculation.
-  */
+   * Calculate EMA and save needed values for next calculation.
+   */
   double_t calculateEMA(double_t sample, double_t sampleTimestamp);
 
  private:
-  // Constant describing how the window weights decrease over time.
+  //! Constant describing how the window weights decrease over time.
   double_t alpha;
-  // Previous exponential moving average value.
+  //! Previous exponential moving average value.
   double_t prevEma;
-  // Previous sample.
+  //! Previous sample.
   double_t prevSample;
-  // Used for counting deltaTime.
+  //! Used for counting deltaTime.
   double_t prevSampleTimestamp;
   EMASeriesType seriesType;
   bool uninitialized;
@@ -89,6 +88,7 @@ class ExponentialMovingAverage {
   double_t exponentialMovingAverageRegular(double_t sample) const;
 };
 
+
 typedef Try<Nothing> (EMATypeFilterFunction)
     (ExponentialMovingAverage*,
      const ResourceUsage_Executor&,
@@ -99,7 +99,7 @@ typedef Try<Nothing> (EMATypeFilterFunction)
 /**
  * It is possible to calculate EMA on any value. For every value
  * seperate filter function have to be implemented to fetch
- * specified valye and store it.
+ * specified value and store it.
  *
  * - filterIpc calculates Exponential Moving Average of IPC.
  * It gets IPC from perf statistics in ResourceStatistics.
@@ -112,7 +112,6 @@ typedef Try<Nothing> (EMATypeFilterFunction)
  * It stores the calculated value in statistics.net_tcp_time_wait_connections
  * field.
  */
-
 class EMATypes {
  public:
   static EMATypeFilterFunction filterIpc;

@@ -65,7 +65,7 @@ Try<Nothing> EMAFilter::consume(const ResourceUsage& in) {
     auto emaSample = this->emaSamples->find(inExec.executor_info());
     if (emaSample == this->emaSamples->end()) {
       // If not insert new one.
-      ExponentialMovingAverage ema;
+      ExponentialMovingAverage ema(EMA_REGULAR_SERIES, this->alpha);
       emaSamples->insert(std::pair<ExecutorInfo, ExponentialMovingAverage>(
           inExec.executor_info(), ema));
 
