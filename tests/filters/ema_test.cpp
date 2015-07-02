@@ -31,7 +31,7 @@ TEST(EMATest, SmoothingConstSample) {
   ExponentialMovingAverage ema(
       EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
   LoadGenerator loadGen(
-      constFunction, new NoNoise(), LOAD_ITERATIONS);
+      constFunction, new ZeroNoise(), LOAD_ITERATIONS);
 
   for (; loadGen.end() ; loadGen++) {
     double_t result = ema.calculateEMA((*loadGen)(), (*loadGen).timestamp);

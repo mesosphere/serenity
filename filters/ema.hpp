@@ -89,11 +89,11 @@ class ExponentialMovingAverage {
 };
 
 
-typedef Try<Nothing> (EMATypeFilterFunction)
+using EMATypeFilterFunction = Try<Nothing>
     (ExponentialMovingAverage*,
      const ResourceUsage_Executor&,
      const ResourceUsage_Executor&,
-     ResourceUsage_Executor*);
+     ResourceUsage_Executor*) noexcept;
 
 
 /**

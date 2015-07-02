@@ -26,7 +26,7 @@ class NoiseGenerator {
 /**
  * Primary Noise Generator - generates no noise.
  */
-class NoNoise : public NoiseGenerator {
+class ZeroNoise : public NoiseGenerator {
  public:
   double_t generate(int32_t iteration) {
     return 0;
