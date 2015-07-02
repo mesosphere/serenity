@@ -1,8 +1,8 @@
-#include <math.h>
+#include <stout/gtest.hpp>
 
 #include <gtest/gtest.h>
 
-#include <stout/gtest.hpp>
+#include <cmath>
 
 #include "filters/ema.hpp"
 

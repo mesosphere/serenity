@@ -125,7 +125,6 @@ ACTION_P(InvokeConsumePrintCPuUsageEma, sink) {
   return Nothing();
 }
 
-
 }  // namespace tests
 }  // namespace serenity
 }  // namespace mesos

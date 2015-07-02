@@ -54,10 +54,18 @@ Try<Nothing> EMAFilter::consume(const ResourceUsage& in) {
   ResourceUsage product;
 
   for (ResourceUsage_Executor inExec : in.executors()) {
-    if (!inExec.has_statistics() || !inExec.has_executor_info()) {
+    if (!inExec.has_executor_info()) {
+      LOG(ERROR) << "Executor <unknown>"
+      << " does not include executor_info";
+      // Filter out these executors.
+      continue;
+    }
+    if (!inExec.has_statistics()) {
       LOG(ERROR) << "Executor "
                     << inExec.executor_info().executor_id().value()
-                    << " has not proper statistics or executor_info";
+                    << " does not include statistics.";
+      // Filter out these executors.
+      continue;
     }
     newSamples->insert(inExec);
 

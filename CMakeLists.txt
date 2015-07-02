@@ -62,6 +62,7 @@ set(SERENITY_SOURCES
     estimator/serenity_estimator.cpp
     estimator/serenity_estimator_module.cpp
     filters/ema.cpp
+    filters/pr_executor_pass.cpp
     observers/ipc_drop.cpp
     observers/slack_resource.cpp
     qos_controller/serenity_controller.cpp
@@ -75,6 +76,7 @@ set(SERENITY_TEST_SOURCES
     tests/controllers/qos_controller_test.cpp
     tests/estimators/estimator_test.cpp
     tests/filters/ema_test.cpp
+    tests/filters/pr_executor_pass_test.cpp
     tests/observers/slack_resource_test.cpp
     tests/sources/json_source_test.cpp
 )
@@ -82,8 +84,10 @@ set(SERENITY_TEST_SOURCES
 # Copy fixtures.
 file(GLOB TestFixtures "tests/fixtures/*.json")
 file(GLOB EmaTestFixtures "tests/fixtures/ema/*.json")
+file(GLOB PrExecutorTestFixtures "tests/fixtures/pr_executor_pass/*.json")
 file(COPY ${TestFixtures} DESTINATION tests/fixtures)
 file(COPY ${EmaTestFixtures} DESTINATION tests/fixtures/ema)
+file(COPY ${PrExecutorTestFixtures} DESTINATION tests/fixtures/pr_executor_pass)
 
 # Serenity library.
 add_library(serenity SHARED ${SERENITY_SOURCES})
