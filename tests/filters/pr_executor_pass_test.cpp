@@ -17,7 +17,7 @@ namespace tests {
 
 using ::testing::DoAll;
 
-TEST(PrTasksFilterTest, BeTasksFilteredOutTest) {
+TEST(PrTasksFilterTest, BeTasksFilteredOut) {
   // End of pipeline.
   MockSink<ResourceUsage> mockSink;
   process::Future<ResourceUsage> usage;
