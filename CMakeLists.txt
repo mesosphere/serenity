@@ -100,3 +100,27 @@ target_link_libraries(serenity-tests
     serenity
 )
 add_test(serenity-tests serenity-tests)
+
+# For our smoke-test-framework we use NoExecutorFramework
+# which is sufficient for us. It requires mesos source directory.
+# If WITH_SOURCE_MESOS is not specified, test-framework is omitted.
+SET(WITH_SOURCE_MESOS "" CACHE STRING "Mesos source directory")
+SET(MESOS_SOURCE_DIR ${WITH_SOURCE_MESOS})
+
+if (MESOS_SOURCE_DIR)
+    MESSAGE("Mesos source directory set to: " ${MESOS_SOURCE_DIR})
+
+    include_directories(
+        ${MESOS_SOURCE_DIR}/build/src/
+        ${MESOS_SOURCE_DIR}/src/
+    )
+    # Serenity test framework exe.
+    add_executable(test-framework
+        ${MESOS_SOURCE_DIR}/src/examples/no_executor_framework.cpp)
+    target_link_libraries(test-framework mesos protobuf glog)
+
+else(MESOS_SOURCE_DIR)
+    MESSAGE(
+        "Mesos source directory was not set. "
+        "Test-framework compilation will be omitted.")
+endif(MESOS_SOURCE_DIR)
