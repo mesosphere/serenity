@@ -80,7 +80,7 @@ Try<Nothing> EMAFilter::consume(const ResourceUsage& in) {
 
         // Perform EMA filtering.
         Try<Nothing> result = emaTypeFunction(
-            &((*emaSample).second), (*previousSample), inExec, outExec);
+            &(emaSample->second), (*previousSample), inExec, outExec);
         if (result.isError()) {
           LOG(ERROR) << result.error();
           delete outExec;
