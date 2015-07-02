@@ -28,10 +28,10 @@ Try<Nothing> PrExecutorPassFilter::consume(const ResourceUsage& in) {
       // Filter out BE tasks.
       continue;
     }
-    ResourceUsage_Executor* outExec(new ResourceUsage_Executor());
-    outExec->CopyFrom(inExec);
+
     // Add an executor only when there was no error.
-    product.mutable_executors()->AddAllocated(outExec);
+    ResourceUsage_Executor* outExec = product.mutable_executors()->Add();
+    outExec->CopyFrom(inExec);
   }
 
   if (product.executors().size() != 0)
