@@ -17,7 +17,7 @@ namespace tests {
 
 using ::testing::DoAll;
 
-TEST(PrTasksFilterTest, BeFilteredOutTest) {
+TEST(PrTasksFilterTest, BeTasksFilteredOutTest) {
   // End of pipeline.
   MockSink<ResourceUsage> mockSink;
   process::Future<ResourceUsage> usage;
@@ -43,7 +43,7 @@ TEST(PrTasksFilterTest, BeFilteredOutTest) {
 }
 
 
-TEST(PrTasksFilterTest, AllocatedResourcesNotIncluded) {
+TEST(PrTasksFilterTest, EmptyAllocatedResources) {
   // End of pipeline.
   MockSink<ResourceUsage> mockSink;
   EXPECT_CALL(mockSink, consume(_))
