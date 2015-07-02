@@ -92,7 +92,7 @@ add_test(serenity-tests serenity-tests)
 
 # For our smoke-test-framework we use NoExecutorFramework
 # which is sufficient for us. It requires mesos source directory.
-# If WITH_SOURCE_MESOS is not specify, test-framework is omitted.
+# If WITH_SOURCE_MESOS is not specified, test-framework is omitted.
 SET(WITH_SOURCE_MESOS "" CACHE STRING "Mesos source directory")
 SET(MESOS_SOURCE_DIR ${WITH_SOURCE_MESOS})
 
