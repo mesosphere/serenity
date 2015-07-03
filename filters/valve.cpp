@@ -36,6 +36,7 @@ static const string ESTIMATOR_VALVE_ENDPOINT_HELP() {
           "1. " + PIPELINE_ENABLE_KEY + " - true / false."));
 }
 
+
 static const string CONTROLLER_VALVE_ENDPOINT_HELP() {
   return HELP(
       TLDR(
@@ -53,6 +54,7 @@ static const string CONTROLLER_VALVE_ENDPOINT_HELP() {
           "The following field should be supplied in a POST:",
           "1. " + PIPELINE_ENABLE_KEY + " - true / false."));
 }
+
 
 Try<string> getFormValue(
     const string& key,

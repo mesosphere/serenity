@@ -21,7 +21,7 @@ using namespace process;  // NOLINT(build/namespaces)
 using ::testing::DoAll;
 
 
-TEST(ValveFilterTest, EstimatorEnableThenDisableThenEnable) {
+TEST(ValveFilterTest, EstimatorDisableThenEnable) {
   // End of pipeline.
   MockSink<ResourceUsage> mockSink;
   EXPECT_CALL(mockSink, consume(_))
@@ -77,7 +77,7 @@ TEST(ValveFilterTest, EstimatorEnableThenDisableThenEnable) {
 }
 
 
-TEST(ValveFilterTest, ControllerEnableThenDisableThenEnable) {
+TEST(ValveFilterTest, ControllerDisableThenEnable) {
   // End of pipeline.
   MockSink<ResourceUsage> mockSink;
   EXPECT_CALL(mockSink, consume(_))

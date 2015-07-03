@@ -18,14 +18,14 @@ enum ValveType {
   QOS_CONTROLLER_VALVE
 };
 
-const std::string PIPELINE_ENABLE_KEY = "enabled";
-const std::string VALVE_ROUTE =
-    "/valve";
 
+const std::string PIPELINE_ENABLE_KEY = "enabled";
+const std::string VALVE_ROUTE = "/valve";
 const std::string RESOURCE_ESTIMATOR_PROCESS_BASE =
     "serenity_resource_estimator";
 const std::string QOS_CONTROLLER_PROCESS_BASE =
     "serenity_qos_controller";
+
 
 static const std::string getProcessBaseName(ValveType valveType) {
   switch (valveType) {
@@ -35,6 +35,7 @@ static const std::string getProcessBaseName(ValveType valveType) {
       return QOS_CONTROLLER_PROCESS_BASE;
   }
 }
+
 
 // Forward declaration.
 class ValveFilterEndpointProcess;
