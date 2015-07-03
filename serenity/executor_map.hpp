@@ -5,18 +5,13 @@
 
 #include <unordered_map>
 
-#include "filters/ema.hpp"
-
-#include "mesos/mesos.hpp"
-
-
 namespace mesos {
 namespace serenity {
 
 /**
- * Hasher functor for Executor Map
+ * Hasher functor for Executor Info
  */
-struct ExecutorMapHasher{
+struct ExecutorInfoHasher{
   size_t operator()(const ExecutorInfo& that) const {
     std::string hashKey = that.executor_id().value() +
                           that.framework_id().value();
@@ -27,9 +22,9 @@ struct ExecutorMapHasher{
 
 
 /**
- * Equals functor for Executor Map
+ * Equals functor for Executor Info
  */
-struct ExecutorMapEquals {
+struct ExecutorInfoEquals {
   bool operator()(const ExecutorInfo& lhs,
                   const ExecutorInfo& rhs) const {
     return (lhs.executor_id().value()   ==
@@ -41,16 +36,13 @@ struct ExecutorMapEquals {
 
 
 /**
- * Unordered map for storing ExponentialMovingAverage objects.
+ * Unordered map for storing objects where ExecutorInfo is the key.
  */
-template<typename T>
-struct MapHelper {
-  typedef std::unordered_map<
-      ExecutorInfo,
-      T,
-      ExecutorMapHasher,
-      ExecutorMapEquals> ExecutorMap;
-};
+template <typename Type>
+using ExecutorMap = std::unordered_map<ExecutorInfo,
+                                       Type,
+                                       ExecutorInfoHasher,
+                                       ExecutorInfoEquals>;
 
 }  // namespace serenity
 }  // namespace mesos

@@ -134,7 +134,7 @@ class EMAFilter :
       double_t _alpha = DEFAULT_EMA_FILTER_ALPHA)
     : Producer<ResourceUsage>(_consumer),
       previousSamples(new ExecutorSet),
-      emaSamples(new MapHelper<ExponentialMovingAverage>::ExecutorMap),
+      emaSamples(new ExecutorMap<ExponentialMovingAverage>()),
       emaTypeFunction(_emaTypeFunction),
       alpha(_alpha) {}
 
@@ -146,7 +146,7 @@ class EMAFilter :
   double_t alpha;
   const lambda::function<EMATypeFilterFunction>& emaTypeFunction;
   std::unique_ptr<ExecutorSet> previousSamples;
-  std::unique_ptr<MapHelper<ExponentialMovingAverage>::ExecutorMap> emaSamples;
+  std::unique_ptr<ExecutorMap<ExponentialMovingAverage>> emaSamples;
 };
 
 }  // namespace serenity
