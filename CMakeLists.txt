@@ -63,6 +63,7 @@ set(SERENITY_SOURCES
     estimator/serenity_estimator_module.cpp
     filters/ema.cpp
     filters/pr_executor_pass.cpp
+    filters/ignore_new_tasks.cpp
     observers/ipc_drop.cpp
     observers/slack_resource.cpp
     qos_controller/serenity_controller.cpp
