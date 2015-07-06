@@ -81,8 +81,7 @@ Try<Nothing> EMAFilter::consume(const ResourceUsage& in) {
       // Check if previousSample for given executor exists.
       auto previousSample = this->previousSamples->find(inExec);
       if (previousSample != this->previousSamples->end()) {
-        ResourceUsage_Executor* outExec(
-            new ResourceUsage_Executor());
+        ResourceUsage_Executor* outExec = new ResourceUsage_Executor(inExec);
 
         outExec->CopyFrom(inExec);
 
