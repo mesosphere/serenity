@@ -1,3 +1,4 @@
+#include <ctime>
 #include <memory>
 
 #include "messages/serenity.hpp"
@@ -17,16 +18,16 @@ namespace serenity {
  * IgnoreNewTasksFilter ignores removes executors that run for less time than
  * threshold. It's purpose is to cut away tasks that are warming up.
  */
-class IgnoreNewTasksFilter : public Consumer<ResourceUsage>,
+class IgnoreNewExecutorsFilter : public Consumer<ResourceUsage>,
                              public Producer<ResourceUsage> {
  public:
-  explicit IgnoreNewTasksFilter(uint32_t _threshold = DEFAULT_THRESHOLD) :
+  explicit IgnoreNewExecutorsFilter(uint32_t _threshold = DEFAULT_THRESHOLD) :
       threshold(_threshold),
-      executorMap(new ExecutorMap<time_t>) {}
+      executorTimestamps(new ExecutorMap<time_t>) {}
 
-  ~IgnoreNewTasksFilter() {}
+  ~IgnoreNewExecutorsFilter() {}
 
-  IgnoreNewTasksFilter(const IgnoreNewTasksFilter& other) :
+  IgnoreNewExecutorsFilter(const IgnoreNewExecutorsFilter& other) :
        threshold(other.threshold) {}
 
   Try<Nothing> consume(const ResourceUsage& usage) override;
@@ -36,10 +37,15 @@ class IgnoreNewTasksFilter : public Consumer<ResourceUsage>,
   }
 
  protected:
+  /// ctime function wrapped for mocking purposes
+  inline virtual time_t GetTime(time_t* arg) {
+    return time(arg);
+  }
+
   static constexpr uint32_t DEFAULT_THRESHOLD = 5 * 60;  //!< Five minutes
   uint32_t threshold;  //!< #seconds when executor is considered too fresh
 
-  std::unique_ptr<ExecutorMap<time_t>> executorMap;
+  std::unique_ptr<ExecutorMap<time_t>> executorTimestamps;
 };
 
 }  // namespace serenity

@@ -93,7 +93,7 @@ using EMATypeFilterFunction = Try<Nothing>
     (ExponentialMovingAverage*,
      const ResourceUsage_Executor&,
      const ResourceUsage_Executor&,
-     ResourceUsage_Executor*) noexcept;
+     ResourceUsage_Executor*);
 
 
 /**
