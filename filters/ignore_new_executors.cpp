@@ -18,23 +18,22 @@ Try<Nothing> IgnoreNewExecutorsFilter::consume(const ResourceUsage &usage) {
   for (const auto& executor : usage.executors()) {
     ExecutorInfo executorInfo = executor.executor_info();
 
+    // Find executor or add it if non-existent.
     const auto& prevExecutorEntry =
         this->executorTimestamps->find(executorInfo);
-    if (prevExecutorEntry != this->executorTimestamps->end()) {
-      resultPair = newExecutorTimestamps->insert(std::make_pair(
-          prevExecutorEntry->first,
-          prevExecutorEntry->second));
-    } else {
+    if (prevExecutorEntry == this->executorTimestamps->end()) {
       resultPair = newExecutorTimestamps->insert(
           std::make_pair(executor.executor_info(),
                          executor.statistics().timestamp()));
+    } else {
+      resultPair = newExecutorTimestamps->insert(std::make_pair(
+          prevExecutorEntry->first,
+          prevExecutorEntry->second));
     }
 
-    std::cout << "result.second: " << resultPair.second << std::endl;
+    // Check if creation time is above threshold.
     if (resultPair.second == true) {
       time_t insertionTime = resultPair.first->second;
-      std::cout << "time now: " << timeNow << " | insertion time: " << insertionTime << std::endl;
-      std::cout << "can pass: " << (timeNow - insertionTime >= this->threshold) << " | threshold = " << this->threshold << std::endl;
       if (timeNow - insertionTime >= this->threshold) {
         ResourceUsage_Executor* newExec = new ResourceUsage_Executor(executor);
         newUsage.mutable_executors()->AddAllocated(newExec);

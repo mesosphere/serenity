@@ -10,7 +10,6 @@
 #include "tests/common/sources/json_source.hpp"
 
 #include "tests/common/sinks/printer_sink.hpp"
-//#include "tests/filters/ignore_new_tasks_test.hpp"
 
 namespace mesos {
 namespace serenity {
@@ -22,8 +21,9 @@ using testing::Sequence;
 constexpr int IGNORE_NEW_EXECUTORS_SAMPLES = 6;
 
 class MockIgnoreNewExecutorsFilter : public IgnoreNewExecutorsFilter {
-public:
-  MockIgnoreNewExecutorsFilter(uint32_t arg) : IgnoreNewExecutorsFilter(arg) {}
+ public:
+  explicit MockIgnoreNewExecutorsFilter(uint32_t arg) :
+      IgnoreNewExecutorsFilter(arg) {}
 
   MOCK_METHOD1(GetTime, time_t(time_t* arg));
 };
@@ -42,7 +42,8 @@ TEST(IgnoreNewExecutorsFilter, IgnoreAllExecutors) {
 
   EXPECT_CALL(filter, GetTime(nullptr)).Times(4).WillRepeatedly(Return(1));
 
-  jsonSource.RunTests("tests/fixtures/baseline_smoke_test_resource_usage.json");
+  jsonSource.RunTests("tests/fixtures/"
+                      "baseline_smoke_test_resource_usage.json");
 
   ASSERT_EQ(dummySink.numberOfMessagesConsumed, 0);
 }
@@ -58,9 +59,11 @@ TEST(IgnoreNewExecutorsFilter, PassAllExecutors) {
   jsonSource.addConsumer(&filter);
   filter.addConsumer(&dummySink);
 
-  EXPECT_CALL(filter, GetTime(nullptr)).Times(4).WillRepeatedly(Return(2147483647));
+  EXPECT_CALL(filter, GetTime(nullptr)).Times(4).
+      WillRepeatedly(Return(2147483647));
 
-  jsonSource.RunTests("tests/fixtures/baseline_smoke_test_resource_usage.json");
+  jsonSource.RunTests("tests/fixtures/"
+                      "baseline_smoke_test_resource_usage.json");
 
   ASSERT_EQ(dummySink.numberOfMessagesConsumed, 4);
 }
@@ -115,6 +118,6 @@ TEST(IgnoreNewExecutorsFilter, PassTwoExecutors) {
   ASSERT_EQ(dummySink.numberOfMessagesConsumed, 2);
 }
 
-}  // namespace tests {
-}  // namespace serenity {
-}  // namespace mesos {
+}  // namespace tests
+}  // namespace serenity
+}  // namespace mesos
