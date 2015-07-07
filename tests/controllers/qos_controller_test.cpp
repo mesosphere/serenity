@@ -7,6 +7,7 @@
 
 #include <stout/gtest.hpp>
 
+#include <process/clock.hpp>
 #include <process/gtest.hpp>
 #include <list>
 
@@ -37,7 +38,12 @@ TEST(SerenityControllerTest, NoQoSCorrections) {
   Try<Nothing> initialize = controller->initialize(
       lambda::bind(&MockSlaveUsage::usage, &usage));
 
+  process::Clock::pause();
+
   process::Future<list<QoSCorrection>> result = controller->corrections();
+
+  // Wait for internal QosCorrection defers to be done.
+  process::Clock::settle();
 
   // So far we did not expect QoSCorrections.
   EXPECT_FALSE(result.isReady());
