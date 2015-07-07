@@ -1,3 +1,4 @@
+#include <atomic>
 #include <string>
 
 #include "glog/logging.h"
@@ -7,7 +8,6 @@
 #include "process/future.hpp"
 #include "process/limiter.hpp"
 #include "process/process.hpp"
-#include "process/mutex.hpp"
 
 #include "stout/lambda.hpp"
 #include "stout/synchronized.hpp"
@@ -21,6 +21,7 @@ namespace serenity {
 using namespace process;  // NOLINT(build/namespaces)
 
 using std::string;
+using std::atomic_bool;
 
 static const string ESTIMATOR_VALVE_ENDPOINT_HELP() {
   return HELP(
@@ -90,11 +91,9 @@ class ValveFilterEndpointProcess : public Process<ValveFilterEndpointProcess> {
 
   virtual ~ValveFilterEndpointProcess() {}
 
-  void safeOpen(bool open) {
-    synchronized(control_mutex) {
-      // NOTE: In future we may want to trigger some actions here.
-      this->opened = open;
-    }
+  void setOpen(bool open) {
+    // NOTE: In future we may want to trigger some actions here.
+    this->opened = open;
   }
 
   Future<bool> isOpened() {
@@ -160,7 +159,7 @@ class ValveFilterEndpointProcess : public Process<ValveFilterEndpointProcess> {
       pipeline_enable_decision = true;
     }
 
-    this->safeOpen(pipeline_enable_decision);
+    this->setOpen(pipeline_enable_decision);
 
     JSON::Object response;
     response.values[PIPELINE_ENABLE_KEY] = enabled_param;
@@ -168,8 +167,7 @@ class ValveFilterEndpointProcess : public Process<ValveFilterEndpointProcess> {
     return http::OK(response);
   }
 
-  bool opened;
-  Mutex control_mutex;
+  atomic_bool opened;
   ValveType valveType;
   //! Used to rate limit the endpoint.
   RateLimiter limiter;
