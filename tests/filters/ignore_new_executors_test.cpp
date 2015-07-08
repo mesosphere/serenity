@@ -16,6 +16,7 @@ using testing::Sequence;
 
 constexpr int IGNORE_NEW_EXECUTORS_SAMPLES = 6;
 
+
 class MockIgnoreNewExecutorsFilter : public IgnoreNewExecutorsFilter {
  public:
   MockIgnoreNewExecutorsFilter(
@@ -25,6 +26,7 @@ class MockIgnoreNewExecutorsFilter : public IgnoreNewExecutorsFilter {
 
   MOCK_METHOD1(GetTime, time_t(time_t* arg));
 };
+
 
 /**
  * Time is mocked to be one second after begining of an Epoch
@@ -44,6 +46,7 @@ TEST(IgnoreNewExecutorsFilter, IgnoreAllExecutors) {
   ASSERT_EQ(dummySink.numberOfMessagesConsumed, 0);
 }
 
+
 /**
  * Time is mocked to be one second before end of an Epoch
  */
@@ -61,6 +64,7 @@ TEST(IgnoreNewExecutorsFilter, PassAllExecutors) {
 
   ASSERT_EQ(dummySink.numberOfMessagesConsumed, 4);
 }
+
 
 /**
  * Time flows from 0 to 5
@@ -82,6 +86,7 @@ TEST(IgnoreNewExecutorsFilter, PassFiveExecutors) {
 
   ASSERT_EQ(dummySink.numberOfMessagesConsumed, 5);
 }
+
 
 /**
  * Time flows from 0 to 5

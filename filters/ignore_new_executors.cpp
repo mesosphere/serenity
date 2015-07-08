@@ -36,8 +36,6 @@ Try<Nothing> IgnoreNewExecutorsFilter::consume(const ResourceUsage &usage) {
       if (timeNow - insertionTime >= this->threshold) {
         ResourceUsage_Executor* newExec = product.mutable_executors()->Add();
         newExec->CopyFrom(executor);
-      } else {
-        continue;
       }
     } else {
       LOG(ERROR) << "IgnoreNewTasksFilter: "

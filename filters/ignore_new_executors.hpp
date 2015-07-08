@@ -1,6 +1,8 @@
 #include <ctime>
 #include <memory>
 
+#include "mesos/mesos.hpp"
+
 #include "messages/serenity.hpp"
 
 #include "serenity/executor_map.hpp"
@@ -16,6 +18,7 @@
 
 namespace mesos {
 namespace serenity {
+
 
 /**
  * IgnoreNewExecutorsFilter removes executors from ResourceUsage collection

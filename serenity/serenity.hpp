@@ -5,8 +5,8 @@
 
 #include "glog/logging.h"
 
-#include "stout/try.hpp"
 #include "stout/nothing.hpp"
+#include "stout/try.hpp"
 
 namespace mesos {
 namespace serenity {
