@@ -82,6 +82,12 @@ ACTION_P(InvokeConsumeUsage, sink) {
   return Nothing();
 }
 
+ACTION_P2(InvokeConsumeUsageCountExecutors, sink, executors) {
+  sink->numberOfMessagesConsumed++;
+  EXPECT_EQ(executors, arg0.executors_size());
+  return Nothing();
+}
+
 // For debug only.
 ACTION_P(InvokeConsumePrintIpcEma, sink) {
   sink->numberOfMessagesConsumed++;

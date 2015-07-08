@@ -1,8 +1,11 @@
 #include <string>
+#include <memory>
 
 #include "glog/logging.h"
 
 #include "filters/utilization_threshold.hpp"
+
+#include "mesos/resources.hpp"
 
 #include "serenity/metrics_helper.hpp"
 
@@ -11,19 +14,11 @@ namespace serenity {
 
 using std::string;
 
-const string UTILIZATION_THRESHOLD_FILTER_ERROR = "Filter is not able to" \
-" calculate total cpu usage and cut off oversubscription if needed.";
-
-const string UTILIZATION_THRESHOLD_FILTER_WARNING = "Filter is not able to" \
-             " calculate total cpu usage and will base on allocated " \
-             " resources to cut off oversubscription if needed.";
-
-
-Try<Nothing> UtilizationThresholdFilter::consume(const ResourceUsage& in) {
+Try<Nothing> UtilizationThresholdFilter::consume(const ResourceUsage& product) {
   std::unique_ptr<ExecutorSet> newSamples(new ExecutorSet());
   double_t totalCpuUsage = 0;
 
-  for (const auto& executor : usage.executors()) {
+  for (const ResourceUsage_Executor& inExec : product.executors()) {
     // In case of lack of the usage for given executor or lack of
     // executor_info filter assumes that it uses maximum of allowed
     // resource (allocated).
@@ -36,8 +31,7 @@ Try<Nothing> UtilizationThresholdFilter::consume(const ResourceUsage& in) {
       << UTILIZATION_THRESHOLD_FILTER_WARNING;
       // We can work without that - using allocated.
       useAllocatedForUtilization = true;
-    }
-    else {
+    } else {
       executor_id = inExec.executor_info().executor_id().value();
     }
 
@@ -49,7 +43,7 @@ Try<Nothing> UtilizationThresholdFilter::consume(const ResourceUsage& in) {
       useAllocatedForUtilization = true;
     }
 
-    if (!inExec.allocated().size() == 0) {
+    if (inExec.allocated().size() == 0) {
       LOG(ERROR) << "Executor "  << executor_id
       << " does not include allocated resources. "
       << UTILIZATION_THRESHOLD_FILTER_ERROR;
@@ -57,12 +51,13 @@ Try<Nothing> UtilizationThresholdFilter::consume(const ResourceUsage& in) {
       continue;
     }
 
+
     if (inExec.has_executor_info() && inExec.has_statistics()) {
       newSamples->insert(inExec);
-      auto previousSample = this->previousSamples->find(executor);
+      auto previousSample = this->previousSamples->find(inExec);
       if (previousSample != this->previousSamples->end()) {
         Try<double_t> cpuUsage = CountCpuUsage(
-            (*previousSample), executor);
+            (*previousSample), inExec);
 
         if (cpuUsage.isError()) {
           LOG(ERROR) << cpuUsage.error();
@@ -81,16 +76,26 @@ Try<Nothing> UtilizationThresholdFilter::consume(const ResourceUsage& in) {
 
     if (useAllocatedForUtilization) {
       Resources allocated(inExec.allocated());
-      totalCpuUsage += allocated.get("cpus");
+      Option<double_t> allocatedCpus = allocated.cpus();
+      if (allocatedCpus.isSome())
+        totalCpuUsage += allocatedCpus.get();
     }
   }
 
   this->previousSamples->clear();
   this->previousSamples = std::move(newSamples);
 
-  // Send only when node utilization is not too high.
-  if ((totalCpuUsage + this->utilizationThreshold) < in.total())
-    produce(in);
+  Resources totalSlaveResources(product.total());
+  Option<double_t> totalSlaveCpus = totalSlaveResources.cpus();
+  if (totalSlaveCpus.isSome() && this->previousSamples->size() > 0) {
+    // Send only when node utilization is not too high.
+    if ((totalCpuUsage / totalSlaveCpus.get()) < this->utilizationThreshold)
+      produce(product);
+    else
+      LOG(ERROR) << "Stoping the oversubscription - load is too high."
+          << "CpuUsage: " << totalCpuUsage << ", Slave capacity:"
+          << totalSlaveCpus.get();
+  }
 
   return Nothing();
 }

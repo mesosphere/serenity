@@ -2,8 +2,11 @@
 #define SERENITY_UTILIZATION_THRESHOLD_FILTER_HPP
 
 #include <string>
+#include <memory>
 
+#include "serenity/executor_set.hpp"
 #include "serenity/serenity.hpp"
+
 #include "stout/lambda.hpp"
 #include "stout/nothing.hpp"
 
@@ -28,7 +31,8 @@ class UtilizationThresholdFilter :
       Consumer<ResourceUsage>* _consumer,
       double_t _utilizationThreshold = DEFAULT_UTILIZATION_THRESHOLD)
       : Producer<ResourceUsage>(_consumer),
-        utilizationThreshold(_utilizationThreshold) {}
+        utilizationThreshold(_utilizationThreshold),
+        previousSamples(new ExecutorSet) {}
 
   ~UtilizationThresholdFilter() {}
 
@@ -37,6 +41,13 @@ class UtilizationThresholdFilter :
  protected:
   double_t utilizationThreshold;
   std::unique_ptr<ExecutorSet> previousSamples;
+
+  const std::string UTILIZATION_THRESHOLD_FILTER_ERROR = "Filter is not able" \
+    " to calculate total cpu usage and cut off oversubscription if needed.";
+
+  const std::string UTILIZATION_THRESHOLD_FILTER_WARNING = "Filter is not" \
+    "able to calculate total cpu usage and will base on allocated " \
+    " resources to cut off oversubscription if needed.";
 };
 
 }  // namespace serenity
