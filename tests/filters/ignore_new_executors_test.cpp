@@ -1,15 +1,11 @@
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
-
-#include "mesos/mesos.hpp"
-
 #include "filters/ignore_new_executors.hpp"
 
+#include "gmock/gmock.h"
+
 #include "tests/common/serenity.hpp"
+#include "tests/common/std_mocks.hpp"
 #include "tests/common/sinks/dummy_sink.hpp"
 #include "tests/common/sources/json_source.hpp"
-
-#include "tests/common/sinks/printer_sink.hpp"
 
 namespace mesos {
 namespace serenity {
@@ -22,8 +18,10 @@ constexpr int IGNORE_NEW_EXECUTORS_SAMPLES = 6;
 
 class MockIgnoreNewExecutorsFilter : public IgnoreNewExecutorsFilter {
  public:
-  explicit MockIgnoreNewExecutorsFilter(uint32_t arg) :
-      IgnoreNewExecutorsFilter(arg) {}
+  MockIgnoreNewExecutorsFilter(
+      Consumer<ResourceUsage>* _consumer,
+      uint32_t _threshold = DEFAULT_THRESHOLD) :
+        IgnoreNewExecutorsFilter(_consumer, _threshold) {}
 
   MOCK_METHOD1(GetTime, time_t(time_t* arg));
 };
@@ -33,14 +31,12 @@ class MockIgnoreNewExecutorsFilter : public IgnoreNewExecutorsFilter {
  */
 TEST(IgnoreNewExecutorsFilter, IgnoreAllExecutors) {
   DummySink<ResourceUsage> dummySink;
-  PrinterSink<ResourceUsage> printer;
-  MockIgnoreNewExecutorsFilter filter(200);
-  JsonSource jsonSource;
+  MockIgnoreNewExecutorsFilter filter(&dummySink, 200);
+  JsonSource jsonSource(&filter);
 
-  jsonSource.addConsumer(&filter);
-  filter.addConsumer(&dummySink);
-
-  EXPECT_CALL(filter, GetTime(nullptr)).Times(4).WillRepeatedly(Return(1));
+  EXPECT_CALL(filter, GetTime(nullptr))
+      .Times(4)
+      .WillRepeatedly(Return(1));
 
   jsonSource.RunTests("tests/fixtures/"
                       "baseline_smoke_test_resource_usage.json");
@@ -53,14 +49,12 @@ TEST(IgnoreNewExecutorsFilter, IgnoreAllExecutors) {
  */
 TEST(IgnoreNewExecutorsFilter, PassAllExecutors) {
   DummySink<ResourceUsage> dummySink;
-  MockIgnoreNewExecutorsFilter filter(0);
-  JsonSource jsonSource;
+  MockIgnoreNewExecutorsFilter filter(&dummySink, 0);
+  JsonSource jsonSource(&filter);
 
-  jsonSource.addConsumer(&filter);
-  filter.addConsumer(&dummySink);
-
-  EXPECT_CALL(filter, GetTime(nullptr)).Times(4).
-      WillRepeatedly(Return(2147483647));
+  EXPECT_CALL(filter, GetTime(nullptr))
+      .Times(4)
+      .WillRepeatedly(Return(2147483647));
 
   jsonSource.RunTests("tests/fixtures/"
                       "baseline_smoke_test_resource_usage.json");
@@ -74,19 +68,15 @@ TEST(IgnoreNewExecutorsFilter, PassAllExecutors) {
  */
 TEST(IgnoreNewExecutorsFilter, PassFiveExecutors) {
   DummySink<ResourceUsage> dummySink;
-  PrinterSink<ResourceUsage> printer;
-  MockIgnoreNewExecutorsFilter filter(0);
-  JsonSource jsonSource;
+  MockIgnoreNewExecutorsFilter filter(&dummySink, 0);
+  JsonSource jsonSource(&filter);
 
   Sequence s1;
   for (int idx = 0; idx < IGNORE_NEW_EXECUTORS_SAMPLES; ++idx) {
-    EXPECT_CALL(filter, GetTime(nullptr)).
-        InSequence(s1).
-        WillOnce(Return(idx));
+    EXPECT_CALL(filter, GetTime(nullptr))
+        .InSequence(s1)
+        .WillOnce(Return(idx));
   }
-
-  jsonSource.addConsumer(&filter);
-  filter.addConsumer(&dummySink);
 
   jsonSource.RunTests("tests/fixtures/ignore_new_executors.json");
 
@@ -99,19 +89,15 @@ TEST(IgnoreNewExecutorsFilter, PassFiveExecutors) {
  */
 TEST(IgnoreNewExecutorsFilter, PassTwoExecutors) {
   DummySink<ResourceUsage> dummySink;
-  PrinterSink<ResourceUsage> printer;
-  MockIgnoreNewExecutorsFilter filter(3);
-  JsonSource jsonSource;
+  MockIgnoreNewExecutorsFilter filter(&dummySink, 3);
+  JsonSource jsonSource(&filter);
 
   Sequence s1;
   for (int idx = 0; idx < IGNORE_NEW_EXECUTORS_SAMPLES; ++idx) {
-    EXPECT_CALL(filter, GetTime(nullptr)).
-        InSequence(s1).
-        WillOnce(Return(idx));
+    EXPECT_CALL(filter, GetTime(nullptr))
+        .InSequence(s1)
+        .WillOnce(Return(idx));
   }
-
-  jsonSource.addConsumer(&filter);
-  filter.addConsumer(&dummySink);
 
   jsonSource.RunTests("tests/fixtures/ignore_new_executors.json");
 

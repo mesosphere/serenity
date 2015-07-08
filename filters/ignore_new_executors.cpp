@@ -1,9 +1,6 @@
-#include "glog/logging.h"
-
 #include "filters/ignore_new_executors.hpp"
 
-#include "stout/try.hpp"
-#include "stout/nothing.hpp"
+#include "glog/logging.h"
 
 namespace mesos {
 namespace serenity {
@@ -11,9 +8,10 @@ namespace serenity {
 Try<Nothing> IgnoreNewExecutorsFilter::consume(const ResourceUsage &usage) {
   std::unique_ptr<ExecutorMap<time_t>> newExecutorTimestamps =
     std::unique_ptr<ExecutorMap<time_t>>(new ExecutorMap<time_t>());
-  ResourceUsage newUsage;
+  ResourceUsage product;
 
   time_t timeNow = this->GetTime(nullptr);
+  // insert method result: tuple<Iterator, bool>
   auto resultPair = std::make_pair(executorTimestamps->begin() , true);
   for (const auto& executor : usage.executors()) {
     ExecutorInfo executorInfo = executor.executor_info();
@@ -31,12 +29,13 @@ Try<Nothing> IgnoreNewExecutorsFilter::consume(const ResourceUsage &usage) {
           prevExecutorEntry->second));
     }
 
-    // Check if creation time is above threshold.
+    // Check if insertion was successful
     if (resultPair.second == true) {
       time_t insertionTime = resultPair.first->second;
+      // Check if insertion time is above threshold
       if (timeNow - insertionTime >= this->threshold) {
-        ResourceUsage_Executor* newExec = new ResourceUsage_Executor(executor);
-        newUsage.mutable_executors()->AddAllocated(newExec);
+        ResourceUsage_Executor* newExec = product.mutable_executors()->Add();
+        newExec->CopyFrom(executor);
       } else {
         continue;
       }
@@ -49,8 +48,8 @@ Try<Nothing> IgnoreNewExecutorsFilter::consume(const ResourceUsage &usage) {
   this->executorTimestamps->clear();
   this->executorTimestamps = std::move(newExecutorTimestamps);
 
-  if (0 != newUsage.executors_size()) {
-    produce(newUsage);
+  if (0 != product.executors_size()) {
+    produce(product);
   }
 
   return Nothing();

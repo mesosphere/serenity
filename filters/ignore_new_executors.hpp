@@ -5,24 +5,30 @@
 
 #include "serenity/executor_map.hpp"
 #include "serenity/serenity.hpp"
+#include "serenity/std_wrappers.hpp"
 
+#include "stout/nothing.hpp"
 #include "stout/option.hpp"
+#include "stout/try.hpp"
 
-#ifndef SERENITY_IGNORE_NEW_TASKS_HPP
-#define SERENITY_IGNORE_NEW_TASKS_HPP
+#ifndef SERENITY_IGNORE_NEW_TASKS_FILTER_HPP
+#define SERENITY_IGNORE_NEW_TASKS_FILTER_HPP
 
 namespace mesos {
 namespace serenity {
 
 /**
- * IgnoreNewTasksFilter ignores removes executors that run for less time than
- * threshold.
+ * IgnoreNewExecutorsFilter removes executors from ResourceUsage collection
+ * that run for less time than threshold.
  * It's purpose is to cut away tasks that are warming up.
  */
 class IgnoreNewExecutorsFilter : public Consumer<ResourceUsage>,
-                             public Producer<ResourceUsage> {
+                                 public Producer<ResourceUsage> {
  public:
-  explicit IgnoreNewExecutorsFilter(uint32_t _threshold = DEFAULT_THRESHOLD) :
+  explicit IgnoreNewExecutorsFilter(
+    Consumer<ResourceUsage>* _consumer = nullptr,
+    uint32_t _threshold = DEFAULT_THRESHOLD) :
+      Producer<ResourceUsage>(_consumer),
       threshold(_threshold),
       executorTimestamps(new ExecutorMap<time_t>) {}
 
@@ -53,4 +59,4 @@ class IgnoreNewExecutorsFilter : public Consumer<ResourceUsage>,
 }  // namespace serenity
 }  // namespace mesos
 
-#endif  // SERENITY_IGNORE_NEW_TASKS_HPP
+#endif  // SERENITY_IGNORE_NEW_TASKS_FILTER_HPP
