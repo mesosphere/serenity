@@ -1,5 +1,3 @@
-#include <stdlib.h>
-
 #include <process/defer.hpp>
 #include <process/dispatch.hpp>
 #include <process/process.hpp>

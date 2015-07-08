@@ -1,17 +1,20 @@
-#include <gtest/gtest.h>
-
-#include <mesos/resources.hpp>
-
-#include <mesos/slave/oversubscription.pb.h>  // ONLY USEFUL AFTER RUNNING PROTOC
-#include <mesos/slave/qos_controller.hpp>
-
-#include <stout/gtest.hpp>
-
-#include <process/clock.hpp>
-#include <process/gtest.hpp>
 #include <list>
 
+#include "gtest/gtest.h"
+
+#include "mesos/resources.hpp"
+
+// ONLY USEFUL AFTER RUNNING PROTOC
+#include "mesos/slave/oversubscription.pb.h"
+
+#include "mesos/slave/qos_controller.hpp"
+
+#include "process/clock.hpp"
+#include "process/gtest.hpp"
+
 #include "qos_controller/serenity_controller.hpp"
+
+#include "stout/gtest.hpp"
 
 #include "tests/common/usage_helper.hpp"
 
