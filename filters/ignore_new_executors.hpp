@@ -22,7 +22,8 @@ namespace serenity {
 
 /**
  * IgnoreNewExecutorsFilter removes executors from ResourceUsage collection
- * that run for less time than threshold.
+ * that run for less time than threshold (expressed in seconds).
+ *
  * It's purpose is to cut away tasks that are warming up.
  */
 class IgnoreNewExecutorsFilter : public Consumer<ResourceUsage>,
@@ -30,9 +31,9 @@ class IgnoreNewExecutorsFilter : public Consumer<ResourceUsage>,
  public:
   explicit IgnoreNewExecutorsFilter(
     Consumer<ResourceUsage>* _consumer = nullptr,
-    uint32_t _threshold = DEFAULT_THRESHOLD) :
+    uint32_t _thresholdSeconds = DEFAULT_THRESHOLD_SEC) :
       Producer<ResourceUsage>(_consumer),
-      threshold(_threshold),
+      threshold(_thresholdSeconds),
       executorTimestamps(new ExecutorMap<time_t>) {}
 
   ~IgnoreNewExecutorsFilter() {}
@@ -53,7 +54,7 @@ class IgnoreNewExecutorsFilter : public Consumer<ResourceUsage>,
     return time(arg);
   }
 
-  static constexpr uint32_t DEFAULT_THRESHOLD = 5 * 60;  //!< Five minutes.
+  static constexpr uint32_t DEFAULT_THRESHOLD_SEC = 5 * 60;  //!< Five minutes.
   uint32_t threshold;  //!< #seconds when executor is considered too fresh.
 
   std::unique_ptr<ExecutorMap<time_t>> executorTimestamps;

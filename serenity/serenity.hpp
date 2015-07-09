@@ -44,7 +44,7 @@ class Producer : public BusSocket {
     if (consumer != nullptr) {
       consumers.push_back(consumer);
     } else {
-      LOG(ERROR) << "You tried to add nullptr as a consumer";
+      LOG(ERROR) << "Consumer must not be null.";
     }
     return Nothing();
   }
