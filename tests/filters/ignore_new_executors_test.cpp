@@ -3,7 +3,6 @@
 #include "gmock/gmock.h"
 
 #include "tests/common/serenity.hpp"
-#include "tests/common/std_mocks.hpp"
 #include "tests/common/sinks/dummy_sink.hpp"
 #include "tests/common/sources/json_source.hpp"
 
