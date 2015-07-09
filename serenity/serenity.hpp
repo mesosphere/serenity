@@ -1,13 +1,12 @@
 #ifndef SERENITY_SERENITY_HPP
 #define SERENITY_SERENITY_HPP
 
-#include <stout/try.hpp>
-#include <stout/nothing.hpp>
-
-#include <mesos/scheduler/scheduler.hpp>
-
-#include <cstdlib>
 #include <vector>
+
+#include "glog/logging.h"
+
+#include "stout/nothing.hpp"
+#include "stout/try.hpp"
 
 namespace mesos {
 namespace serenity {
@@ -42,7 +41,11 @@ class Producer : public BusSocket {
   virtual ~Producer() {}
 
   Try<Nothing> addConsumer(Consumer<T>* consumer) {
-    consumers.push_back(consumer);
+    if (consumer != nullptr) {
+      consumers.push_back(consumer);
+    } else {
+      LOG(ERROR) << "Consumer must not be null.";
+    }
     return Nothing();
   }
 

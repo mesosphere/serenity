@@ -62,6 +62,7 @@ set(SERENITY_SOURCES
     estimator/serenity_estimator.cpp
     estimator/serenity_estimator_module.cpp
     filters/ema.cpp
+    filters/ignore_new_executors.cpp
     filters/pr_executor_pass.cpp
     observers/ipc_drop.cpp
     observers/slack_resource.cpp
@@ -76,6 +77,7 @@ set(SERENITY_TEST_SOURCES
     tests/controllers/qos_controller_test.cpp
     tests/estimators/estimator_test.cpp
     tests/filters/ema_test.cpp
+    tests/filters/ignore_new_executors_test.cpp
     tests/filters/pr_executor_pass_test.cpp
     tests/observers/slack_resource_test.cpp
     tests/sources/json_source_test.cpp

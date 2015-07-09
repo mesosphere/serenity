@@ -5,7 +5,7 @@
 
 namespace mesos {
 namespace serenity {
-namespace tests {
+namespace utils {
 
 /**
  * Default epsilon for near equality for two double_t values in
@@ -21,7 +21,7 @@ inline bool AlmostEq(
     double_t lhs,
     double_t rhs,
     double_t epsilon = DEFAULT_EPSILON) {
-  return abs(lhs - rhs) < epsilon;
+  return std::abs(lhs - rhs) < epsilon;
 }
 
 /**
@@ -34,7 +34,7 @@ inline bool AlmostZero(
   return AlmostEq(lhs, 0.0, epsilon);
 }
 
-}  //  namespace tests
+}  //  namespace utils
 }  //  namespace serenity
 }  //  namespace mesos
 
