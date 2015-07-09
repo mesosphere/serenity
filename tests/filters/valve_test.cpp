@@ -51,7 +51,9 @@ TEST(ValveFilterTest, EstimatorDisableThenEnable) {
   Future<http::Response> response =
     http::post(upid, VALVE_ROUTE + "?" +
                      PIPELINE_ENABLE_KEY + "=false");
-  AWAIT_READY(response);
+
+  std::cout << "Waiting for response1."  << std::endl;
+  AWAIT_ASSERT_READY_FOR(response, Seconds(30));
 
   AWAIT_EXPECT_RESPONSE_STATUS_EQ(http::OK().status, response);
 
@@ -65,7 +67,8 @@ TEST(ValveFilterTest, EstimatorDisableThenEnable) {
   response = http::post(upid,
                         VALVE_ROUTE + "?" + PIPELINE_ENABLE_KEY + "=true");
 
-  AWAIT_READY(response);
+  std::cout << "Waiting for response2."  << std::endl;
+  AWAIT_ASSERT_READY_FOR(response, Seconds(30));
 
   AWAIT_EXPECT_RESPONSE_STATUS_EQ(http::OK().status, response);
 
