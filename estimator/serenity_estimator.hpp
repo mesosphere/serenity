@@ -23,7 +23,8 @@ class SerenityEstimator : public slave::ResourceEstimator {
  public:
   SerenityEstimator() {}
 
-  static Try<slave::ResourceEstimator*>create(const Option<std::string>& type) {
+  static Try<slave::ResourceEstimator*> create(
+      const Option<std::string>& type) {
     return new SerenityEstimator();
   }
 
