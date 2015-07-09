@@ -22,6 +22,12 @@ class PublicSource : public Producer<ResourceUsage> {
     addConsumer(_consumer);
   }
 
+  explicit PublicSource(Consumer<ResourceUsage>* _consumer,
+                        Consumer<ResourceUsage>* _consumer2) {
+    addConsumer(_consumer);
+    addConsumer(_consumer2);
+  }
+
   Try<Nothing> produceUsage(ResourceUsage out) {
     produce(out);
 

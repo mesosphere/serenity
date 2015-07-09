@@ -1,8 +1,6 @@
 #ifndef SERENITY_TESTS_LOAD_GENERATOR_HPP
 #define SERENITY_TESTS_LOAD_GENERATOR_HPP
 
-#include <math.h>
-
 #include <stout/lambda.hpp>
 
 namespace mesos {
@@ -48,7 +46,7 @@ class SymetricNoiseGenerator : public NoiseGenerator {
     sign *= -1;
     if (iteration % 2 == 0) {
       noise += noiseModifier;
-      if (abs(noise) >= maxNoise) noiseModifier *= -1;
+      if (std::abs(noise) >= maxNoise) noiseModifier *= -1;
     }
     return (noise * sign);
   }
