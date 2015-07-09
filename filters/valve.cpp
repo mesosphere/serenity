@@ -93,6 +93,14 @@ class ValveFilterEndpointProcess : public Process<ValveFilterEndpointProcess> {
 
   void setOpen(bool open) {
     // NOTE: In future we may want to trigger some actions here.
+    switch (valveType) {
+      case RESOURCE_ESTIMATOR_VALVE:
+        LOG(INFO) << (open?"Enabling":"Disabling") << " slack estimations.";
+        break;
+      case QOS_CONTROLLER_VALVE:
+        LOG(INFO) << (open?"Enabling":"Disabling") << " QoS assurance.";
+        break;
+    }
     this->opened = open;
   }
 
