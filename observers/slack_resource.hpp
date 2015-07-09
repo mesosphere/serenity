@@ -37,9 +37,6 @@ class SlackResourceObserver : public Consumer<ResourceUsage>,
                                      const ResourceUsage_Executor& current)
                                      const;
 
-//  Result<Resource> CombineSlack(
-//      const std::vector<Resource>& slackResources) const;
-
   std::unique_ptr<ExecutorSet> previousSamples;
 
   /** Don't report slack when it's less than this value */

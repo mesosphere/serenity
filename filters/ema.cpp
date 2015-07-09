@@ -81,10 +81,7 @@ Try<Nothing> EMAFilter::consume(const ResourceUsage& in) {
       // Check if previousSample for given executor exists.
       auto previousSample = this->previousSamples->find(inExec);
       if (previousSample != this->previousSamples->end()) {
-        ResourceUsage_Executor* outExec(
-            new ResourceUsage_Executor());
-
-        outExec->CopyFrom(inExec);
+        ResourceUsage_Executor* outExec = new ResourceUsage_Executor(inExec);
 
         // Perform EMA filtering.
         Try<Nothing> result = emaTypeFunction(
