@@ -22,7 +22,7 @@ class SerenityControllerProcess :
     public Process<SerenityControllerProcess> {
  public:
   SerenityControllerProcess(
-      const lambda::function<Future<ResourceUsage>()> _usage)
+      const lambda::function<Future<ResourceUsage>()>& _usage)
       : usage(_usage) {}
 
   Future<list<QoSCorrection>> corrections() {

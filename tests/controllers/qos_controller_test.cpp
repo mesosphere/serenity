@@ -4,9 +4,7 @@
 
 #include "mesos/resources.hpp"
 
-// ONLY USEFUL AFTER RUNNING PROTOC
-#include "mesos/slave/oversubscription.pb.h"
-
+#include "mesos/slave/oversubscription.hpp"
 #include "mesos/slave/qos_controller.hpp"
 
 #include "process/clock.hpp"
