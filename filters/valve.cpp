@@ -3,6 +3,8 @@
 
 #include "glog/logging.h"
 
+#include "mesos/mesos.hpp"
+
 #include "process/help.hpp"
 #include "process/http.hpp"
 #include "process/future.hpp"
@@ -20,8 +22,8 @@ namespace serenity {
 // TODO(bplotka): Break into explicit using-declarations.
 using namespace process;  // NOLINT(build/namespaces)
 
-using std::string;
 using std::atomic_bool;
+using std::string;
 
 static const string ESTIMATOR_VALVE_ENDPOINT_HELP() {
   return HELP(

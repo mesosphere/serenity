@@ -3,12 +3,14 @@
 
 #include <string>
 
+#include "mesos/mesos.hpp"
+
 #include "process/future.hpp"
 #include "process/owned.hpp"
 
-#include "stout/lambda.hpp"
-
 #include "serenity/serenity.hpp"
+
+#include "stout/lambda.hpp"
 
 namespace mesos {
 namespace serenity {
