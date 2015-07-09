@@ -48,6 +48,8 @@ TEST(SerenityControllerTest, NoQoSCorrections) {
 
   // So far we did not expect QoSCorrections.
   EXPECT_FALSE(result.isReady());
+
+  process::Clock::resume();
 }
 
 }  // namespace tests
