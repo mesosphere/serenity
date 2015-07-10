@@ -83,8 +83,6 @@ Try<Nothing> EMAFilter::consume(const ResourceUsage& in) {
       if (previousSample != this->previousSamples->end()) {
         ResourceUsage_Executor* outExec = new ResourceUsage_Executor(inExec);
 
-        outExec->CopyFrom(inExec);
-
         // Perform EMA filtering.
         Try<Nothing> result = emaTypeFunction(
             &(emaSample->second), (*previousSample), inExec, outExec);

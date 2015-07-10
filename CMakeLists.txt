@@ -64,6 +64,7 @@ set(SERENITY_SOURCES
     filters/ema.cpp
     filters/ignore_new_executors.cpp
     filters/pr_executor_pass.cpp
+    filters/utilization_threshold.cpp
     filters/valve.cpp
     observers/ipc_drop.cpp
     observers/slack_resource.cpp
@@ -80,6 +81,7 @@ set(SERENITY_TEST_SOURCES
     tests/filters/ema_test.cpp
     tests/filters/ignore_new_executors_test.cpp
     tests/filters/pr_executor_pass_test.cpp
+    tests/filters/utilization_threshold_test.cpp
     tests/filters/valve_test.cpp
     tests/observers/slack_resource_test.cpp
     tests/sources/json_source_test.cpp
@@ -89,9 +91,12 @@ set(SERENITY_TEST_SOURCES
 file(GLOB TestFixtures "tests/fixtures/*.json")
 file(GLOB EmaTestFixtures "tests/fixtures/ema/*.json")
 file(GLOB PrExecutorTestFixtures "tests/fixtures/pr_executor_pass/*.json")
+file(GLOB UtilizationTestFixtures "tests/fixtures/utilization_threshold/*.json")
 file(COPY ${TestFixtures} DESTINATION tests/fixtures)
 file(COPY ${EmaTestFixtures} DESTINATION tests/fixtures/ema)
 file(COPY ${PrExecutorTestFixtures} DESTINATION tests/fixtures/pr_executor_pass)
+file(COPY ${UtilizationTestFixtures} DESTINATION
+    tests/fixtures/utilization_threshold)
 
 # Serenity library.
 add_library(serenity SHARED ${SERENITY_SOURCES})
