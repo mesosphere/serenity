@@ -35,7 +35,7 @@ class SerenityControllerProcess :
     // TODO(bplotka) Set up the main qos correction pipeline here.
     std::cout << "Serenity QoS Controller pipeline run." << "\n";
 
-    // For now return empty Future.
+    // For now return unsatisfied Future.
     return Future<list<QoSCorrection>>();
   }
 
