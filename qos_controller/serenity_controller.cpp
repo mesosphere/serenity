@@ -1,5 +1,4 @@
-#include <stdlib.h>
-
+#include <process/defer.hpp>
 #include <process/dispatch.hpp>
 #include <process/process.hpp>
 
@@ -27,14 +26,21 @@ class SerenityControllerProcess :
       : usage(_usage) {}
 
   Future<list<QoSCorrection>> corrections() {
+    return this->usage()
+      .then(defer(self(), &Self::_corrections, lambda::_1));
+  }
+
+  Future<list<QoSCorrection>> _corrections(
+      const Future<ResourceUsage>& _resourceUsage) {
     // TODO(bplotka) Set up the main qos correction pipeline here.
     std::cout << "Serenity QoS Controller pipeline run." << "\n";
-    // For now return empty resources.
+
+    // For now return unsatisfied Future.
     return Future<list<QoSCorrection>>();
   }
 
  private:
-  const lambda::function<Future<ResourceUsage>()>& usage;
+  const lambda::function<Future<ResourceUsage>()> usage;
 };
 
 
