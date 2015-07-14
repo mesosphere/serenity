@@ -16,6 +16,9 @@ else()
     message(STATUS "Error: ${CMAKE_CXX_COMPILER} has no C++11 support")
 endif()
 
+# curlcpp needs to be compiled position indepenedent
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+
 # Add gtest.
 ADD_SUBDIRECTORY (lib/gmock-1.7.0)
 include_directories( ${gmock_SOURCE_DIR} include)
@@ -24,8 +27,8 @@ include_directories( ${gtest_SOURCE_DIR} include)
 # Add pbjson - it doesn't have CMakeList.txt so include it manually.
 set(pbjson_SOURCE_DIR lib/pbjson)
 
-# CXX Flags.
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+ADD_SUBDIRECTORY(lib/curlcpp)
+INCLUDE_DIRECTORIES(${CURLCPP_SOURCE_DIR}/include)
 
 # Protobuf stuff.
 find_package(Protobuf REQUIRED)
@@ -70,6 +73,9 @@ set(SERENITY_SOURCES
     qos_controller/serenity_controller.cpp
     qos_controller/serenity_controller_module.cpp
     sources/dummy_source.cpp
+    visualisation/resource_usage_visualisation.cpp
+    visualisation/slack_visualisation.cpp
+    visualisation/backend/influx_db8.cpp
 )
 
 set(SERENITY_TEST_SOURCES
@@ -83,6 +89,8 @@ set(SERENITY_TEST_SOURCES
     tests/filters/valve_test.cpp
     tests/observers/slack_resource_test.cpp
     tests/sources/json_source_test.cpp
+    #tests/visualisation/resource_usage_visualisation_test.cpp # Needs InfluxDB 8
+    #tests/visualisation/slack_visualisation_test.cpp # Needs InfluxDB 8
 )
 
 # Copy fixtures.
@@ -95,7 +103,7 @@ file(COPY ${PrExecutorTestFixtures} DESTINATION tests/fixtures/pr_executor_pass)
 
 # Serenity library.
 add_library(serenity SHARED ${SERENITY_SOURCES})
-target_link_libraries(serenity messages mesos glog)
+target_link_libraries(serenity messages mesos glog curlcpp)
 
 # Tests.
 add_executable(serenity-tests ${SERENITY_TEST_SOURCES})
