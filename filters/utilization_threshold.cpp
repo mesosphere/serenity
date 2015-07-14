@@ -92,7 +92,7 @@ Try<Nothing> UtilizationThresholdFilter::consume(const ResourceUsage& product) {
     if ((totalCpuUsage / totalSlaveCpus.get()) < this->utilizationThreshold)
       produce(product);
     else
-      LOG(ERROR) << "Stoping the oversubscription - load is too high."
+      LOG(ERROR) << "Stopping the oversubscription - load is too high."
           << "CpuUsage: " << totalCpuUsage << ", Slave capacity:"
           << totalSlaveCpus.get();
   }
