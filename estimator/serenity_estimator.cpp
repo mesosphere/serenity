@@ -1,5 +1,4 @@
-#include <stdlib.h>
-
+#include <process/defer.hpp>
 #include <process/dispatch.hpp>
 #include <process/process.hpp>
 
@@ -23,15 +22,21 @@ class SerenityEstimatorProcess :
   : usage(_usage) {}
 
   Future<Resources> oversubscribable() {
+    return this->usage()
+      .then(defer(self(), &Self::_oversubscribable, lambda::_1));
+  }
+
+  Future<Resources> _oversubscribable(
+      const Future<ResourceUsage>& _resourceUsage) {
     // TODO(bplotka) Set up the main estimation pipeline here.
     std::cout << "Serenity Estimator pipeline run." << "\n";
 
-    // For now return empty resources.
+    // For now return empty Resources.
     return Resources();
   }
 
  private:
-  const lambda::function<Future<ResourceUsage>()>& usage;
+  const lambda::function<Future<ResourceUsage>()> usage;
 };
 
 

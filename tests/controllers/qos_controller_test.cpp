@@ -1,16 +1,18 @@
-#include <gtest/gtest.h>
-
-#include <mesos/resources.hpp>
-
-#include <mesos/slave/oversubscription.pb.h>  // ONLY USEFUL AFTER RUNNING PROTOC
-#include <mesos/slave/qos_controller.hpp>
-
-#include <stout/gtest.hpp>
-
-#include <process/gtest.hpp>
 #include <list>
 
+#include "gtest/gtest.h"
+
+#include "mesos/resources.hpp"
+
+#include "mesos/slave/oversubscription.hpp"
+#include "mesos/slave/qos_controller.hpp"
+
+#include "process/clock.hpp"
+#include "process/gtest.hpp"
+
 #include "qos_controller/serenity_controller.hpp"
+
+#include "stout/gtest.hpp"
 
 #include "tests/common/usage_helper.hpp"
 
@@ -37,10 +39,17 @@ TEST(SerenityControllerTest, NoQoSCorrections) {
   Try<Nothing> initialize = controller->initialize(
       lambda::bind(&MockSlaveUsage::usage, &usage));
 
+  process::Clock::pause();
+
   process::Future<list<QoSCorrection>> result = controller->corrections();
+
+  // Wait for internal QosCorrection defers to be done.
+  process::Clock::settle();
 
   // So far we did not expect QoSCorrections.
   EXPECT_FALSE(result.isReady());
+
+  process::Clock::resume();
 }
 
 }  // namespace tests
