@@ -167,8 +167,8 @@ TEST(QoSCorrectionObserverSeverityCpuTest, OneContentionAggressorSpecified) {
   // Check correction decision.
   ASSERT_EQ(1u, corrections.get().size());
   EXPECT_EQ(slave::QoSCorrection_Type_KILL, corrections.get().front().type());
-  EXPECT_TRUE(WID(corrections.get().front().kill())
-              == WID(usage.executors(BE_1CPUS).executor_info()));
+  EXPECT_EQ(WID(corrections.get().front().kill()),
+            WID(usage.executors(BE_1CPUS).executor_info()));
 }
 
 
@@ -227,8 +227,8 @@ TEST(QoSCorrectionObserverSeverityCpuTest, OneContentionSeverityNotSpecified) {
   // Check correction decision.
   ASSERT_EQ(1u, corrections.get().size());
   EXPECT_EQ(slave::QoSCorrection_Type_KILL, corrections.get().front().type());
-  EXPECT_TRUE(WID(corrections.get().front().kill())
-              == WID(usage.executors(BE_1CPUS).executor_info()));
+  EXPECT_EQ(WID(corrections.get().front().kill()),
+            WID(usage.executors(BE_1CPUS).executor_info()));
 }
 
 
@@ -289,8 +289,8 @@ TEST(QoSCorrectionObserverSeverityCpuTest, OneContentionSmallSeverity) {
   // Check correction decision.
   ASSERT_EQ(1u, corrections.get().size());
   EXPECT_EQ(slave::QoSCorrection_Type_KILL, corrections.get().front().type());
-  EXPECT_TRUE(WID(corrections.get().front().kill())
-              == WID(usage.executors(BE_1CPUS).executor_info()));
+  EXPECT_EQ(WID(corrections.get().front().kill()),
+            WID(usage.executors(BE_1CPUS).executor_info()));
 }
 
 
@@ -353,14 +353,14 @@ TEST(QoSCorrectionObserverSeverityCpuTest, OneContentionBigSeverity) {
   ASSERT_EQ(2u, qoSCorrections.size());
 
   EXPECT_EQ(slave::QoSCorrection_Type_KILL, qoSCorrections.front().type());
-  EXPECT_TRUE(WID(qoSCorrections.front().kill())
-              == WID(usage.executors(BE_1CPUS).executor_info()));
+  EXPECT_EQ(WID(qoSCorrections.front().kill()),
+            WID(usage.executors(BE_1CPUS).executor_info()));
 
   qoSCorrections.pop_front();
 
   EXPECT_EQ(slave::QoSCorrection_Type_KILL, qoSCorrections.front().type());
-  EXPECT_TRUE(WID(qoSCorrections.front().kill())
-              == WID(usage.executors(BE_0_5CPUS_1).executor_info()));
+  EXPECT_EQ(WID(qoSCorrections.front().kill()),
+            WID(usage.executors(BE_0_5CPUS_1).executor_info()));
 }
 
 
@@ -423,20 +423,20 @@ TEST(QoSCorrectionObserverSeverityCpuTest, OneContentionCriticalSeverity) {
   ASSERT_EQ(3u, qoSCorrections.size());
 
   EXPECT_EQ(slave::QoSCorrection_Type_KILL, qoSCorrections.front().type());
-  EXPECT_TRUE(WID(qoSCorrections.front().kill())
-              == WID(usage.executors(BE_1CPUS).executor_info()));
+  EXPECT_EQ(WID(qoSCorrections.front().kill()),
+            WID(usage.executors(BE_1CPUS).executor_info()));
 
   qoSCorrections.pop_front();
 
   EXPECT_EQ(slave::QoSCorrection_Type_KILL, qoSCorrections.front().type());
-  EXPECT_TRUE(WID(qoSCorrections.front().kill())
-              == WID(usage.executors(BE_0_5CPUS_1).executor_info()));
+  EXPECT_EQ(WID(qoSCorrections.front().kill()),
+            WID(usage.executors(BE_0_5CPUS_1).executor_info()));
 
   qoSCorrections.pop_front();
 
   EXPECT_EQ(slave::QoSCorrection_Type_KILL, qoSCorrections.front().type());
-  EXPECT_TRUE(WID(qoSCorrections.front().kill())
-              == WID(usage.executors(BE_0_5CPUS_2).executor_info()));
+  EXPECT_EQ(WID(qoSCorrections.front().kill()),
+            WID(usage.executors(BE_0_5CPUS_2).executor_info()));
 }
 
 
@@ -504,8 +504,8 @@ TEST(QoSCorrectionObserverSeverityCpuTest,
   ASSERT_EQ(1u, qoSCorrections.size());
 
   EXPECT_EQ(slave::QoSCorrection_Type_KILL, qoSCorrections.front().type());
-  EXPECT_TRUE(WID(qoSCorrections.front().kill())
-              == WID(usage.executors(BE_1CPUS).executor_info()));
+  EXPECT_EQ(WID(qoSCorrections.front().kill()),
+            WID(usage.executors(BE_1CPUS).executor_info()));
 }
 
 
@@ -573,8 +573,8 @@ TEST(QoSCorrectionObserverSeverityCpuTest,
   ASSERT_EQ(1u, qoSCorrections.size());
 
   EXPECT_EQ(slave::QoSCorrection_Type_KILL, qoSCorrections.front().type());
-  EXPECT_TRUE(WID(qoSCorrections.front().kill())
-              == WID(usage.executors(BE_1CPUS).executor_info()));
+  EXPECT_EQ(WID(qoSCorrections.front().kill()),
+            WID(usage.executors(BE_1CPUS).executor_info()));
 }
 
 
@@ -644,8 +644,8 @@ TEST(QoSCorrectionObserverSeverityCpuTest,
   ASSERT_EQ(1u, qoSCorrections.size());
 
   EXPECT_EQ(slave::QoSCorrection_Type_KILL, qoSCorrections.front().type());
-  EXPECT_TRUE(WID(qoSCorrections.front().kill())
-              == WID(usage.executors(BE_1CPUS).executor_info()));
+  EXPECT_EQ(WID(qoSCorrections.front().kill()),
+            WID(usage.executors(BE_1CPUS).executor_info()));
 }
 
 
@@ -715,20 +715,20 @@ TEST(QoSCorrectionObserverSeverityCpuTest,
   ASSERT_EQ(3u, qoSCorrections.size());
 
   EXPECT_EQ(slave::QoSCorrection_Type_KILL, qoSCorrections.front().type());
-  EXPECT_TRUE(WID(qoSCorrections.front().kill())
-              == WID(usage.executors(BE_1CPUS).executor_info()));
+  EXPECT_EQ(WID(qoSCorrections.front().kill()),
+            WID(usage.executors(BE_1CPUS).executor_info()));
 
   qoSCorrections.pop_front();
 
   EXPECT_EQ(slave::QoSCorrection_Type_KILL, qoSCorrections.front().type());
-  EXPECT_TRUE(WID(qoSCorrections.front().kill())
-              == WID(usage.executors(BE_0_5CPUS_1).executor_info()));
+  EXPECT_EQ(WID(qoSCorrections.front().kill()),
+            WID(usage.executors(BE_0_5CPUS_1).executor_info()));
 
   qoSCorrections.pop_front();
 
   EXPECT_EQ(slave::QoSCorrection_Type_KILL, qoSCorrections.front().type());
-  EXPECT_TRUE(WID(qoSCorrections.front().kill())
-              == WID(usage.executors(BE_0_5CPUS_2).executor_info()));
+  EXPECT_EQ(WID(qoSCorrections.front().kill()),
+            WID(usage.executors(BE_0_5CPUS_2).executor_info()));
 }
 
 
@@ -798,8 +798,8 @@ TEST(QoSCorrectionObserverSeverityCpuTest,
   ASSERT_EQ(1u, qoSCorrections.size());
 
   EXPECT_EQ(slave::QoSCorrection_Type_KILL, qoSCorrections.front().type());
-  EXPECT_TRUE(WID(qoSCorrections.front().kill())
-              == WID(usage.executors(BE_1CPUS).executor_info()));
+  EXPECT_EQ(WID(qoSCorrections.front().kill()),
+            WID(usage.executors(BE_1CPUS).executor_info()));
 }
 
 }  //  namespace tests
