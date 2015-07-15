@@ -46,20 +46,34 @@ inline std::list<ResourceUsage_Executor> filterPrExecutors(
 }
 
 
-using ContentionInterpreterFunction = Try<QoSCorrections>
-    (Contentions currentContentions,
-    ResourceUsage currentUsage);
+using ContentionDeciderFunction = Try<QoSCorrections>
+    (const Contentions& currentContentions,
+     const ResourceUsage& currentUsage);
 
 
 /**
- * Class including all algorithms for contention interpretations.
- * They converts contentions & usage to QoSCorrections.
+ * Convenient base class for contention interpretations.
+ * It converts contentions & usage to QoSCorrections.
  *
- * Convenient for debuging and testing different algorithms.
+ * Convenient for debugging and testing different algorithms.
  */
-class ContentionInterpreters {
+class ContentionDecider {
  public:
-  static ContentionInterpreterFunction severityBasedCpuContention;
+  virtual ContentionDeciderFunction decide = 0;
+};
+
+
+/**
+ * Checks contentions and choose executors to kill.
+ * Currently it takes sorted contentions by severity.
+ * We are iterating from the most serious contention to the less serious
+ * and choose BE executors to kill.
+ * WARNING(bplotka): This interpreter algorithm assumes that severity is
+ * reflecting how many resources is needed for PR job to not starve again.
+ */
+class SeverityBasedCpuDecider : public ContentionDecider {
+ public:
+  ContentionDeciderFunction decide;
 };
 
 
@@ -76,14 +90,12 @@ class QoSCorrectionObserver : public MultiConsumer<Contentions>,
   explicit QoSCorrectionObserver(
       Consumer<QoSCorrections>* _consumer,
       uint64_t _contentionProducents,
-      const lambda::function<
-          ContentionInterpreterFunction>& _interpretContention =
-        ContentionInterpreters::severityBasedCpuContention)
+      ContentionDecider* _contentionDecider = new SeverityBasedCpuDecider())
     : MultiConsumer<Contentions>(_contentionProducents),
       Producer<QoSCorrections>(_consumer),
       currentContentions(None()),
       currentUsage(None()),
-      interpretContention(_interpretContention) {}
+      contentionDecider(_contentionDecider) {}
 
   ~QoSCorrectionObserver();
 
@@ -100,7 +112,6 @@ class QoSCorrectionObserver : public MultiConsumer<Contentions>,
 
     return (first.severity() > second.severity());
   }
-
 
   static bool compareCpuAllocated(
       const ResourceUsage_Executor& first,
@@ -120,7 +131,7 @@ class QoSCorrectionObserver : public MultiConsumer<Contentions>,
  protected:
   Option<Contentions> currentContentions;
   Option<ResourceUsage> currentUsage;
-  const lambda::function<ContentionInterpreterFunction>& interpretContention;
+  ContentionDecider* contentionDecider;
 
   //! Run when all required info are gathered.
   Try<Nothing> __correctSlave();

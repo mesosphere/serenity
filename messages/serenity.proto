@@ -37,7 +37,7 @@ message Contention{
 
   // It should reflect how many resources is needed for PR
   // job to not starve.
-  optional float severity = 5;
+  optional double severity = 5;
 }
 
 

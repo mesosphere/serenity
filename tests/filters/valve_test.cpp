@@ -36,11 +36,11 @@ TEST(ValveFilterTest, EstimatorDisableThenEnable) {
       true);
 
   // First component in pipeline.
-  MockSource<ResourceUsage> publicSource(&valveFilter);
+  MockSource<ResourceUsage> mockSource(&valveFilter);
 
   // PHASE 1: Run pipeline first time.
   ResourceUsage usage;
-  publicSource.produce(usage);
+  mockSource.produce(usage);
 
   // Expect that the usage was consumed by sink. (And slack estimated).
   EXPECT_EQ(1, mockSink.numberOfMessagesConsumed);
@@ -56,7 +56,7 @@ TEST(ValveFilterTest, EstimatorDisableThenEnable) {
   AWAIT_EXPECT_RESPONSE_STATUS_EQ(http::OK().status, response);
 
   // Run pipeline second time.
-  publicSource.produce(usage);
+  mockSource.produce(usage);
 
   // Expect that the usage wasn't consumed by sink (slack wasn't estimated).
   EXPECT_EQ(1, mockSink.numberOfMessagesConsumed);
@@ -70,7 +70,7 @@ TEST(ValveFilterTest, EstimatorDisableThenEnable) {
   AWAIT_EXPECT_RESPONSE_STATUS_EQ(http::OK().status, response);
 
   // Run pipeline third time.
-  publicSource.produce(usage);
+  mockSource.produce(usage);
 
   // Slack estimator should continue estimations.
   EXPECT_EQ(2, mockSink.numberOfMessagesConsumed);
@@ -92,11 +92,11 @@ TEST(ValveFilterTest, ControllerDisableThenEnable) {
       true);
 
   // First component in pipeline.
-  MockSource<ResourceUsage> publicSource(&valveFilter);
+  MockSource<ResourceUsage> mockSource(&valveFilter);
 
   // PHASE 1: Run pipeline first time.
   ResourceUsage usage;
-  publicSource.produce(usage);
+  mockSource.produce(usage);
 
   // Expect that the usage was consumed by sink.
   // It models the situation when IPC Drop won't have data to
@@ -114,7 +114,7 @@ TEST(ValveFilterTest, ControllerDisableThenEnable) {
   AWAIT_EXPECT_RESPONSE_STATUS_EQ(http::OK().status, response);
 
   // Run pipeline second time.
-  publicSource.produce(usage);
+  mockSource.produce(usage);
 
   // Expect that the usage wasn't consumed by sink (No QoSCorrections).
   EXPECT_EQ(1, mockSink.numberOfMessagesConsumed);
@@ -127,7 +127,7 @@ TEST(ValveFilterTest, ControllerDisableThenEnable) {
   AWAIT_EXPECT_RESPONSE_STATUS_EQ(http::OK().status, response);
 
   // Run pipeline third time.
-  publicSource.produce(usage);
+  mockSource.produce(usage);
 
   // QoS Controller should continue assuring QoS for oversubscription.
   EXPECT_EQ(2, mockSink.numberOfMessagesConsumed);
@@ -160,12 +160,12 @@ TEST(ValveFilterTest, ControllerAndEstimatorEndpointsRunningTogether) {
       true);
 
   // First component in pipeline. (Fork for pipeline)
-  MockSource<ResourceUsage> publicSource(
+  MockSource<ResourceUsage> mockSource(
       &estimatorValveFilter, &controllerValveFilter);
 
   // PHASE 1: Run pipeline first time.
   ResourceUsage usage;
-  publicSource.produce(usage);
+  mockSource.produce(usage);
 
   // Expect that the usage was consumed by both sinks.
   EXPECT_EQ(1, estimatorMockSink.numberOfMessagesConsumed);
@@ -182,7 +182,7 @@ TEST(ValveFilterTest, ControllerAndEstimatorEndpointsRunningTogether) {
   AWAIT_EXPECT_RESPONSE_STATUS_EQ(http::OK().status, response);
 
   // Run pipeline second time.
-  publicSource.produce(usage);
+  mockSource.produce(usage);
 
   // Expect that the usage was consumed by only Estimator sink.
   EXPECT_EQ(2, estimatorMockSink.numberOfMessagesConsumed);
@@ -203,7 +203,7 @@ TEST(ValveFilterTest, ControllerAndEstimatorEndpointsRunningTogether) {
 
   AWAIT_EXPECT_RESPONSE_STATUS_EQ(http::OK().status, response);
   // Run pipeline third time.
-  publicSource.produce(usage);
+  mockSource.produce(usage);
 
   // Expect that the usage was consumed by only Controller sink.
   EXPECT_EQ(2, estimatorMockSink.numberOfMessagesConsumed);

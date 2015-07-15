@@ -36,7 +36,9 @@ const int BE_0_5CPUS_2 = 2;
 const int PR_4CPUS = 3;
 const int PR_2CPUS = 4;
 
-
+/**
+ * Check if filterPrExecutors function properly filters out PR executors.
+ */
 TEST(HelperFunctionsTest, filterPrExecutorsEval) {
   Try<mesos::FixtureResourceUsage> usages =
       JsonUsage::ReadJson(QOS_FIXTURE);
@@ -59,6 +61,10 @@ TEST(HelperFunctionsTest, filterPrExecutorsEval) {
 }
 
 
+/**
+ * QoSCorrectionObserver receiving empty contentions should produce empty
+ * correction.
+ */
 TEST(QoSCorrectionObserverSeverityCpuTest, EmptyContentions) {
   // End of pipeline for QoSController.
   MockSink<QoSCorrections> mockSink;
@@ -69,7 +75,7 @@ TEST(QoSCorrectionObserverSeverityCpuTest, EmptyContentions) {
         Return(Nothing())));
 
   QoSCorrectionObserver observer(
-      &mockSink, 2, ContentionInterpreters::severityBasedCpuContention);
+      &mockSink, 2);
 
   // Fake slave ResourceUsage source.
   MockSource<ResourceUsage> usageSource(&observer);
@@ -105,6 +111,10 @@ TEST(QoSCorrectionObserverSeverityCpuTest, EmptyContentions) {
 }
 
 
+/**
+ * QoSCorrectionObserver receiving a contention with aggressor specified
+ * from one filter should produce correction for this specified aggressor.
+ */
 TEST(QoSCorrectionObserverSeverityCpuTest, OneContentionAggressorSpecified) {
   // End of pipeline for QoSController.
   MockSink<QoSCorrections> mockSink;
@@ -115,7 +125,7 @@ TEST(QoSCorrectionObserverSeverityCpuTest, OneContentionAggressorSpecified) {
           Return(Nothing())));
 
   QoSCorrectionObserver observer(
-      &mockSink, 2, ContentionInterpreters::severityBasedCpuContention);
+      &mockSink, 2);
 
   // Fake slave ResourceUsage source.
   MockSource<ResourceUsage> usageSource(&observer);
@@ -162,6 +172,11 @@ TEST(QoSCorrectionObserverSeverityCpuTest, OneContentionAggressorSpecified) {
 }
 
 
+/**
+ * QoSCorrectionObserver receiving a contention without aggressor
+ * and severity specified from one filter should produce a correction for the
+ * most active executor.
+ */
 TEST(QoSCorrectionObserverSeverityCpuTest, OneContentionSeverityNotSpecified) {
   // End of pipeline for QoSController.
   MockSink<QoSCorrections> mockSink;
@@ -172,7 +187,7 @@ TEST(QoSCorrectionObserverSeverityCpuTest, OneContentionSeverityNotSpecified) {
           Return(Nothing())));
 
   QoSCorrectionObserver observer(
-      &mockSink, 2, ContentionInterpreters::severityBasedCpuContention);
+      &mockSink, 2);
 
   // Fake slave ResourceUsage source.
   MockSource<ResourceUsage> usageSource(&observer);
@@ -217,6 +232,11 @@ TEST(QoSCorrectionObserverSeverityCpuTest, OneContentionSeverityNotSpecified) {
 }
 
 
+/**
+ * QoSCorrectionObserver receiving a contention without aggressor
+ * and with small severity specified from one filter should produce a
+ * correction for the most active executor.
+ */
 TEST(QoSCorrectionObserverSeverityCpuTest, OneContentionSmallSeverity) {
   // End of pipeline for QoSController.
   MockSink<QoSCorrections> mockSink;
@@ -227,7 +247,7 @@ TEST(QoSCorrectionObserverSeverityCpuTest, OneContentionSmallSeverity) {
           Return(Nothing())));
 
   QoSCorrectionObserver observer(
-      &mockSink, 2, ContentionInterpreters::severityBasedCpuContention);
+      &mockSink, 2);
 
   // Fake slave ResourceUsage source.
   MockSource<ResourceUsage> usageSource(&observer);
@@ -274,6 +294,11 @@ TEST(QoSCorrectionObserverSeverityCpuTest, OneContentionSmallSeverity) {
 }
 
 
+/**
+ * QoSCorrectionObserver receiving a contention without aggressor
+ * and with big severity specified from one filter should produce a
+ * correction for the two most active executors.
+ */
 TEST(QoSCorrectionObserverSeverityCpuTest, OneContentionBigSeverity) {
   // End of pipeline for QoSController.
   MockSink<QoSCorrections> mockSink;
@@ -284,7 +309,7 @@ TEST(QoSCorrectionObserverSeverityCpuTest, OneContentionBigSeverity) {
           Return(Nothing())));
 
   QoSCorrectionObserver observer(
-      &mockSink, 2, ContentionInterpreters::severityBasedCpuContention);
+      &mockSink, 2);
 
   // Fake slave ResourceUsage source.
   MockSource<ResourceUsage> usageSource(&observer);
@@ -339,6 +364,11 @@ TEST(QoSCorrectionObserverSeverityCpuTest, OneContentionBigSeverity) {
 }
 
 
+/**
+ * QoSCorrectionObserver receiving a contention without aggressor
+ * and with critical severity specified from one filter should produce a
+ * correction for all executors on the slave.
+ */
 TEST(QoSCorrectionObserverSeverityCpuTest, OneContentionCriticalSeverity) {
   // End of pipeline for QoSController.
   MockSink<QoSCorrections> mockSink;
@@ -349,7 +379,7 @@ TEST(QoSCorrectionObserverSeverityCpuTest, OneContentionCriticalSeverity) {
           Return(Nothing())));
 
   QoSCorrectionObserver observer(
-      &mockSink, 2, ContentionInterpreters::severityBasedCpuContention);
+      &mockSink, 2);
 
   // Fake slave ResourceUsage source.
   MockSource<ResourceUsage> usageSource(&observer);
@@ -410,8 +440,13 @@ TEST(QoSCorrectionObserverSeverityCpuTest, OneContentionCriticalSeverity) {
 }
 
 
+/**
+ * QoSCorrectionObserver receiving two contentions without aggressor
+ * and severity specified from one filter should produce a
+ * correction for the most active executor.
+ */
 TEST(QoSCorrectionObserverSeverityCpuTest,
-     TwoSmallContentionsSeverityNotSpecified) {
+     TwoContentionsSeverityNotSpecified) {
   // End of pipeline for QoSController.
   MockSink<QoSCorrections> mockSink;
   process::Future<QoSCorrections> corrections;
@@ -421,7 +456,7 @@ TEST(QoSCorrectionObserverSeverityCpuTest,
           Return(Nothing())));
 
   QoSCorrectionObserver observer(
-      &mockSink, 2, ContentionInterpreters::severityBasedCpuContention);
+      &mockSink, 2);
 
   // Fake slave ResourceUsage source.
   MockSource<ResourceUsage> usageSource(&observer);
@@ -474,8 +509,13 @@ TEST(QoSCorrectionObserverSeverityCpuTest,
 }
 
 
+/**
+ * QoSCorrectionObserver receiving two contentions without aggressor
+ * and severity specified from two filters should produce a
+ * correction for the most active executor.
+ */
 TEST(QoSCorrectionObserverSeverityCpuTest,
-     TwoSmallContentionsFromTwoFiltersSeverityNotSpecified) {
+     TwoContentionsFromTwoFiltersSeverityNotSpecified) {
   // End of pipeline for QoSController.
   MockSink<QoSCorrections> mockSink;
   process::Future<QoSCorrections> corrections;
@@ -485,7 +525,7 @@ TEST(QoSCorrectionObserverSeverityCpuTest,
           Return(Nothing())));
 
   QoSCorrectionObserver observer(
-      &mockSink, 2, ContentionInterpreters::severityBasedCpuContention);
+      &mockSink, 2);
 
   // Fake slave ResourceUsage source.
   MockSource<ResourceUsage> usageSource(&observer);
@@ -538,8 +578,13 @@ TEST(QoSCorrectionObserverSeverityCpuTest,
 }
 
 
+/**
+ * QoSCorrectionObserver receiving two contentions without aggressor
+ * and with small severity specified from two filters should produce a
+ * correction for the most active executor.
+ */
 TEST(QoSCorrectionObserverSeverityCpuTest,
-     TwoSmallContentionsFromTwoFilters) {
+     TwoContentionsFromTwoFiltersSmallSeverity) {
   // End of pipeline for QoSController.
   MockSink<QoSCorrections> mockSink;
   process::Future<QoSCorrections> corrections;
@@ -549,7 +594,7 @@ TEST(QoSCorrectionObserverSeverityCpuTest,
           Return(Nothing())));
 
   QoSCorrectionObserver observer(
-      &mockSink, 2, ContentionInterpreters::severityBasedCpuContention);
+      &mockSink, 2);
 
   // Fake slave ResourceUsage source.
   MockSource<ResourceUsage> usageSource(&observer);
@@ -604,8 +649,13 @@ TEST(QoSCorrectionObserverSeverityCpuTest,
 }
 
 
+/**
+ * QoSCorrectionObserver receiving two contentions without aggressor
+ * and with big severity specified from two filters should produce a
+ * correction for all BE executors on slave.
+ */
 TEST(QoSCorrectionObserverSeverityCpuTest,
-     TwoBigContentionsFromTwoFilters) {
+     TwoContentionsFromTwoFiltersBigSeverity) {
   // End of pipeline for QoSController.
   MockSink<QoSCorrections> mockSink;
   process::Future<QoSCorrections> corrections;
@@ -615,7 +665,7 @@ TEST(QoSCorrectionObserverSeverityCpuTest,
           Return(Nothing())));
 
   QoSCorrectionObserver observer(
-      &mockSink, 2, ContentionInterpreters::severityBasedCpuContention);
+      &mockSink, 2);
 
   // Fake slave ResourceUsage source.
   MockSource<ResourceUsage> usageSource(&observer);
@@ -682,8 +732,13 @@ TEST(QoSCorrectionObserverSeverityCpuTest,
 }
 
 
+/**
+ * QoSCorrectionObserver receiving two overlapping contentions without aggressor
+ * and with small severity specified from two filters should produce a
+ * correction for only one BE executor.
+ */
 TEST(QoSCorrectionObserverSeverityCpuTest,
-     TwoOverlapingContentionsFromTwoFilters) {
+     TwoOverlappingContentionsFromTwoFilters) {
   // End of pipeline for QoSController.
   MockSink<QoSCorrections> mockSink;
   process::Future<QoSCorrections> corrections;
@@ -693,7 +748,7 @@ TEST(QoSCorrectionObserverSeverityCpuTest,
           Return(Nothing())));
 
   QoSCorrectionObserver observer(
-      &mockSink, 2, ContentionInterpreters::severityBasedCpuContention);
+      &mockSink, 2);
 
   // Fake slave ResourceUsage source.
   MockSource<ResourceUsage> usageSource(&observer);

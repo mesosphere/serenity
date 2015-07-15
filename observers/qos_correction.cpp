@@ -14,20 +14,13 @@ namespace serenity {
 
 using std::list;
 
-/**
- * Checks contentions and choose executors to kill.
- * Currently we have sorted Contentions by severity.
- * We are iterating from the most serious contention to the less serious.
- * WARNING(bplotka): This interpreter assumes that severity is reflecting
- * how many resources is needed for PR job to not starve again.
- */
-Try<QoSCorrections> ContentionInterpreters::severityBasedCpuContention(
-    Contentions currentContentions,
-    ResourceUsage currentUsage) {
+Try<QoSCorrections> SeverityBasedCpuDecider::decide(
+    const Contentions& currentContentions,
+    const ResourceUsage& currentUsage) {
   // Product.
   QoSCorrections corrections;
 
-  // BE tasks.
+  // List of BE executors.
   list<ResourceUsage_Executor> possibleAggressors =
       filterPrExecutors(currentUsage);
 
@@ -35,27 +28,20 @@ Try<QoSCorrections> ContentionInterpreters::severityBasedCpuContention(
   // TODO(bplotka): Consider sorting them by CpuUsage
   possibleAggressors.sort(QoSCorrectionObserver::compareCpuAllocated);
 
-  // To not rescue the same PR executor more then one time.
+  // We save PR executors here to not rescue them more then one time.
   std::list<WID> correctedPrExecutors;
   // We save here aggressors to be killed.
   std::list<slave::QoSCorrection_Kill> aggressorsToKill;
+  // We save here surplus of severity for next contentions.
   float_t severity_balance = 0;
+
   // Iterate over all contentions and assure that all PR contentions are
   // eliminated.
   for (const Contention contention : currentContentions) {
-    float_t severity = 0.1;
-    if (!contention.has_severity()) {
-      LOG(INFO) << "Assuming that no severity field means lowest severity.";
-      // In such case we kill most active Be task to ensure QoS and solve
-      // this contention.
-    } else {
-      severity = contention.severity();
-    }
-
     std::_List_iterator<WID> correctedExecutor =
       std::find(correctedPrExecutors.begin(),
-                   correctedPrExecutors.end(),
-                   WID(contention.victim()));
+                correctedPrExecutors.end(),
+                WID(contention.victim()));
     if (correctedExecutor != correctedPrExecutors.end()) {
       // This victim is already spotted and correction has been
       // made.
@@ -68,7 +54,9 @@ Try<QoSCorrections> ContentionInterpreters::severityBasedCpuContention(
       continue;
     }
 
+    // Case when aggressor is specified.
     if (contention.has_aggressor()) {
+      // Find specified aggressor and push it to the aggressors list.
       possibleAggressors.remove_if(
           [&contention, &aggressorsToKill]
               (ResourceUsage_Executor& possibleAggressor) {
@@ -78,12 +66,22 @@ Try<QoSCorrections> ContentionInterpreters::severityBasedCpuContention(
 
             aggressorsToKill.push_back(
                 createKill(possibleAggressor.executor_info()));
-
             return true;
           });
-      continue;
 
+      continue;
     } else {
+      float_t severity = 0.1;
+      if (!contention.has_severity()) {
+        LOG(INFO) << "QoS Controller got contention without severity being "
+                     "specified. Assuming that no severity field means lowest "
+                     "severity.";
+        // In such case we kill most active Be task to ensure QoS and solve
+        // this contention.
+      } else {
+        severity = contention.severity();
+      }
+
       severity += severity_balance;
       if (severity > 0) {
         // Assuming that severity is reflecting how many
@@ -121,7 +119,7 @@ Try<QoSCorrections> ContentionInterpreters::severityBasedCpuContention(
         break;
       }
 
-      // We often kill executor with usage > severity. Keep this balance
+      // We often kill executor with usage > severity. Keep this surplus
       // for another contentions.
       severity_balance += severity;
     }
@@ -129,7 +127,7 @@ Try<QoSCorrections> ContentionInterpreters::severityBasedCpuContention(
     correctedPrExecutors.push_back(WID(contention.victim()));
   }
 
-  // Create QoSCorrection having aggressors list.
+  // Create QoSCorrection from aggressors list.
   for (auto aggressorToKill : aggressorsToKill) {
     corrections.push_back(createKillQoSCorrection(aggressorToKill));
   }
@@ -172,16 +170,17 @@ Try<Nothing> QoSCorrectionObserver::consume(const ResourceUsage& usage) {
 
 
 Try<Nothing> QoSCorrectionObserver::__correctSlave() {
-  CHECK_ERR(this->currentContentions.isSome());
-  CHECK_ERR(this->currentUsage.isSome());
+  // Consumer base code ensures we have needed information here.
+  if (!this->currentContentions.isSome() || !this->currentUsage.isSome())
+    return Nothing();
 
   if (this->currentContentions.get().empty()) {
     produce(QoSCorrections());
   } else {
     // Allowed to interpret contention using different algorithms.
     Try<QoSCorrections> corrections =
-        this->interpretContention(this->currentContentions.get(),
-                                  this->currentUsage.get());
+        this->contentionDecider->decide(this->currentContentions.get(),
+                                        this->currentUsage.get());
     if (corrections.isError()) {
       // TODO(bplotka) Error handling behaviours need to be defined.
       produce(QoSCorrections());
