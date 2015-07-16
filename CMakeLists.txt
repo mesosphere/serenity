@@ -36,6 +36,10 @@ file(GLOB ProtoFiles "messages/serenity.proto")
 PROTOBUF_GENERATE_CPP(ProtoSources ProtoHeaders ${ProtoFiles})
 add_library(messages STATIC ${ProtoSources} ${ProtoHeaders})
 
+IF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
+    SET_TARGET_PROPERTIES(messages PROPERTIES COMPILE_FLAGS "-fPIC")
+ENDIF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
+
 # Add message-test proto files.
 file(GLOB TestProtoFiles "tests/common/sources/json_source.proto")
 PROTOBUF_GENERATE_CPP(TestProtoSources TestProtoHeaders ${TestProtoFiles})
@@ -66,10 +70,11 @@ set(SERENITY_SOURCES
     filters/pr_executor_pass.cpp
     filters/utilization_threshold.cpp
     filters/valve.cpp
-    observers/ipc_drop.cpp
+    observers/qos_correction.cpp
     observers/slack_resource.cpp
     qos_controller/serenity_controller.cpp
     qos_controller/serenity_controller_module.cpp
+    serenity/wid.cpp
     sources/dummy_source.cpp
 )
 
@@ -84,19 +89,13 @@ set(SERENITY_TEST_SOURCES
     tests/filters/utilization_threshold_test.cpp
     tests/filters/valve_test.cpp
     tests/observers/slack_resource_test.cpp
+    tests/observers/qos_correction_test.cpp
     tests/sources/json_source_test.cpp
 )
 
 # Copy fixtures.
-file(GLOB TestFixtures "tests/fixtures/*.json")
-file(GLOB EmaTestFixtures "tests/fixtures/ema/*.json")
-file(GLOB PrExecutorTestFixtures "tests/fixtures/pr_executor_pass/*.json")
-file(GLOB UtilizationTestFixtures "tests/fixtures/utilization_threshold/*.json")
-file(COPY ${TestFixtures} DESTINATION tests/fixtures)
-file(COPY ${EmaTestFixtures} DESTINATION tests/fixtures/ema)
-file(COPY ${PrExecutorTestFixtures} DESTINATION tests/fixtures/pr_executor_pass)
-file(COPY ${UtilizationTestFixtures} DESTINATION
-    tests/fixtures/utilization_threshold)
+file(GLOB TestFixtures "tests/fixtures")
+file(COPY ${TestFixtures} DESTINATION tests/)
 
 # Serenity library.
 add_library(serenity SHARED ${SERENITY_SOURCES})

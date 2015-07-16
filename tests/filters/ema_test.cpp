@@ -12,7 +12,7 @@
 #include "tests/common/usage_helper.hpp"
 #include "tests/common/sinks/mock_sink.hpp"
 #include "tests/common/sources/json_source.hpp"
-#include "tests/common/sources/public_source.hpp"
+#include "tests/common/sources/mock_source.hpp"
 
 namespace mesos {
 namespace serenity {
@@ -216,7 +216,7 @@ TEST(EMATest, IpcEMATestNoisyConstSample) {
       &mockSink, EMATypes::filterIpc, DEFAULT_EMA_FILTER_ALPHA);
 
   // First component in pipeline.
-  PublicSource source(&ipcEMAFilter);
+  MockSource<ResourceUsage> source(&ipcEMAFilter);
 
   Try<mesos::FixtureResourceUsage> usages =
       JsonUsage::ReadJson("tests/fixtures/ema/start_json_test.json");
@@ -251,7 +251,7 @@ TEST(EMATest, IpcEMATestNoisyConstSample) {
         ->mutable_perf()->set_timestamp((*loadGen).timestamp);
 
     // Run pipeline iteration
-    source.produceUsage(usage);
+    source.produce(usage);
 
     if (loadGen.iteration > 0)
       mockSink.expectIpc(0, IPC_VALUE, THRESHOLD);
@@ -334,7 +334,7 @@ TEST(EMATest, CpuUsageEMATestNoisyConstSample) {
       &mockSink, EMATypes::filterCpuUsage, DEFAULT_EMA_FILTER_ALPHA);
 
   // First component in pipeline.
-  PublicSource source(&cpuUsageEMAFilter);
+  MockSource<ResourceUsage> source(&cpuUsageEMAFilter);
 
   Try<mesos::FixtureResourceUsage> usages =
       JsonUsage::ReadJson("tests/fixtures/ema/start_json_test.json");
@@ -367,7 +367,7 @@ TEST(EMATest, CpuUsageEMATestNoisyConstSample) {
         ->set_timestamp((*loadGen).timestamp);
 
     // Run pipeline iteration
-    source.produceUsage(usage);
+    source.produce(usage);
 
     if (loadGen.iteration > 0)
       mockSink.expectCpuUsage(0, IPC_VALUE, THRESHOLD);

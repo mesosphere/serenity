@@ -7,13 +7,13 @@ option java_outer_classname = "Protos";
 
 
 /**
-* Necessary union to define executor or
-* both executor and task
+* Necessary union to define job.
+* Currently we cannot specify individual task.
+* NOTE: Framework id must be set for the specified executor.
 */
 message WorkID {
-  //One or both of the following will be filled in
-  optional ExecutorID executor = 1;
-  optional TaskID task = 2;
+  optional FrameworkID framework_id = 1;
+  optional ExecutorID executor_id = 2;
 }
 
 
@@ -34,7 +34,10 @@ message Contention{
   optional WorkID aggressor = 2;
   optional Type type = 3;
   optional double timestamp = 4;
-  optional float severity = 5;
+
+  // It should reflect how many resources is needed for PR
+  // job to not starve.
+  optional double severity = 5;
 }
 
 
