@@ -139,7 +139,7 @@ Try<QoSCorrections> SeverityBasedCpuDecider::decide(
 QoSCorrectionObserver::~QoSCorrectionObserver() {}
 
 
-Try<Nothing> QoSCorrectionObserver::_consume(
+Try<Nothing> QoSCorrectionObserver::_syncConsume(
   const std::vector<Contentions> products) {
   Contentions newContentions;
 

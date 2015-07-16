@@ -31,14 +31,14 @@ class Consumer : public BusSocket {
  * this instance. (Even during error flow).
  */
 template<typename T>
-class MultiConsumer : public Consumer<T> {
+class SyncConsumer : public Consumer<T> {
  public:
-  explicit MultiConsumer(uint64_t _producentsToWaitFor)
+  explicit SyncConsumer(uint64_t _producentsToWaitFor)
     : producentsToWaitFor(_producentsToWaitFor) {
     CHECK_ERR(_producentsToWaitFor > 0);
   }
 
-  virtual ~MultiConsumer() {}
+  virtual ~SyncConsumer() {}
 
   Try<Nothing> consume(const T& in) {
     this->products.push_back(in);
@@ -46,7 +46,7 @@ class MultiConsumer : public Consumer<T> {
     if (this->products.size() == this->producentsToWaitFor) {
       // Run virtual function which should be implemented in derived
       // class.
-      this->_consume(this->products);
+      this->_syncConsume(this->products);
 
       this->products.clear();
     }
@@ -54,7 +54,7 @@ class MultiConsumer : public Consumer<T> {
     return Nothing();
   }
 
-  virtual Try<Nothing> _consume(const std::vector<T> products) = 0;
+  virtual Try<Nothing> _syncConsume(const std::vector<T> products) = 0;
 
  private:
   uint64_t producentsToWaitFor;

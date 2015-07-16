@@ -83,7 +83,7 @@ class SeverityBasedCpuDecider : public ContentionDecider {
  *
  * Currently Slave understand only kill correction action.
  */
-class QoSCorrectionObserver : public MultiConsumer<Contentions>,
+class QoSCorrectionObserver : public SyncConsumer<Contentions>,
                               public Consumer<ResourceUsage>,
                               public Producer<QoSCorrections> {
  public:
@@ -91,7 +91,7 @@ class QoSCorrectionObserver : public MultiConsumer<Contentions>,
       Consumer<QoSCorrections>* _consumer,
       uint64_t _contentionProducents,
       ContentionDecider* _contentionDecider = new SeverityBasedCpuDecider())
-    : MultiConsumer<Contentions>(_contentionProducents),
+    : SyncConsumer<Contentions>(_contentionProducents),
       Producer<QoSCorrections>(_consumer),
       currentContentions(None()),
       currentUsage(None()),
@@ -99,7 +99,7 @@ class QoSCorrectionObserver : public MultiConsumer<Contentions>,
 
   ~QoSCorrectionObserver();
 
-  Try<Nothing> _consume(const std::vector<Contentions> products) override;
+  Try<Nothing> _syncConsume(const std::vector<Contentions> products) override;
 
   Try<Nothing> consume(const ResourceUsage& usage) override;
 
