@@ -159,7 +159,7 @@ TEST(EMATest, IpcEMATest) {
 
   // Second component in pipeline.
   EMAFilter ipcEMAFilter(
-      &mockSink, EMATypes::filterIpc, DEFAULT_EMA_FILTER_ALPHA);
+      &mockSink, getIpc, setEmaIpc, DEFAULT_EMA_FILTER_ALPHA);
 
   // First component in pipeline.
   JsonSource jsonSource(&ipcEMAFilter);
@@ -188,7 +188,7 @@ TEST(EMATest, IpcEMATestNoPerf) {
 
   // Second component in pipeline.
   EMAFilter ipcEMAFilter(
-      &mockSink, EMATypes::filterIpc, DEFAULT_EMA_FILTER_ALPHA);
+      &mockSink, getIpc, setEmaIpc, DEFAULT_EMA_FILTER_ALPHA);
 
   // First component in pipeline.
   JsonSource jsonSource(&ipcEMAFilter);
@@ -213,7 +213,7 @@ TEST(EMATest, IpcEMATestNoisyConstSample) {
 
   // Second component in pipeline.
   EMAFilter ipcEMAFilter(
-      &mockSink, EMATypes::filterIpc, DEFAULT_EMA_FILTER_ALPHA);
+      &mockSink, getIpc, setEmaIpc, DEFAULT_EMA_FILTER_ALPHA);
 
   // First component in pipeline.
   MockSource<ResourceUsage> source(&ipcEMAFilter);
@@ -276,7 +276,7 @@ TEST(EMATest, CpuUsageEMATest) {
 
   // Second component in pipeline.
   EMAFilter cpuUsageEMAFilter(
-      &mockSink, EMATypes::filterCpuUsage, DEFAULT_EMA_FILTER_ALPHA);
+      &mockSink, getCpuUsage, setEmaCpuUsage, DEFAULT_EMA_FILTER_ALPHA);
 
   // First component in pipeline.
   JsonSource jsonSource(&cpuUsageEMAFilter);
@@ -306,7 +306,7 @@ TEST(EMATest, CpuUsageEMATestNoCpuStatistics) {
 
   // Second component in pipeline.
   EMAFilter cpuUsageEMAFilter(
-      &mockSink, EMATypes::filterCpuUsage, DEFAULT_EMA_FILTER_ALPHA);
+      &mockSink, getCpuUsage, setEmaCpuUsage, DEFAULT_EMA_FILTER_ALPHA);
 
   // First component in pipeline.
   JsonSource jsonSource(&cpuUsageEMAFilter);
@@ -331,7 +331,7 @@ TEST(EMATest, CpuUsageEMATestNoisyConstSample) {
 
   // Second component in pipeline.
   EMAFilter cpuUsageEMAFilter(
-      &mockSink, EMATypes::filterCpuUsage, DEFAULT_EMA_FILTER_ALPHA);
+      &mockSink, getCpuUsage, setEmaCpuUsage, DEFAULT_EMA_FILTER_ALPHA);
 
   // First component in pipeline.
   MockSource<ResourceUsage> source(&cpuUsageEMAFilter);
