@@ -3,17 +3,37 @@
 
 #include <list>
 
+#include "mesos/slave/oversubscription.hpp"
+#include "mesos/mesos.hpp"
+
 // ONLY USEFUL AFTER RUNNING PROTOC.
 #include "serenity.pb.h"  // NOLINT(build/include)
 
-#include "mesos/slave/oversubscription.hpp"
-#include "mesos/mesos.hpp"
+#include "stout/option.hpp"
+#include "stout/none.hpp"
 
 namespace mesos {
 namespace serenity {
 
 using Contentions = std::list<mesos::Contention>;
 using QoSCorrections = std::list<slave::QoSCorrection>;
+
+inline Contention createCpuContention(
+    double_t severity,
+    WorkID victim,
+    double_t timestamp,
+    Option<WorkID> aggressor = None()) {
+  Contention contention;
+  contention.set_type(Contention_Type_CPU);
+  contention.set_severity(severity);
+  contention.set_timestamp(timestamp);
+  contention.mutable_victim()->CopyFrom(victim);
+  if (aggressor.isSome())
+    contention.mutable_aggressor()->CopyFrom(aggressor.get());
+
+  return contention;
+}
+
 
 inline slave::QoSCorrection createKillQoSCorrection(
     slave::QoSCorrection_Kill kill_msg,

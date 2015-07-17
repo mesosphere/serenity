@@ -95,27 +95,17 @@ class ExponentialMovingAverage {
  * for smoothing defined value.
  *
  * It is possible to calculate EMA on any value. For every value
- * separate filter function have to be implemented to fetch
- * specified value and store it.
- *
- * - filterIpc calculates Exponential Moving Average of IPC.
- * It gets IPC from perf statistics in ResourceStatistics.
- * It stores the calculated value in statistics.net_tcp_active_connections
- * field.
- * NOTE: It requires perf enabled on slave node.
- *
- * - filterCpuUsage calculates Exponential Moving Average of cpu usage.
- * It gets CpuUsage from statistics in ResourceUsage_Executor.
- * It stores the calculated value in statistics.net_tcp_time_wait_connections
- * field.
+ * separate Resource Usage getter and setter function have to be
+ * implemented to fetch specified value and store it. It can be defined
+ * in serenity/data_utils.hpp
  */
 class EMAFilter :
     public Consumer<ResourceUsage>, public Producer<ResourceUsage> {
  public:
   EMAFilter(
       Consumer<ResourceUsage>* _consumer,
-      const lambda::function<UsageDataGetterFunction>& _valueGetFunction,
-      const lambda::function<UsageDataSetterFunction>& _valueSetFunction,
+      const lambda::function<usage::GetterFunction>& _valueGetFunction,
+      const lambda::function<usage::SetterFunction>& _valueSetFunction,
       double_t _alpha = DEFAULT_EMA_FILTER_ALPHA)
     : Producer<ResourceUsage>(_consumer),
       previousSamples(new ExecutorSet),
@@ -130,8 +120,8 @@ class EMAFilter :
 
  protected:
   double_t alpha;
-  const lambda::function<UsageDataGetterFunction>& valueGetFunction;
-  const lambda::function<UsageDataSetterFunction>& valueSetFunction;
+  const lambda::function<usage::GetterFunction>& valueGetFunction;
+  const lambda::function<usage::SetterFunction>& valueSetFunction;
   std::unique_ptr<ExecutorSet> previousSamples;
   std::unique_ptr<ExecutorMap<ExponentialMovingAverage>> emaSamples;
 };

@@ -2,8 +2,6 @@
 
 #include <gtest/gtest.h>
 
-#include <cmath>
-
 #include "filters/ema.hpp"
 
 #include "process/future.hpp"
@@ -20,18 +18,13 @@ namespace tests {
 
 using ::testing::DoAll;
 
-double_t constFunction(double_t x) {
-  return 10;
-}
-
-
 TEST(EMATest, SmoothingConstSample) {
   const double_t THRESHOLD = 0.01;
   const int32_t LOAD_ITERATIONS = 100;
   ExponentialMovingAverage ema(
       EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
   LoadGenerator loadGen(
-      constFunction, new ZeroNoise(), LOAD_ITERATIONS);
+      math::constFunction, new ZeroNoise(), LOAD_ITERATIONS);
 
   for (; loadGen.end() ; loadGen++) {
     double_t result = ema.calculateEMA((*loadGen)(), (*loadGen).timestamp);
@@ -48,18 +41,15 @@ TEST(EMATest, SmoothingNoisyConstSample) {
   ExponentialMovingAverage ema(
       EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
   LoadGenerator loadGen(
-      constFunction, new SymetricNoiseGenerator(MAX_NOISE), LOAD_ITERATIONS);
+      math::constFunction,
+      new SymetricNoiseGenerator(MAX_NOISE),
+      LOAD_ITERATIONS);
 
   for (; loadGen.end() ; loadGen++) {
     double_t result = ema.calculateEMA((*loadGen)(), (*loadGen).timestamp);
 
     EXPECT_NEAR((*loadGen).clearValue(), result, THRESHOLD);
   }
-}
-
-
-double_t linearFunction(double_t x) {
-  return x;
 }
 
 
@@ -70,18 +60,15 @@ TEST(EMATest, SmoothingNoisyLinearSample) {
   ExponentialMovingAverage ema(
       EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
   LoadGenerator loadGen(
-      linearFunction, new SymetricNoiseGenerator(MAX_NOISE), LOAD_ITERATIONS);
+      math::linearFunction,
+      new SymetricNoiseGenerator(MAX_NOISE),
+      LOAD_ITERATIONS);
 
   for (; loadGen.end() ; loadGen++) {
     double_t result = ema.calculateEMA((*loadGen)(), (*loadGen).timestamp);
 
     EXPECT_NEAR((*loadGen).clearValue(), result, THRESHOLD);
   }
-}
-
-
-double_t sinFunction(double_t x) {
-  return sin(x) + cos(x);
 }
 
 
@@ -92,7 +79,9 @@ TEST(EMATest, SmoothingNoisySinSample) {
   ExponentialMovingAverage ema(
       EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
   LoadGenerator loadGen(
-      sinFunction, new SymetricNoiseGenerator(MAX_NOISE), LOAD_ITERATIONS);
+      math::sinFunction,
+      new SymetricNoiseGenerator(MAX_NOISE),
+      LOAD_ITERATIONS);
 
   for (; loadGen.end() ; loadGen++) {
     double_t result = ema.calculateEMA((*loadGen)(), (*loadGen).timestamp);
@@ -110,7 +99,9 @@ TEST(EMATest, SmoothingNoisySinSampleDrop) {
   ExponentialMovingAverage ema(
       EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
   LoadGenerator loadGen(
-      sinFunction, new SymetricNoiseGenerator(MAX_NOISE), LOAD_ITERATIONS);
+      math::sinFunction,
+      new SymetricNoiseGenerator(MAX_NOISE),
+      LOAD_ITERATIONS);
 
   for (; loadGen.end() ; loadGen++) {
     // Introduce dramatic drop in the middle of the test.
@@ -131,7 +122,9 @@ TEST(EMATest, SmoothingNoisySinStableDrop) {
   ExponentialMovingAverage ema(
       EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
   LoadGenerator loadGen(
-      sinFunction, new SymetricNoiseGenerator(MAX_NOISE), LOAD_ITERATIONS);
+      math::sinFunction,
+      new SymetricNoiseGenerator(MAX_NOISE),
+      LOAD_ITERATIONS);
 
   for (; loadGen.end() ; loadGen++) {
     // Introduce stable drop in the middle of the test..
@@ -159,7 +152,7 @@ TEST(EMATest, IpcEMATest) {
 
   // Second component in pipeline.
   EMAFilter ipcEMAFilter(
-      &mockSink, getIpc, setEmaIpc, DEFAULT_EMA_FILTER_ALPHA);
+      &mockSink, usage::getIpc, usage::setEmaIpc, DEFAULT_EMA_FILTER_ALPHA);
 
   // First component in pipeline.
   JsonSource jsonSource(&ipcEMAFilter);
@@ -188,7 +181,7 @@ TEST(EMATest, IpcEMATestNoPerf) {
 
   // Second component in pipeline.
   EMAFilter ipcEMAFilter(
-      &mockSink, getIpc, setEmaIpc, DEFAULT_EMA_FILTER_ALPHA);
+      &mockSink, usage::getIpc, usage::setEmaIpc, DEFAULT_EMA_FILTER_ALPHA);
 
   // First component in pipeline.
   JsonSource jsonSource(&ipcEMAFilter);
@@ -213,7 +206,7 @@ TEST(EMATest, IpcEMATestNoisyConstSample) {
 
   // Second component in pipeline.
   EMAFilter ipcEMAFilter(
-      &mockSink, getIpc, setEmaIpc, DEFAULT_EMA_FILTER_ALPHA);
+      &mockSink, usage::getIpc, usage::setEmaIpc, DEFAULT_EMA_FILTER_ALPHA);
 
   // First component in pipeline.
   MockSource<ResourceUsage> source(&ipcEMAFilter);
@@ -234,7 +227,9 @@ TEST(EMATest, IpcEMATestNoisyConstSample) {
   ExponentialMovingAverage ema(
       EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
   LoadGenerator loadGen(
-      constFunction, new SymetricNoiseGenerator(MAX_NOISE), LOAD_ITERATIONS);
+      math::constFunction,
+      new SymetricNoiseGenerator(MAX_NOISE),
+      LOAD_ITERATIONS);
 
   uint64_t previousLoad = 0;
   for (; loadGen.end(); loadGen++) {
@@ -276,7 +271,7 @@ TEST(EMATest, CpuUsageEMATest) {
 
   // Second component in pipeline.
   EMAFilter cpuUsageEMAFilter(
-      &mockSink, getCpuUsage, setEmaCpuUsage, DEFAULT_EMA_FILTER_ALPHA);
+      &mockSink, usage::getCpuUsage, usage::setEmaCpuUsage);
 
   // First component in pipeline.
   JsonSource jsonSource(&cpuUsageEMAFilter);
@@ -306,7 +301,7 @@ TEST(EMATest, CpuUsageEMATestNoCpuStatistics) {
 
   // Second component in pipeline.
   EMAFilter cpuUsageEMAFilter(
-      &mockSink, getCpuUsage, setEmaCpuUsage, DEFAULT_EMA_FILTER_ALPHA);
+      &mockSink, usage::getCpuUsage, usage::setEmaCpuUsage);
 
   // First component in pipeline.
   JsonSource jsonSource(&cpuUsageEMAFilter);
@@ -331,7 +326,7 @@ TEST(EMATest, CpuUsageEMATestNoisyConstSample) {
 
   // Second component in pipeline.
   EMAFilter cpuUsageEMAFilter(
-      &mockSink, getCpuUsage, setEmaCpuUsage, DEFAULT_EMA_FILTER_ALPHA);
+      &mockSink, usage::getCpuUsage, usage::setEmaCpuUsage);
 
   // First component in pipeline.
   MockSource<ResourceUsage> source(&cpuUsageEMAFilter);
@@ -352,7 +347,9 @@ TEST(EMATest, CpuUsageEMATestNoisyConstSample) {
   ExponentialMovingAverage ema(
       EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
   LoadGenerator loadGen(
-      constFunction, new SymetricNoiseGenerator(MAX_NOISE), LOAD_ITERATIONS);
+      math::constFunction,
+      new SymetricNoiseGenerator(MAX_NOISE),
+      LOAD_ITERATIONS);
 
   uint64_t previousLoad = 0;
   for (; loadGen.end(); loadGen++) {

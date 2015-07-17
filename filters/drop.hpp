@@ -1,10 +1,13 @@
 #ifndef SERENITY_DROP_FILTER_HPP
 #define SERENITY_DROP_FILTER_HPP
 
+#include <list>
 #include <memory>
 #include <type_traits>
 
-#include <glog/logging.h>
+#include "glog/logging.h"
+
+#include "filters/ema.hpp"
 
 #include "messages/serenity.hpp"
 
@@ -15,9 +18,15 @@
 
 #include "stout/lambda.hpp"
 #include "stout/nothing.hpp"
+#include "stout/result.hpp"
 
 namespace mesos {
 namespace serenity {
+
+struct ChangePointDetection {
+  double_t severity;
+};
+
 
 /**
  * Sequential change point detection interface.
@@ -25,20 +34,34 @@ namespace serenity {
  */
 class ChangePointDetector {
  public:
-  ChangePointDetector() {};
+  ChangePointDetector(
+      uint64_t _windowSize,
+      double_t _absoluteThreshold)
+    : windowSize(_windowSize),
+      absoluteThreshold(_absoluteThreshold) {
+  }
 
-  virtual Try<bool> processSample(const double_t& in) = 0;
+  virtual Result<ChangePointDetection> processSample(double_t in) = 0;
+
+ protected:
+  //! Currently we won't use relative threshold.
+  double_t absoluteThreshold;
+  uint64_t windowSize;
 };
 
 
 /**
  * Naive implementation of sequential change point detection.
+ * It checks if the value drops below the absoluteThreshold.
+ * We can use EMA value for calculation for better results.
  */
-class MeanChangePointDetector {
-public:
-  MeanChangePointDetector() {};
+class NaiveChangePointDetector : public ChangePointDetector {
+ public:
+  NaiveChangePointDetector(
+      uint64_t _windowSize, double_t _absoluteThreshold)
+  : ChangePointDetector(_windowSize, _absoluteThreshold) {}
 
-  virtual Try<bool> processSample(const double_t& in);
+  virtual Result<ChangePointDetection> processSample(double_t in);
 };
 
 
@@ -54,20 +77,26 @@ class DropFilter :
  public:
   DropFilter(
       Consumer<Contentions>* _consumer,
-      const lambda::function<UsageDataGetterFunction>& _valueGetFunction)
+      const lambda::function<usage::GetterFunction>& _valueGetFunction,
+      int64_t _windowSize,
+      double_t _absoluteThreshold)
     : Producer<Contentions>(_consumer),
       previousSamples(new ExecutorSet),
-      cpDetectors(new ExecutorMap<ChangePointDetector>()),
-      valueGetFunction(_valueGetFunction) {}
+      cpDetectors(new ExecutorMap<T*>()),
+      valueGetFunction(_valueGetFunction),
+      windowSize(_windowSize),
+      absoluteThreshold(_absoluteThreshold) {}
 
   ~DropFilter() {}
 
-  Try<Nothing> consume(const ResourceUsage& in);
+  Try<Nothing> consume(const ResourceUsage& in) override;
 
  protected:
-  const lambda::function<UsageDataGetterFunction>& valueGetFunction;
+  const lambda::function<usage::GetterFunction>& valueGetFunction;
   std::unique_ptr<ExecutorSet> previousSamples;
-  std::unique_ptr<ExecutorMap<T>> cpDetectors;
+  std::unique_ptr<ExecutorMap<T*>> cpDetectors;
+  int64_t windowSize;
+  double_t absoluteThreshold;
 };
 
 }  // namespace serenity

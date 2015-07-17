@@ -1,19 +1,32 @@
+#include <utility>
+
 #include "filters/drop.hpp"
+
+#include "messages/serenity.hpp"
+
+#include "serenity/wid.hpp"
+
+#include "stout/none.hpp"
 
 namespace mesos {
 namespace serenity {
 
-virtual Try<bool> MeanChangePointDetector::processSample(
-    const double_t& in) {
+Result<ChangePointDetection> NaiveChangePointDetector::processSample(
+    double_t in) {
 
-  return false;
+  if (in < this->absoluteThreshold) {
+    ChangePointDetection cpd;
+    cpd.severity = this->absoluteThreshold - in;
+
+    return cpd;
+  }
+
+  return None();
 }
-
-DropFilter::~DropFilter() {}
 
 
 template <class T>
-Try<Nothing> DropFilter::consume(const ResourceUsage& in) {
+Try<Nothing> DropFilter<T>::consume(const ResourceUsage& in) {
   std::unique_ptr<ExecutorSet> newSamples(new ExecutorSet());
   Contentions product;
 
@@ -37,9 +50,9 @@ Try<Nothing> DropFilter::consume(const ResourceUsage& in) {
     auto cpDetector = this->cpDetectors->find(inExec.executor_info());
     if (cpDetector == this->cpDetectors->end()) {
       // If not insert new one.
-      T detector();
-      cpDetectors->insert(std::pair<ExecutorInfo, T>(
-          inExec.executor_info(), detector));
+      cpDetectors->insert(std::pair<ExecutorInfo, T*>(
+          inExec.executor_info(), new T(this->windowSize,
+                                        this->absoluteThreshold)));
 
     } else {
       // Check if previousSample for given executor exists.
@@ -53,15 +66,20 @@ Try<Nothing> DropFilter::consume(const ResourceUsage& in) {
         }
 
         // Perform change point detection.
-        Try<bool> cpDetected =
-            (cpDetector->second).processSample(value.get());
+        Result<ChangePointDetection> cpDetected =
+            (cpDetector->second)->processSample(value.get());
         if (cpDetected.isError()) {
           LOG(ERROR) << cpDetected.error();
           continue;
         }
 
-        // TODO(bplotka) Create contention if needed
-        // to product.
+        // Detected change point.
+        if (cpDetected.isSome()) {
+          product.push_back(createCpuContention(
+              cpDetected.get().severity,
+              WID(inExec.executor_info()).getWorkID(),
+              inExec.statistics().timestamp()));
+        }
       }
     }
   }
@@ -74,6 +92,11 @@ Try<Nothing> DropFilter::consume(const ResourceUsage& in) {
   return Nothing();
 }
 
+
+// Fix for using templated methods in .cpp file.
+// See:
+//    https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
+template class DropFilter<NaiveChangePointDetector>;
 
 }  // namespace serenity
 }  // namespace mesos

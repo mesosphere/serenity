@@ -1,7 +1,9 @@
 #ifndef SERENITY_TESTS_LOAD_GENERATOR_HPP
 #define SERENITY_TESTS_LOAD_GENERATOR_HPP
 
-#include <stout/lambda.hpp>
+#include <cmath>
+
+#include "stout/lambda.hpp"
 
 namespace mesos {
 namespace serenity {
@@ -10,6 +12,26 @@ namespace tests {
 constexpr double_t DEFAULT_TIME_WINDOW = 1;
 constexpr double_t DEFAULT_START_TIMESTAMP = 34223425;
 constexpr double_t DEFAULT_MAX_NOISE = 50;
+
+//! Math Functions - used for load model.
+namespace math {
+
+inline double_t constFunction(double_t x) {
+  return 10;
+}
+
+
+inline double_t linearFunction(double_t x) {
+  return x;
+}
+
+
+inline double_t sinFunction(double_t x) {
+  return sin(x) + cos(x);
+}
+
+}  // namespace math
+
 
 /**
  * Base class for all Noise Generators.

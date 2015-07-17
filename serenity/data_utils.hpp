@@ -6,11 +6,12 @@
 
 namespace mesos {
 namespace serenity {
+namespace usage {
 
 //! Resource Usage getters.
-using UsageDataGetterFunction = Try<double_t> (
-  const ResourceUsage_Executor& previousExec,
-  const ResourceUsage_Executor& currentExec);
+using GetterFunction = Try<double_t>(
+    const ResourceUsage_Executor& previousExec,
+    const ResourceUsage_Executor& currentExec);
 
 
 inline Try<double_t> getIpc(
@@ -19,7 +20,7 @@ inline Try<double_t> getIpc(
   Try<double_t> ipc = CountIpc(previousExec, currentExec);
   if (ipc.isError()) return Error(ipc.error());
 
-  return Ipc;
+  return ipc;
 }
 
 
@@ -55,7 +56,7 @@ inline Try<double_t> getEmaCpuUsage(
 
 
 //! Resource Usage setters.
-using UsageDataSetterFunction = Try<Nothing> (
+using SetterFunction = Try<Nothing>(
     const double_t value,
     ResourceUsage_Executor* outExec);
 
@@ -64,7 +65,7 @@ inline Try<Nothing> setEmaIpc(
     const double_t value,
     ResourceUsage_Executor* outExec) {
 
-  outExec->mutable_statistics()->set_net_tcp_active_connections(emaIpc);
+  outExec->mutable_statistics()->set_net_tcp_active_connections(value);
 
   return Nothing();
 }
@@ -73,11 +74,12 @@ inline Try<Nothing> setEmaCpuUsage(
     const double_t value,
     ResourceUsage_Executor* outExec) {
 
-  outExec->mutable_statistics()->set_net_tcp_active_connections(emaIpc);
+  outExec->mutable_statistics()->set_net_tcp_time_wait_connections(value);
 
   return Nothing();
 }
 
+}  // namespace usage
 }  // namespace serenity
 }  // namespace mesos
 
