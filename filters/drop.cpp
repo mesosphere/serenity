@@ -13,11 +13,16 @@ namespace serenity {
 
 Result<ChangePointDetection> NaiveChangePointDetector::processSample(
     double_t in) {
+  if (this->contentionCooldownCounter > 0) {
+    this->contentionCooldownCounter--;
 
-  if (in < this->absoluteThreshold) {
+    return None();
+  }
+
+  if (in < this->state.absoluteThreshold) {
+    this->contentionCooldownCounter = this->state.contentionCooldown;
     ChangePointDetection cpd;
-    cpd.severity = this->absoluteThreshold - in;
-
+    cpd.severity = this->state.absoluteThreshold - in;
     return cpd;
   }
 
@@ -25,7 +30,34 @@ Result<ChangePointDetection> NaiveChangePointDetector::processSample(
 }
 
 
-template <class T>
+Result<ChangePointDetection> RollingChangePointDetector::processSample(
+    double_t in) {
+  this->window.push_back(in);
+
+  if (this->window.size() < this->state.windowSize) {
+    return None();  // Only warm up.
+  }
+
+  double_t basePoint = this->window.front();
+  this->window.pop_front();
+
+  if (this->contentionCooldownCounter > 0) {
+    this->contentionCooldownCounter--;
+    return None();
+  }
+
+  if (in < (basePoint - this->state.relativeThreshold)) {
+    this->contentionCooldownCounter = this->state.contentionCooldown;
+    ChangePointDetection cpd;
+    cpd.severity = this->state.relativeThreshold - in;
+    return cpd;
+  }
+
+  return None();
+}
+
+
+template <typename T>
 Try<Nothing> DropFilter<T>::consume(const ResourceUsage& in) {
   std::unique_ptr<ExecutorSet> newSamples(new ExecutorSet());
   Contentions product;
@@ -50,9 +82,9 @@ Try<Nothing> DropFilter<T>::consume(const ResourceUsage& in) {
     auto cpDetector = this->cpDetectors->find(inExec.executor_info());
     if (cpDetector == this->cpDetectors->end()) {
       // If not insert new one.
-      cpDetectors->insert(std::pair<ExecutorInfo, T*>(
-          inExec.executor_info(), new T(this->windowSize,
-                                        this->absoluteThreshold)));
+      auto pair = std::pair<ExecutorInfo, T*>(inExec.executor_info(), new T());
+      pair.second->configure(this->changePointDetectionState);
+      this->cpDetectors->insert(pair);
 
     } else {
       // Check if previousSample for given executor exists.
@@ -97,6 +129,7 @@ Try<Nothing> DropFilter<T>::consume(const ResourceUsage& in) {
 // See:
 //    https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
 template class DropFilter<NaiveChangePointDetector>;
+template class DropFilter<RollingChangePointDetector>;
 
 }  // namespace serenity
 }  // namespace mesos

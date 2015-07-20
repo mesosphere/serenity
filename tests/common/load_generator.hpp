@@ -164,7 +164,7 @@ class LoadGenerator {
     if (done) return *this;
 
     iteration++;
-    if (iteration > iterations) {
+    if (iteration >= iterations) {
       done = true;
       return *this;
     }
@@ -173,6 +173,7 @@ class LoadGenerator {
     i.timestamp += timeWindow;
     i.noise = noiseGen->generate(iteration);
 
+    if (dbg) std::cout << iteration << std::endl;
     return *this;
   }
 
@@ -184,6 +185,7 @@ class LoadGenerator {
 
   double_t modifier = 0;
   int32_t iteration;
+  bool dbg = false;
 
  protected:
   const lambda::function<double_t(double_t)>& modelFunction;

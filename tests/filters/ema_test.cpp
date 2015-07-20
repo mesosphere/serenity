@@ -201,8 +201,6 @@ TEST(EMATest, IpcEMATestNoPerf) {
 TEST(EMATest, IpcEMATestNoisyConstSample) {
   // End of pipeline.
   MockSink<ResourceUsage> mockSink;
-  EXPECT_CALL(mockSink, consume(_))
-    .WillRepeatedly(InvokeConsumeUsage(&mockSink));
 
   // Second component in pipeline.
   EMAFilter ipcEMAFilter(
@@ -224,8 +222,6 @@ TEST(EMATest, IpcEMATestNoisyConstSample) {
   const double_t THRESHOLD = 1.2;
   const double_t MAX_NOISE = 5;
   const int32_t LOAD_ITERATIONS = 100;
-  ExponentialMovingAverage ema(
-      EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
   LoadGenerator loadGen(
       math::constFunction,
       new SymetricNoiseGenerator(MAX_NOISE),
@@ -252,7 +248,7 @@ TEST(EMATest, IpcEMATestNoisyConstSample) {
       mockSink.expectIpc(0, IPC_VALUE, THRESHOLD);
   }
 
-  EXPECT_EQ(100, mockSink.numberOfMessagesConsumed);
+  EXPECT_EQ(99, mockSink.numberOfMessagesConsumed);
 }
 
 
@@ -321,8 +317,6 @@ TEST(EMATest, CpuUsageEMATestNoCpuStatistics) {
 TEST(EMATest, CpuUsageEMATestNoisyConstSample) {
   // End of pipeline.
   MockSink<ResourceUsage> mockSink;
-  EXPECT_CALL(mockSink, consume(_))
-      .WillRepeatedly(InvokeConsumeUsage(&mockSink));
 
   // Second component in pipeline.
   EMAFilter cpuUsageEMAFilter(
@@ -332,7 +326,7 @@ TEST(EMATest, CpuUsageEMATestNoisyConstSample) {
   MockSource<ResourceUsage> source(&cpuUsageEMAFilter);
 
   Try<mesos::FixtureResourceUsage> usages =
-      JsonUsage::ReadJson("tests/fixtures/ema/start_json_test.json");
+      JsonUsage::ReadJson("tests/fixtures/start_json_test.json");
   if (usages.isError()) {
     LOG(ERROR) << "JsonSource failed: " << usages.error() << std::endl;
   }
@@ -344,8 +338,6 @@ TEST(EMATest, CpuUsageEMATestNoisyConstSample) {
   const double_t THRESHOLD = 1.2;
   const double_t MAX_NOISE = 5;
   const int32_t LOAD_ITERATIONS = 100;
-  ExponentialMovingAverage ema(
-      EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
   LoadGenerator loadGen(
       math::constFunction,
       new SymetricNoiseGenerator(MAX_NOISE),
@@ -370,7 +362,7 @@ TEST(EMATest, CpuUsageEMATestNoisyConstSample) {
       mockSink.expectCpuUsage(0, IPC_VALUE, THRESHOLD);
   }
 
-  EXPECT_EQ(100, mockSink.numberOfMessagesConsumed);
+  EXPECT_EQ(99, mockSink.numberOfMessagesConsumed);
 }
 
 }  // namespace tests
