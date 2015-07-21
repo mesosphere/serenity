@@ -210,7 +210,7 @@ TEST(EMATest, IpcEMATestNoisyConstSample) {
   MockSource<ResourceUsage> source(&ipcEMAFilter);
 
   Try<mesos::FixtureResourceUsage> usages =
-      JsonUsage::ReadJson("tests/fixtures/ema/start_json_test.json");
+      JsonUsage::ReadJson("tests/fixtures/start_json_test.json");
   if (usages.isError()) {
     LOG(ERROR) << "JsonSource failed: " << usages.error() << std::endl;
   }
