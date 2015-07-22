@@ -86,15 +86,22 @@ TEST(NaiveChangePointDetectionTest, StableLoadOneChangePoint) {
 
   LoadGenerator loadGen(
       math::constFunction, new ZeroNoise(), LOAD_ITERATIONS);
-  bool dropped = false;
+
   int64_t cooldown = -1;
+  // Starting iterations.
   for (; loadGen.end() ; loadGen++) {
+    // Running detector.
     Result<ChangePointDetection> result =
       naiveChangePointDetector.processSample((*loadGen)());
 
+    // If cooldown is active - decrement it.
     if (cooldown >= 0) cooldown--;
 
-    if (dropped && cooldown < 0) {
+    // After more than 110 iterations we expect to detect some contentions.
+    // We also expect to have working cooldown feature. We don't want to
+    // detect contentions every iteration if contentionCooldown in conf
+    // is higher than 0.
+    if (loadGen.iteration > 110 && cooldown < 0) {
       cooldown = CONTENTION_COOLDOWN;
       EXPECT_SOME(result);
     } else {
@@ -106,8 +113,6 @@ TEST(NaiveChangePointDetectionTest, StableLoadOneChangePoint) {
         loadGen.iteration < 150) {
       // After 11 iterations of 1 drop progress value should be below
       // threshold (-1).
-      if (loadGen.iteration == 110)
-        dropped = true;
       loadGen.modifier -= DROP_PROGRES;
     }
   }

@@ -24,6 +24,10 @@ inline Try<double_t> getIpc(
 }
 
 
+/**
+ * Currently we are saving EMA IPC in net_tcp_active_connections field
+ * in ResourceUsage.
+ */
 inline Try<double_t> getEmaIpc(
     const ResourceUsage_Executor& previousExec,
     const ResourceUsage_Executor& currentExec) {
@@ -45,6 +49,10 @@ inline Try<double_t> getCpuUsage(
 }
 
 
+/**
+ * Currently we are saving EMA CpuUsage in net_tcp_time_wait_connections field
+ * in ResourceUsage.
+ */
 inline Try<double_t> getEmaCpuUsage(
     const ResourceUsage_Executor& previousExec,
     const ResourceUsage_Executor& currentExec) {
@@ -61,6 +69,10 @@ using SetterFunction = Try<Nothing>(
     ResourceUsage_Executor* outExec);
 
 
+/**
+ * Currently we are saving EMA IPC in net_tcp_active_connections field
+ * in ResourceUsage.
+ */
 inline Try<Nothing> setEmaIpc(
     const double_t value,
     ResourceUsage_Executor* outExec) {
@@ -70,6 +82,11 @@ inline Try<Nothing> setEmaIpc(
   return Nothing();
 }
 
+
+/**
+ * Currently we are saving EMA CpuUsage in net_tcp_time_wait_connections field
+ * in ResourceUsage.
+ */
 inline Try<Nothing> setEmaCpuUsage(
     const double_t value,
     ResourceUsage_Executor* outExec) {

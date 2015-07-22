@@ -49,7 +49,10 @@ Result<ChangePointDetection> RollingChangePointDetector::processSample(
   if (in < (basePoint - this->state.relativeThreshold)) {
     this->contentionCooldownCounter = this->state.contentionCooldown;
     ChangePointDetection cpd;
-    cpd.severity = this->state.relativeThreshold - in;
+
+    // We calculate severity as difference between threshold and actual
+    // processed value.
+    cpd.severity = (basePoint - this->state.relativeThreshold) - in;
     return cpd;
   }
 

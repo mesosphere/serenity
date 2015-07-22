@@ -59,25 +59,24 @@ TEST(RollingChangePointDetectionTest, StableLoadOneChangePoint) {
 
   LoadGenerator loadGen(
       math::constFunction, new ZeroNoise(), LOAD_ITERATIONS);
-  bool dropped = false;
+
+  // Starting iterations.
   for (; loadGen.end() ; loadGen++) {
+    // Running detector.
     Result<ChangePointDetection> result =
       rollingChangePointDetector.processSample((*loadGen)());
 
-    if (dropped) {
-      dropped = false;
+    // In 106th iteration we expect to detect one contention.
+    if (loadGen.iteration == 106)
       EXPECT_SOME(result);
-    } else {
+    else
       EXPECT_NONE(result);
-    }
 
     // Introduce a drop in the middle of the test..
     if (loadGen.iteration >= 100 &&
         loadGen.iteration < 110) {
       // After 6 iterations of 2 drop progress value should be below
       // threshold (-2).
-      if (loadGen.iteration == 105)
-        dropped = true;
       loadGen.modifier -= DROP_PROGRES;
     }
   }
