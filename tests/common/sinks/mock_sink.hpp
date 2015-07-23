@@ -1,12 +1,14 @@
 #ifndef SERENITY_TEST_MOCK_SINK_HPP
 #define SERENITY_TEST_MOCK_SINK_HPP
 
-#include <process/gmock.hpp>
-#include <process/gtest.hpp>
+#include <string>
 
-#include <stout/try.hpp>
+#include "process/gmock.hpp"
+#include "process/gtest.hpp"
 
 #include "serenity/serenity.hpp"
+
+#include "stout/try.hpp"
 
 #include "tests/common/usage_helper.hpp"
 
@@ -34,10 +36,10 @@ class MockSink : public Consumer<T> {
   void expectIpc(
       int32_t usage_index, double_t value, double_t threshold) {
     ASSERT_TRUE(
-        currentConsumedUsage.executors().size() > usage_index);
+        this->currentConsumedT.executors().size() > usage_index);
 
     ResourceStatistics stats =
-      currentConsumedUsage.executors(usage_index).statistics();
+        this->currentConsumedT.executors(usage_index).statistics();
 
     EXPECT_TRUE(stats.has_net_tcp_active_connections());
 
@@ -50,10 +52,10 @@ class MockSink : public Consumer<T> {
   void expectCpuUsage(
       int32_t usage_index, double_t value, double_t threshold) {
     ASSERT_TRUE(
-        currentConsumedUsage.executors().size() > usage_index);
+        this->currentConsumedT.executors().size() > usage_index);
 
     ResourceStatistics stats =
-      currentConsumedUsage.executors(usage_index).statistics();
+        this->currentConsumedT.executors(usage_index).statistics();
 
     EXPECT_TRUE(stats.has_net_tcp_time_wait_connections());
 
@@ -61,10 +63,25 @@ class MockSink : public Consumer<T> {
         stats.net_tcp_time_wait_connections(), value, threshold);
   }
 
+  // TODO(bplotka): In future we can move it
+  // to the EMATest Gtest Fixture class.
+  void expectContentions(uint32_t contentions) {
+    ASSERT_TRUE(
+        this->currentConsumedT.size() == contentions);
+  }
+
+  void expectContentionWithVictim(std::string victim_id) {
+    ASSERT_GT(
+        this->currentConsumedT.size(), 0);
+
+    EXPECT_EQ(victim_id,
+              this->currentConsumedT.front().victim().executor_id().value());
+  }
+
   virtual ~MockSink() {}
 
   int numberOfMessagesConsumed;
-  ResourceUsage currentConsumedUsage;
+  T currentConsumedT;
 
   MOCK_METHOD1_T(consume, Try<Nothing>(const T& in));
 };
@@ -72,21 +89,17 @@ class MockSink : public Consumer<T> {
 
 ACTION_P(InvokeConsume, sink) {
   sink->numberOfMessagesConsumed++;
+  sink->currentConsumedT = arg0;
   return Nothing();
 }
 
-
-ACTION_P(InvokeConsumeUsage, sink) {
-  sink->numberOfMessagesConsumed++;
-  sink->currentConsumedUsage.CopyFrom(arg0);
-  return Nothing();
-}
 
 ACTION_P2(InvokeConsumeUsageCountExecutors, sink, executors) {
   sink->numberOfMessagesConsumed++;
   EXPECT_EQ(executors, arg0.executors_size());
   return Nothing();
 }
+
 
 // For debug only.
 ACTION_P(InvokeConsumePrintIpcEma, sink) {
