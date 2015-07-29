@@ -46,6 +46,8 @@ class ValveFilterEndpointProcess;
 class ValveFilter :
     public Consumer<ResourceUsage>, public Producer<ResourceUsage> {
  public:
+  explicit ValveFilter(ValveType valveType, bool _opened = true);
+
   ValveFilter(
       Consumer<ResourceUsage>* _consumer,
       ValveType valveType,

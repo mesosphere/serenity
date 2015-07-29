@@ -184,6 +184,13 @@ class ValveFilterEndpointProcess : public Process<ValveFilterEndpointProcess> {
 };
 
 
+ValveFilter::ValveFilter(ValveType _valveType, bool _opened)
+  : process(new ValveFilterEndpointProcess(_valveType, _opened)) {
+  isOpened = process.get()->getIsOpenedFunction();
+  spawn(process.get());
+}
+
+
 ValveFilter::ValveFilter(
     Consumer<ResourceUsage>* _consumer,
     ValveType _valveType,

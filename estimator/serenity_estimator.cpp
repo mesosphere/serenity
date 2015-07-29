@@ -1,12 +1,17 @@
-#include <process/defer.hpp>
-#include <process/dispatch.hpp>
-#include <process/process.hpp>
-
-#include <stout/error.hpp>
-
 #include <list>
+#include <memory>
 
 #include "estimator/serenity_estimator.hpp"
+
+#include "glog/logging.h"
+
+#include "pipeline/estimator_pipeline.hpp"
+
+#include "process/defer.hpp"
+#include "process/dispatch.hpp"
+#include "process/process.hpp"
+
+#include "stout/error.hpp"
 
 // TODO(nnielsen): Break into explicit using-declarations.
 using namespace process;  // NOLINT(build/namespaces)
@@ -18,8 +23,10 @@ class SerenityEstimatorProcess :
     public Process<SerenityEstimatorProcess> {
  public:
   SerenityEstimatorProcess(
-      const lambda::function<Future<ResourceUsage>()>& _usage)
-  : usage(_usage) {}
+      const lambda::function<Future<ResourceUsage>()>& _usage,
+      std::shared_ptr<ResourceEstimatorPipeline> _pipeline)
+    : usage(_usage),
+      pipeline(_pipeline) {}
 
   Future<Resources> oversubscribable() {
     return this->usage()
@@ -28,15 +35,19 @@ class SerenityEstimatorProcess :
 
   Future<Resources> _oversubscribable(
       const Future<ResourceUsage>& _resourceUsage) {
-    // TODO(bplotka) Set up the main estimation pipeline here.
-    std::cout << "Serenity Estimator pipeline run." << "\n";
+    Try<Resources> ret = this->pipeline->run(_resourceUsage.get());
 
-    // For now return empty Resources.
-    return Resources();
+    if (ret.isError()) {
+      LOG(ERROR) << ret.error();
+      return Resources();
+    }
+
+    return ret.get();
   }
 
  private:
   const lambda::function<Future<ResourceUsage>()> usage;
+  std::shared_ptr<ResourceEstimatorPipeline> pipeline;
 };
 
 
@@ -54,7 +65,7 @@ Try<Nothing> SerenityEstimator::initialize(
     return Error("Serenity estimator has already been initialized");
   }
 
-  process.reset(new SerenityEstimatorProcess(usage));
+  process.reset(new SerenityEstimatorProcess(usage, this->pipeline));
   spawn(process.get());
 
   return Nothing();

@@ -28,6 +28,10 @@ class SlackResourceObserver : public Consumer<ResourceUsage>,
  public:
   SlackResourceObserver() : previousSamples(new ExecutorSet()) {}
 
+  explicit SlackResourceObserver(Consumer<Resources>* _consumer)
+    : Producer<Resources>(_consumer),
+      previousSamples(new ExecutorSet()) {}
+
   ~SlackResourceObserver() {}
 
   Try<Nothing> consume(const ResourceUsage& usage) override;
