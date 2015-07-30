@@ -2,8 +2,6 @@
 
 #include <gtest/gtest.h>
 
-#include <cmath>
-
 #include "filters/ema.hpp"
 
 #include "process/future.hpp"
@@ -12,7 +10,7 @@
 #include "tests/common/usage_helper.hpp"
 #include "tests/common/sinks/mock_sink.hpp"
 #include "tests/common/sources/json_source.hpp"
-#include "tests/common/sources/public_source.hpp"
+#include "tests/common/sources/mock_source.hpp"
 
 namespace mesos {
 namespace serenity {
@@ -20,18 +18,13 @@ namespace tests {
 
 using ::testing::DoAll;
 
-double_t constFunction(double_t x) {
-  return 10;
-}
-
-
 TEST(EMATest, SmoothingConstSample) {
   const double_t THRESHOLD = 0.01;
   const int32_t LOAD_ITERATIONS = 100;
   ExponentialMovingAverage ema(
       EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
   LoadGenerator loadGen(
-      constFunction, new ZeroNoise(), LOAD_ITERATIONS);
+      math::constFunction, new ZeroNoise(), LOAD_ITERATIONS);
 
   for (; loadGen.end() ; loadGen++) {
     double_t result = ema.calculateEMA((*loadGen)(), (*loadGen).timestamp);
@@ -48,18 +41,15 @@ TEST(EMATest, SmoothingNoisyConstSample) {
   ExponentialMovingAverage ema(
       EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
   LoadGenerator loadGen(
-      constFunction, new SymetricNoiseGenerator(MAX_NOISE), LOAD_ITERATIONS);
+      math::constFunction,
+      new SymetricNoiseGenerator(MAX_NOISE),
+      LOAD_ITERATIONS);
 
   for (; loadGen.end() ; loadGen++) {
     double_t result = ema.calculateEMA((*loadGen)(), (*loadGen).timestamp);
 
     EXPECT_NEAR((*loadGen).clearValue(), result, THRESHOLD);
   }
-}
-
-
-double_t linearFunction(double_t x) {
-  return x;
 }
 
 
@@ -70,18 +60,15 @@ TEST(EMATest, SmoothingNoisyLinearSample) {
   ExponentialMovingAverage ema(
       EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
   LoadGenerator loadGen(
-      linearFunction, new SymetricNoiseGenerator(MAX_NOISE), LOAD_ITERATIONS);
+      math::linearFunction,
+      new SymetricNoiseGenerator(MAX_NOISE),
+      LOAD_ITERATIONS);
 
   for (; loadGen.end() ; loadGen++) {
     double_t result = ema.calculateEMA((*loadGen)(), (*loadGen).timestamp);
 
     EXPECT_NEAR((*loadGen).clearValue(), result, THRESHOLD);
   }
-}
-
-
-double_t sinFunction(double_t x) {
-  return sin(x) + cos(x);
 }
 
 
@@ -92,7 +79,9 @@ TEST(EMATest, SmoothingNoisySinSample) {
   ExponentialMovingAverage ema(
       EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
   LoadGenerator loadGen(
-      sinFunction, new SymetricNoiseGenerator(MAX_NOISE), LOAD_ITERATIONS);
+      math::sinFunction,
+      new SymetricNoiseGenerator(MAX_NOISE),
+      LOAD_ITERATIONS);
 
   for (; loadGen.end() ; loadGen++) {
     double_t result = ema.calculateEMA((*loadGen)(), (*loadGen).timestamp);
@@ -110,7 +99,9 @@ TEST(EMATest, SmoothingNoisySinSampleDrop) {
   ExponentialMovingAverage ema(
       EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
   LoadGenerator loadGen(
-      sinFunction, new SymetricNoiseGenerator(MAX_NOISE), LOAD_ITERATIONS);
+      math::sinFunction,
+      new SymetricNoiseGenerator(MAX_NOISE),
+      LOAD_ITERATIONS);
 
   for (; loadGen.end() ; loadGen++) {
     // Introduce dramatic drop in the middle of the test.
@@ -131,7 +122,9 @@ TEST(EMATest, SmoothingNoisySinStableDrop) {
   ExponentialMovingAverage ema(
       EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
   LoadGenerator loadGen(
-      sinFunction, new SymetricNoiseGenerator(MAX_NOISE), LOAD_ITERATIONS);
+      math::sinFunction,
+      new SymetricNoiseGenerator(MAX_NOISE),
+      LOAD_ITERATIONS);
 
   for (; loadGen.end() ; loadGen++) {
     // Introduce stable drop in the middle of the test..
@@ -159,7 +152,7 @@ TEST(EMATest, IpcEMATest) {
 
   // Second component in pipeline.
   EMAFilter ipcEMAFilter(
-      &mockSink, EMATypes::filterIpc, DEFAULT_EMA_FILTER_ALPHA);
+      &mockSink, usage::getIpc, usage::setEmaIpc, DEFAULT_EMA_FILTER_ALPHA);
 
   // First component in pipeline.
   JsonSource jsonSource(&ipcEMAFilter);
@@ -188,7 +181,7 @@ TEST(EMATest, IpcEMATestNoPerf) {
 
   // Second component in pipeline.
   EMAFilter ipcEMAFilter(
-      &mockSink, EMATypes::filterIpc, DEFAULT_EMA_FILTER_ALPHA);
+      &mockSink, usage::getIpc, usage::setEmaIpc, DEFAULT_EMA_FILTER_ALPHA);
 
   // First component in pipeline.
   JsonSource jsonSource(&ipcEMAFilter);
@@ -208,18 +201,16 @@ TEST(EMATest, IpcEMATestNoPerf) {
 TEST(EMATest, IpcEMATestNoisyConstSample) {
   // End of pipeline.
   MockSink<ResourceUsage> mockSink;
-  EXPECT_CALL(mockSink, consume(_))
-    .WillRepeatedly(InvokeConsumeUsage(&mockSink));
 
   // Second component in pipeline.
   EMAFilter ipcEMAFilter(
-      &mockSink, EMATypes::filterIpc, DEFAULT_EMA_FILTER_ALPHA);
+      &mockSink, usage::getIpc, usage::setEmaIpc, DEFAULT_EMA_FILTER_ALPHA);
 
   // First component in pipeline.
-  PublicSource source(&ipcEMAFilter);
+  MockSource<ResourceUsage> source(&ipcEMAFilter);
 
   Try<mesos::FixtureResourceUsage> usages =
-      JsonUsage::ReadJson("tests/fixtures/ema/start_json_test.json");
+      JsonUsage::ReadJson("tests/fixtures/start_json_test.json");
   if (usages.isError()) {
     LOG(ERROR) << "JsonSource failed: " << usages.error() << std::endl;
   }
@@ -231,10 +222,10 @@ TEST(EMATest, IpcEMATestNoisyConstSample) {
   const double_t THRESHOLD = 1.2;
   const double_t MAX_NOISE = 5;
   const int32_t LOAD_ITERATIONS = 100;
-  ExponentialMovingAverage ema(
-      EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
   LoadGenerator loadGen(
-      constFunction, new SymetricNoiseGenerator(MAX_NOISE), LOAD_ITERATIONS);
+      math::constFunction,
+      new SymetricNoiseGenerator(MAX_NOISE),
+      LOAD_ITERATIONS);
 
   uint64_t previousLoad = 0;
   for (; loadGen.end(); loadGen++) {
@@ -251,13 +242,13 @@ TEST(EMATest, IpcEMATestNoisyConstSample) {
         ->mutable_perf()->set_timestamp((*loadGen).timestamp);
 
     // Run pipeline iteration
-    source.produceUsage(usage);
+    source.produce(usage);
 
     if (loadGen.iteration > 0)
       mockSink.expectIpc(0, IPC_VALUE, THRESHOLD);
   }
 
-  EXPECT_EQ(100, mockSink.numberOfMessagesConsumed);
+  EXPECT_EQ(99, mockSink.numberOfMessagesConsumed);
 }
 
 
@@ -276,7 +267,7 @@ TEST(EMATest, CpuUsageEMATest) {
 
   // Second component in pipeline.
   EMAFilter cpuUsageEMAFilter(
-      &mockSink, EMATypes::filterCpuUsage, DEFAULT_EMA_FILTER_ALPHA);
+      &mockSink, usage::getCpuUsage, usage::setEmaCpuUsage);
 
   // First component in pipeline.
   JsonSource jsonSource(&cpuUsageEMAFilter);
@@ -306,7 +297,7 @@ TEST(EMATest, CpuUsageEMATestNoCpuStatistics) {
 
   // Second component in pipeline.
   EMAFilter cpuUsageEMAFilter(
-      &mockSink, EMATypes::filterCpuUsage, DEFAULT_EMA_FILTER_ALPHA);
+      &mockSink, usage::getCpuUsage, usage::setEmaCpuUsage);
 
   // First component in pipeline.
   JsonSource jsonSource(&cpuUsageEMAFilter);
@@ -326,18 +317,16 @@ TEST(EMATest, CpuUsageEMATestNoCpuStatistics) {
 TEST(EMATest, CpuUsageEMATestNoisyConstSample) {
   // End of pipeline.
   MockSink<ResourceUsage> mockSink;
-  EXPECT_CALL(mockSink, consume(_))
-      .WillRepeatedly(InvokeConsumeUsage(&mockSink));
 
   // Second component in pipeline.
   EMAFilter cpuUsageEMAFilter(
-      &mockSink, EMATypes::filterCpuUsage, DEFAULT_EMA_FILTER_ALPHA);
+      &mockSink, usage::getCpuUsage, usage::setEmaCpuUsage);
 
   // First component in pipeline.
-  PublicSource source(&cpuUsageEMAFilter);
+  MockSource<ResourceUsage> source(&cpuUsageEMAFilter);
 
   Try<mesos::FixtureResourceUsage> usages =
-      JsonUsage::ReadJson("tests/fixtures/ema/start_json_test.json");
+      JsonUsage::ReadJson("tests/fixtures/start_json_test.json");
   if (usages.isError()) {
     LOG(ERROR) << "JsonSource failed: " << usages.error() << std::endl;
   }
@@ -349,10 +338,10 @@ TEST(EMATest, CpuUsageEMATestNoisyConstSample) {
   const double_t THRESHOLD = 1.2;
   const double_t MAX_NOISE = 5;
   const int32_t LOAD_ITERATIONS = 100;
-  ExponentialMovingAverage ema(
-      EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
   LoadGenerator loadGen(
-      constFunction, new SymetricNoiseGenerator(MAX_NOISE), LOAD_ITERATIONS);
+      math::constFunction,
+      new SymetricNoiseGenerator(MAX_NOISE),
+      LOAD_ITERATIONS);
 
   uint64_t previousLoad = 0;
   for (; loadGen.end(); loadGen++) {
@@ -367,13 +356,13 @@ TEST(EMATest, CpuUsageEMATestNoisyConstSample) {
         ->set_timestamp((*loadGen).timestamp);
 
     // Run pipeline iteration
-    source.produceUsage(usage);
+    source.produce(usage);
 
     if (loadGen.iteration > 0)
       mockSink.expectCpuUsage(0, IPC_VALUE, THRESHOLD);
   }
 
-  EXPECT_EQ(100, mockSink.numberOfMessagesConsumed);
+  EXPECT_EQ(99, mockSink.numberOfMessagesConsumed);
 }
 
 }  // namespace tests

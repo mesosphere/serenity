@@ -1,6 +1,8 @@
 #ifndef SERENITY_RESOURCE_USAGE_VISUALISATION_HPP
 #define SERENITY_RESOURCE_USAGE_VISUALISATION_HPP
 
+#include <string>
+
 #include "backend/visualisation_backend.hpp"
 #include "backend/influx_db8.hpp"
 
@@ -21,7 +23,7 @@ namespace serenity {
 class ResourceUsageVisualisation : public Consumer<ResourceUsage> {
  public:
   ResourceUsageVisualisation(
-      IVisualisationBackend* _visualisationBackend = new InfluxDb8Backend(),
+      VisualisationBackend* _visualisationBackend = new InfluxDb8Backend(),
       Variant _tag = "") :
        visualisationBackend(_visualisationBackend),
        customTag(_tag) {}
@@ -29,7 +31,9 @@ class ResourceUsageVisualisation : public Consumer<ResourceUsage> {
   Try<Nothing> consume(const ResourceUsage& resources) override;
 
  protected:
-  IVisualisationBackend* visualisationBackend;
+  VisualisationBackend* visualisationBackend;
+
+  std::string hostname;
 
   const Variant customTag;  //!< Custom tag that is added to every sample.
 };

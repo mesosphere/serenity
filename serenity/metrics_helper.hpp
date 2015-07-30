@@ -25,6 +25,10 @@ inline Try<double_t> CountCpuUsage(const ResourceUsage_Executor& previous,
 
   double_t samplingDuration = current.statistics().timestamp() -
                               previous.statistics().timestamp();
+
+  if (samplingDuration == 0)
+    return 0;
+
   double_t cpuTimeUsage = (current.statistics().cpus_system_time_secs() +
                            current.statistics().cpus_user_time_secs()) -
                           (previous.statistics().cpus_system_time_secs() +

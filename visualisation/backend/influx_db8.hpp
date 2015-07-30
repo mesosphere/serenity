@@ -1,6 +1,7 @@
 #ifndef SERENITY_INFLUX_DB8_HPP
 #define SERENITY_INFLUX_DB8_HPP
 
+#include <ratio>  // NOLINT [build/c++11]
 #include <string>
 
 #include "utils.hpp"
@@ -10,32 +11,28 @@
 namespace mesos {
 namespace serenity {
 
-constexpr char DEF_INFLUX_DB_ADDRESS[] = "localhost";
-constexpr uint32_t DEF_INFLUX_DB_PORT = 8086;
-
-constexpr char DEF_INLUX_DB_NAME[] = "test";
-
-constexpr char DEF_INLUX_DB_USER[] = "admin";
-constexpr char DEF_INLUX_DB_PASS[] = "admin";
-
-constexpr uint8_t DEF_INFLUX_DB_TIME_PREC = Precision::MILI;
-
-class InfluxDb8Backend : public IVisualisationBackend {
+class InfluxDb8Backend : public VisualisationBackend {
  public:
-  InfluxDb8Backend(std::string _influxDbAddress = DEF_INFLUX_DB_ADDRESS,
-                   uint32_t _influxDbPort       = DEF_INFLUX_DB_PORT,
-                   std::string _influxDbName    = DEF_INLUX_DB_NAME,
-                   std::string _influxDbUser    = DEF_INLUX_DB_USER,
-                   std::string _influxDbPass    = DEF_INLUX_DB_PASS,
-                   uint8_t _precision           = DEF_INFLUX_DB_TIME_PREC) :
+  InfluxDb8Backend(std::string _influxDbAddress = DEF_INFLUXDB_ADDRESS,
+                   uint32_t _influxDbPort       = DEF_INFLUXDB_PORT,
+                   std::string _influxDbName    = DEF_INLUXDB_NAME,
+                   std::string _influxDbUser    = DEF_INLUXDB_USER,
+                   std::string _influxDbPass    = DEF_INLUXDB_PASS) :
                       influxDbAddess(_influxDbAddress),
                       influxDbPort(_influxDbPort),
                       influxDbName(_influxDbName),
                       influxDbUser(_influxDbUser),
-                      influxDbPass(_influxDbPass),
-                      timePrecision(_precision) {}
+                      influxDbPass(_influxDbPass) {}
 
   virtual void PutMetric(const VisualisationRecord& _visualisationRecord);
+
+
+  static constexpr char DEF_INFLUXDB_ADDRESS[] = "localhost";
+  static constexpr uint32_t DEF_INFLUXDB_PORT = 8086;
+
+  static constexpr char DEF_INLUXDB_NAME[] = "serenity";
+  static constexpr char DEF_INLUXDB_USER[] = "root";
+  static constexpr char DEF_INLUXDB_PASS[] = "root";
 
  protected:
   std::string GetDbUrl() const;
@@ -48,7 +45,7 @@ class InfluxDb8Backend : public IVisualisationBackend {
   const std::string influxDbUser;
   const std::string influxDbPass;
 
-  const uint8_t timePrecision;
+  static constexpr std::micro timePrecision = std::micro();
 };
 
 }  // namespace serenity

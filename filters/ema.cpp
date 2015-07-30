@@ -81,14 +81,22 @@ Try<Nothing> EMAFilter::consume(const ResourceUsage& in) {
       // Check if previousSample for given executor exists.
       auto previousSample = this->previousSamples->find(inExec);
       if (previousSample != this->previousSamples->end()) {
-        ResourceUsage_Executor* outExec(
-            new ResourceUsage_Executor());
-
-        outExec->CopyFrom(inExec);
+        // Get proper value.
+        Try<double_t> value = this->valueGetFunction((*previousSample), inExec);
+        if (value.isError()) {
+          LOG(ERROR) << value.error();
+          continue;
+        }
 
         // Perform EMA filtering.
-        Try<Nothing> result = emaTypeFunction(
-            &(emaSample->second), (*previousSample), inExec, outExec);
+        double_t emaValue =
+          (emaSample->second).calculateEMA(
+              value.get(),
+              inExec.statistics().perf().timestamp());
+
+        // Store EMA value.
+        ResourceUsage_Executor* outExec = new ResourceUsage_Executor(inExec);
+        Try<Nothing> result = this->valueSetFunction(emaValue, outExec);
         if (result.isError()) {
           LOG(ERROR) << result.error();
           delete outExec;
@@ -110,43 +118,6 @@ Try<Nothing> EMAFilter::consume(const ResourceUsage& in) {
 
   return Nothing();
 }
-
-
-Try<Nothing> EMATypes::filterIpc(
-    ExponentialMovingAverage* ema,
-    const ResourceUsage_Executor& previousExec,
-    const ResourceUsage_Executor& currentExec,
-    ResourceUsage_Executor* outExec) {
-  Try<double_t> Ipc = CountIpc(previousExec, currentExec);
-  if (Ipc.isError()) return Error(Ipc.error());
-
-  double_t emaIpc =
-    ema->calculateEMA(Ipc.get(), currentExec.statistics().perf().timestamp());
-
-  outExec->mutable_statistics()->set_net_tcp_active_connections(emaIpc);
-
-  return Nothing();
-}
-
-
-Try<Nothing> EMATypes::filterCpuUsage(
-    ExponentialMovingAverage* ema,
-    const ResourceUsage_Executor& previousExec,
-    const ResourceUsage_Executor& currentExec,
-    ResourceUsage_Executor* outExec) {
-  Try<double_t> CpuUsage =
-      CountCpuUsage(previousExec, currentExec);
-  if (CpuUsage.isError()) return Error(CpuUsage.error());
-
-  double_t emaCpuUsage =
-      ema->calculateEMA(CpuUsage.get(), currentExec.statistics().timestamp());
-
-  outExec->mutable_statistics()->set_net_tcp_time_wait_connections(
-      emaCpuUsage);
-
-  return Nothing();
-}
-
 
 }  // namespace serenity
 }  // namespace mesos

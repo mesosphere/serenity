@@ -8,6 +8,7 @@
 
 #include "messages/serenity.hpp"
 
+#include "serenity/data_utils.hpp"
 #include "serenity/executor_map.hpp"
 #include "serenity/executor_set.hpp"
 #include "serenity/serenity.hpp"
@@ -88,54 +89,29 @@ class ExponentialMovingAverage {
   double_t exponentialMovingAverageRegular(double_t sample) const;
 };
 
-
-using EMATypeFilterFunction = Try<Nothing>
-    (ExponentialMovingAverage*,
-     const ResourceUsage_Executor&,
-     const ResourceUsage_Executor&,
-     ResourceUsage_Executor*);
-
-
-/**
- * It is possible to calculate EMA on any value. For every value
- * seperate filter function have to be implemented to fetch
- * specified value and store it.
- *
- * - filterIpc calculates Exponential Moving Average of IPC.
- * It gets IPC from perf statistics in ResourceStatistics.
- * It stores the calculated value in statistics.net_tcp_active_connections
- * field.
- * NOTE: It requires perf enabled on slave node.
- *
- * - filterCpuUsage calculates Exponential Moving Average of cpu usage.
- * It gets CpuUsage from statistics in ResourceUsage_Executor.
- * It stores the calculated value in statistics.net_tcp_time_wait_connections
- * field.
- */
-class EMATypes {
- public:
-  static EMATypeFilterFunction filterIpc;
-
-  static EMATypeFilterFunction filterCpuUsage;
-};
-
-
 /**
  * EMAFilter is able to calculate Exponential Moving Average on
  * ResourceUsage. Classes based on EMAFilter can define filter
  * for smoothing defined value.
+ *
+ * It is possible to calculate EMA on any value. For every value
+ * separate Resource Usage getter and setter function have to be
+ * implemented to fetch specified value and store it. It can be defined
+ * in serenity/data_utils.hpp
  */
 class EMAFilter :
     public Consumer<ResourceUsage>, public Producer<ResourceUsage> {
  public:
   EMAFilter(
       Consumer<ResourceUsage>* _consumer,
-      const lambda::function<EMATypeFilterFunction>& _emaTypeFunction,
+      const lambda::function<usage::GetterFunction>& _valueGetFunction,
+      const lambda::function<usage::SetterFunction>& _valueSetFunction,
       double_t _alpha = DEFAULT_EMA_FILTER_ALPHA)
     : Producer<ResourceUsage>(_consumer),
       previousSamples(new ExecutorSet),
       emaSamples(new ExecutorMap<ExponentialMovingAverage>()),
-      emaTypeFunction(_emaTypeFunction),
+      valueGetFunction(_valueGetFunction),
+      valueSetFunction(_valueSetFunction),
       alpha(_alpha) {}
 
   ~EMAFilter() {}
@@ -144,7 +120,8 @@ class EMAFilter :
 
  protected:
   double_t alpha;
-  const lambda::function<EMATypeFilterFunction>& emaTypeFunction;
+  const lambda::function<usage::GetterFunction>& valueGetFunction;
+  const lambda::function<usage::SetterFunction>& valueSetFunction;
   std::unique_ptr<ExecutorSet> previousSamples;
   std::unique_ptr<ExecutorMap<ExponentialMovingAverage>> emaSamples;
 };

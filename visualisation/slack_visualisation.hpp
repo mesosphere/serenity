@@ -21,7 +21,7 @@ class SlackVisualisationFilter : public Consumer<Resources> {
   Try<Nothing> consume(const Resources& resources) override;
 
  protected:
-  IVisualisationBackend* visualisationBackend;
+  VisualisationBackend* visualisationBackend;
 };
 
 }  // namespace serenity

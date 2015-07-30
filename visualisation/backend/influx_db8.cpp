@@ -53,7 +53,7 @@ std::string InfluxDb8Backend::SerializeRecord(
 
   // Add time.
   std::string timestamp = DblTimestampToString(
-      _visRecord.getTimestamp(),
+      _visRecord.getTimestamp().get(),
       this->timePrecision);
 
   columnsStream << "\"time\"" << SEP;
@@ -67,7 +67,7 @@ std::string InfluxDb8Backend::SerializeRecord(
     // Adding key to json
     columnsStream << "\"" << key << "\"" << SEP;
 
-    if (VisualisationRecord::IsVariantString(value)) {
+    if (VisualisationRecord::isVariantString(value)) {
       pointsStream << "\"" << value << "\"" << SEP;
     } else {
       pointsStream << value << SEP;

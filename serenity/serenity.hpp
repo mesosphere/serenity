@@ -26,6 +26,41 @@ class Consumer : public BusSocket {
 };
 
 
+/**
+ * This consumer requires that all producents will run consume on
+ * this instance. (Even during error flow).
+ */
+template<typename T>
+class SyncConsumer : public Consumer<T> {
+ public:
+  explicit SyncConsumer(uint64_t _producentsToWaitFor)
+    : producentsToWaitFor(_producentsToWaitFor) {
+    CHECK_ERR(_producentsToWaitFor > 0);
+  }
+
+  virtual ~SyncConsumer() {}
+
+  Try<Nothing> consume(const T& in) {
+    this->products.push_back(in);
+
+    if (this->products.size() == this->producentsToWaitFor) {
+      // Run virtual function which should be implemented in derived
+      // class.
+      this->_syncConsume(this->products);
+
+      this->products.clear();
+    }
+
+    return Nothing();
+  }
+
+  virtual Try<Nothing> _syncConsume(const std::vector<T> products) = 0;
+
+ private:
+  uint64_t producentsToWaitFor;
+  std::vector<T> products;
+};
+
 template<typename T>
 class Producer : public BusSocket {
  public:

@@ -8,15 +8,11 @@
 #include "boost/variant.hpp"
 
 #include "stout/nothing.hpp"
+#include "stout/option.hpp"
 #include "stout/try.hpp"
 
 namespace mesos {
 namespace serenity {
-
-enum class VisualisationBackend {
-  INFLUX_DB_8
-};
-
 
 /**
  * Enum of data series names
@@ -69,8 +65,8 @@ using Variant = boost::variant<int32_t, double_t, std::string>;
 class VisualisationRecord {
  public:
   VisualisationRecord(const Series _series,
-                      const double_t _timestamp,
-                      const Variant _variant = 0.0) :
+                      const Variant _variant = 0.0,
+                      const Option<double_t> _timestamp = None()) :
       seriesName(SeriesString(_series)),
       timestamp(_timestamp),
       tags(std::unordered_map<std::string,
@@ -79,7 +75,7 @@ class VisualisationRecord {
   }
 
 
-  double_t getTimestamp() const {
+  Option<double_t> getTimestamp() const {
     return this->timestamp;
   }
 
@@ -128,7 +124,7 @@ class VisualisationRecord {
   };
 
 
-  static bool IsVariantString(Variant _variant) {
+  static bool isVariantString(Variant _variant) {
     return _variant.which() == static_cast<uint8_t>(VariantType::STRING);
   }
 
@@ -140,15 +136,15 @@ class VisualisationRecord {
    */
   std::unordered_map<std::string, Variant> tags;
 
-  const std::string seriesName;  //!< Series name in backend.
-  const double_t    timestamp;
+  const std::string      seriesName;  //!< Series name in backend.
+  const Option<double_t> timestamp;
 };
 
 
 /**
  * Visualisation backend interface.
  */
-class IVisualisationBackend {
+class VisualisationBackend {
  public:
   virtual void PutMetric(const VisualisationRecord& _visualisationRecord) = 0;
 

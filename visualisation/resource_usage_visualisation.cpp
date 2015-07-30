@@ -28,17 +28,13 @@ Try<Nothing> ResourceUsageVisualisation::consume(const ResourceUsage& _res) {
 
     const auto& info = executor.executor_info();
     const auto& stats = executor.statistics();
-    const double_t sampleTime = stats.timestamp();
 
     std::vector<VisualisationRecord> locals;
     locals.push_back(VisualisationRecord(Series::CPU_USAGE_SYS,
-                                         sampleTime,
                                          stats.cpus_system_time_secs()));
     locals.push_back(VisualisationRecord(Series::CPU_USAGE_USR,
-                                         sampleTime,
                                          stats.cpus_user_time_secs()));
     locals.push_back(VisualisationRecord(Series::CPU_ALLOC,
-                                         sampleTime,
                                          stats.cpus_limit()));
 
     for (auto& local : locals) {

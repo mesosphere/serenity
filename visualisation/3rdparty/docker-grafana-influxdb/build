@@ -1,0 +1,5 @@
+#! /bin/bash
+
+docker rm grafana-influxdb_con
+docker rmi -f grafana_influxdb
+docker build -t grafana_influxdb .

@@ -24,10 +24,7 @@ Try<Nothing> SlackVisualisationFilter::consume(const Resources& resources) {
     return Error(hostname.error());
   }
 
-  // TODO(skonefal): Consider higher resolution time provider.
-  time_t timeNow = time(nullptr);
-
-  VisualisationRecord record(Series::SLACK_RESOURCES, timeNow);
+  VisualisationRecord record(Series::SLACK_RESOURCES);
   record.setTag(Tag::VALUE, cpus);
   record.setTag(Tag::NODE, hostname.get());
 

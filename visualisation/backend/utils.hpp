@@ -1,6 +1,7 @@
 #ifndef SERENITY_VISUALISATION_UTILS_HPP
 #define SERENITY_VISUALISATION_UTILS_HPP
 
+#include <algorithm>
 #include <iostream>
 #include <iomanip>
 #include <string>
@@ -12,25 +13,27 @@
 namespace mesos {
 namespace serenity {
 
-class Precision {
- public:
-  static constexpr uint32_t MILI = 3;
-  static constexpr uint32_t MIKRO = 6;
-  static constexpr uint32_t NANO = 9;
-};
-
+template <typename Ratio = std::milli>
 inline std::string DblTimestampToString(
     const double_t _timestamp,
-    const uint32_t _precision = Precision::MILI) {
+    const Ratio _precision = std::milli()) {
+  // count number of places after decimal
+  int precision = (std::to_string(_precision.den)).length() - 1;
+
   std::stringstream timeStream;
-  timeStream << std::fixed << std::setprecision(_precision) << _timestamp;
+  timeStream << std::fixed << std::setprecision(precision)
+             << _timestamp;
 
   std::string timeStr(timeStream.str());
-  timeStr.erase(std::remove(timeStr.begin(), timeStr.end(), '.'),
+  timeStr.erase(std::remove(
+                    timeStr.begin(),
+                    timeStr.end(),
+                    '.'),
                 timeStr.end());
 
   return timeStr;
 }
+
 
 inline Try<std::string> GetHostName() {
   constexpr uint8_t kBufferLen = 32;
@@ -39,11 +42,12 @@ inline Try<std::string> GetHostName() {
   if (status != 0) {
     LOG(ERROR) << "SlackVisualisation: gethostname failed. | errno: " << errno;
     return Error("SlackVisualisation: gethostname failed. | errno: " +
-                  std::to_string(errno));
+                 std::to_string(errno));
   } else {
     return hostname;
   }
 }
+
 
 }  // namespace serenity
 }  // namespace mesos
