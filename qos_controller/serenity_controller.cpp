@@ -49,7 +49,7 @@ class SerenityControllerProcess :
     // We make 20 iterations and try to find correction:
     this->iterations = 0;
     // TODO(bplotka): Filter out the same corrections as in previous message
-    while(corrections.empty() && this->iterations < 20) {
+    while (corrections.empty() && this->iterations < 20) {
       // TODO(bplotka): For tests we need ability to mock sleep.
       os::sleep(Duration::create(60).get());
 

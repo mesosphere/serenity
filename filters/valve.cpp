@@ -212,7 +212,7 @@ Try<Nothing> ValveFilter::consume(const ResourceUsage& in) {
   if (this->isOpened().get()) {
     this->produce(in);
   } else {
-    //TODO(bplotka) Pipeline is closed. Produce empty ResourceUsage.
+    // TODO(bplotka) Pipeline is closed. Produce empty ResourceUsage.
     LOG(INFO) << "[Serenity] ValveFilter: Pipeline is closed";
   }
 

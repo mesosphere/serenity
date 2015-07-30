@@ -73,8 +73,6 @@ TEST(SerenityControllerTest, PipelineIntegration) {
   EXPECT_EQ("Framework1", result.get().front().kill().framework_id().value());
 }
 
-//TODO(bplotka): Make deeper tests for QoS Assurance.
-
 }  // namespace tests
 }  // namespace serenity
 }  // namespace mesos
