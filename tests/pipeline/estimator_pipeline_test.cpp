@@ -33,6 +33,8 @@ TEST(EstimatorPipelineTest, FiltersNotProperlyFed) {
 
   Try<Resources> slack = pipeline->run(usage);
   EXPECT_ERROR(slack);
+
+  delete pipeline;
 }
 
 
@@ -52,6 +54,8 @@ TEST(EstimatorPipelineTest, NoSlack) {
   ASSERT_SOME(slack);
 
   EXPECT_TRUE(slack.get().empty());
+
+  delete pipeline;
 }
 
 }  // namespace tests

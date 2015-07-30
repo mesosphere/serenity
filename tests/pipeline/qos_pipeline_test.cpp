@@ -42,6 +42,8 @@ TEST(QoSPipelineTest, FiltersNotProperlyFed) {
 
   Try<QoSCorrections> corrections = pipeline->run(usage);
   EXPECT_ERROR(corrections);
+
+  delete pipeline;
 }
 
 // Currently let's focus on Estimations.
