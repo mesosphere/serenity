@@ -97,10 +97,12 @@ class ValveFilterEndpointProcess : public Process<ValveFilterEndpointProcess> {
     // NOTE: In future we may want to trigger some actions here.
     switch (valveType) {
       case RESOURCE_ESTIMATOR_VALVE:
-        LOG(INFO) << (open?"Enabling":"Disabling") << " slack estimations.";
+        LOG(INFO) << ValveFilter::name
+                  << (open?"Enabling":"Disabling") << " slack estimations.";
         break;
       case QOS_CONTROLLER_VALVE:
-        LOG(INFO) << (open?"Enabling":"Disabling") << " QoS assurance.";
+        LOG(INFO) << ValveFilter::name
+                  << (open?"Enabling":"Disabling") << " QoS assurance.";
         break;
     }
     this->opened = open;
@@ -121,14 +123,16 @@ class ValveFilterEndpointProcess : public Process<ValveFilterEndpointProcess> {
         route(VALVE_ROUTE,
               ESTIMATOR_VALVE_ENDPOINT_HELP(),
               &ValveFilterEndpointProcess::valve);
-        LOG(INFO) << "Serenity Resource Estimator endpoint initialized "
+        LOG(INFO) << ValveFilter::name
+                  << "Resource Estimator endpoint initialized "
                   << "on /" << RESOURCE_ESTIMATOR_PROCESS_BASE  << VALVE_ROUTE;
         break;
       case QOS_CONTROLLER_VALVE:
         route(VALVE_ROUTE,
               CONTROLLER_VALVE_ENDPOINT_HELP(),
               &ValveFilterEndpointProcess::valve);
-        LOG(INFO) << "Serenity QoS Controller endpoint initialized "
+        LOG(INFO) << ValveFilter::name
+                  << "QoS Controller endpoint initialized "
                   << "on /" << QOS_CONTROLLER_PROCESS_BASE  << VALVE_ROUTE;
         break;
     }
@@ -145,7 +149,8 @@ class ValveFilterEndpointProcess : public Process<ValveFilterEndpointProcess> {
         process::http::query::decode(request.body);
     if (decode.isError()) {
       return http::BadRequest(
-          "Unable to decode query string: " + decode.error());
+          std::string(ValveFilter::name) + "Unable to decode query string: "
+          + decode.error());
     }
     hashmap<string, string> values = decode.get();
 
@@ -212,8 +217,8 @@ Try<Nothing> ValveFilter::consume(const ResourceUsage& in) {
   if (this->isOpened().get()) {
     this->produce(in);
   } else {
-    // TODO(bplotka) Pipeline is closed. Produce empty ResourceUsage.
-    LOG(INFO) << "[Serenity] ValveFilter: Pipeline is closed";
+    LOG(INFO) << ValveFilter::name << "Pipeline is closed";
+    // Currently we are stopping pipeline in case of blocker.
   }
 
   return Nothing();

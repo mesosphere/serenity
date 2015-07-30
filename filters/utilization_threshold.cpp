@@ -26,7 +26,7 @@ Try<Nothing> UtilizationThresholdFilter::consume(const ResourceUsage& product) {
     string executor_id = "<unknown>";
 
     if (!inExec.has_executor_info()) {
-      LOG(WARNING) << "Executor " << executor_id
+      LOG(WARNING) << name << "Executor " << executor_id
       << " does not include executor_info. "
       << UTILIZATION_THRESHOLD_FILTER_WARNING;
       // We can work without that - using allocated.
@@ -36,7 +36,7 @@ Try<Nothing> UtilizationThresholdFilter::consume(const ResourceUsage& product) {
     }
 
     if (!inExec.has_statistics()) {
-      LOG(WARNING) << "Executor " << executor_id
+      LOG(WARNING) << name << "Executor " << executor_id
       << " does not include statistics. "
       << UTILIZATION_THRESHOLD_FILTER_WARNING;
       // We can work without that - using allocated resources.
@@ -44,7 +44,7 @@ Try<Nothing> UtilizationThresholdFilter::consume(const ResourceUsage& product) {
     }
 
     if (inExec.allocated().size() == 0) {
-      LOG(ERROR) << "Executor "  << executor_id
+      LOG(ERROR) << name << "Executor "  << executor_id
       << " does not include allocated resources. "
       << UTILIZATION_THRESHOLD_FILTER_ERROR;
       // Filter out these executors(!)
@@ -90,14 +90,15 @@ Try<Nothing> UtilizationThresholdFilter::consume(const ResourceUsage& product) {
   if (totalSlaveCpus.isSome() && this->previousSamples->size() > 0) {
     // Send only when node utilization is not too high.
     if ((totalCpuUsage / totalSlaveCpus.get()) < this->utilizationThreshold)
+      // Continue pipeline.
       produce(product);
     else
-      LOG(ERROR) << "UtilizationFilter: Stopping the oversubscription - load "
-                    "is too high."<< "CpuUsage: " << totalCpuUsage <<
+      LOG(ERROR) << name << "Stopping the oversubscription - load "
+                    "is too high." << "CpuUsage: " << totalCpuUsage <<
                     ", Slave capacity:" << totalSlaveCpus.get();
   } else {
     LOG(WARNING)
-      << "UtilizationFilter: Does not have sufficient data to process;";
+      << name << "Does not have sufficient data to process;";
   }
 
   return Nothing();

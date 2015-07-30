@@ -9,13 +9,13 @@ Try<Nothing> PrExecutorPassFilter::consume(const ResourceUsage& in) {
   ResourceUsage product;
   for (ResourceUsage_Executor inExec : in.executors()) {
     if (!inExec.has_executor_info()) {
-      LOG(ERROR) << "Executor <unknown>"
+      LOG(ERROR) << name << "Executor <unknown>"
                  << " does not include executor_info";
       // Filter out these executors.
       continue;
     }
     if (inExec.allocated().size() == 0) {
-      LOG(ERROR) << "Executor "
+      LOG(ERROR) << name << "Executor "
       << inExec.executor_info().executor_id().value()
       << " does not include allocated resources.";
       // Filter out these executors.
@@ -34,8 +34,11 @@ Try<Nothing> PrExecutorPassFilter::consume(const ResourceUsage& in) {
     outExec->CopyFrom(inExec);
   }
 
-  if (product.executors().size() != 0)
+  if (0 != product.executors_size()) {
+    // Continue pipeline.
     produce(product);
+  }
+
 
   return Nothing();
 }

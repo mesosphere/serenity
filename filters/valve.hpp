@@ -57,6 +57,8 @@ class ValveFilter :
 
   Try<Nothing> consume(const ResourceUsage& in);
 
+  static constexpr const char* name = "[Serenity] ValveFilter: ";
+
  private:
   lambda::function<process::Future<bool>()> isOpened;
   process::Owned<ValveFilterEndpointProcess> process;

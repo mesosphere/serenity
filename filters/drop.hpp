@@ -3,6 +3,7 @@
 
 #include <list>
 #include <memory>
+#include <string>
 #include <type_traits>
 
 #include "glog/logging.h"
@@ -159,6 +160,8 @@ class DropFilter :
   ~DropFilter() {}
 
   Try<Nothing> consume(const ResourceUsage& in) override;
+
+  static constexpr const char* name = "[Serenity] DropFilter: ";
 
  protected:
   const lambda::function<usage::GetterFunction>& valueGetFunction;

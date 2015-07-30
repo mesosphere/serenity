@@ -38,7 +38,7 @@ Try<Nothing> IgnoreNewExecutorsFilter::consume(const ResourceUsage &usage) {
         newExec->CopyFrom(executor);
       }
     } else {
-      LOG(ERROR) << "IgnoreNewTasksFilter: "
+      LOG(ERROR) << name << "IgnoreNewTasksFilter: "
                  << "Insert inside executor database failed.";
     }
   }
@@ -47,6 +47,7 @@ Try<Nothing> IgnoreNewExecutorsFilter::consume(const ResourceUsage &usage) {
   this->executorTimestamps = std::move(newExecutorTimestamps);
 
   if (0 != product.executors_size()) {
+    // Continue pipeline.
     produce(product);
   }
 
