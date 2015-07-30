@@ -31,15 +31,10 @@ static std::shared_ptr<QoSControllerPipeline>
   configureControllerPipelineFromParams(
     const Parameters& parameters) {
   // TODO(bplotka): Fetch configuration parameters to customize IpcDrop
-  // Obtain the type of pipeline from parameters.
-  // Default:
+  // TODO(bplotka): Obtain the type of pipeline from parameters.
   std::shared_ptr<QoSControllerPipeline> pipeline(
       new CpuQoSPipeline<RollingChangePointDetector>(
           ChangePointDetectionState::createForRollingDetector(10, 10, 0.5)));
-  foreach(const Parameter& parameter, parameters.parameter())
-      if (parameter.key() == "pipeline") {
-        // TODO(bplotka): place different types here if needed.
-      }
   return pipeline;
 }
 

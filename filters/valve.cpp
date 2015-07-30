@@ -211,10 +211,11 @@ ValveFilter::~ValveFilter() {
 Try<Nothing> ValveFilter::consume(const ResourceUsage& in) {
   if (this->isOpened().get()) {
     this->produce(in);
+  } else {
+    //TODO(bplotka) Pipeline is closed. Produce empty ResourceUsage.
+    LOG(INFO) << "[Serenity] ValveFilter: Pipeline is closed";
   }
 
-  // TODO(bplotka): Should we continue the pipeline without any Executor in
-  // usage?
   return Nothing();
 }
 

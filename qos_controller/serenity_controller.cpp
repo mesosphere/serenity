@@ -44,19 +44,19 @@ class SerenityControllerProcess :
     QoSCorrections corrections = this->__corrections(_resourceUsage);
 
     // TODO(bplotka): We don't want to spam slave with empty corrections.
-    // We could make 20 iterations and try to find correction like this:
-    //    this->iterations = 0;
-    //    while(corrections.empty() && this->iterations < 20) {
-    //      std::cout << "xxxx "  << std::endl;
-    //
-    //      os::sleep(Duration::create(60).get());
-    //
-    //      ResourceUsage usage = this->usage().get();
-    //      corrections = this->__corrections(usage);
-    //      this->iterations++;
-    //    }
-    // I would like to hear your opinions about that first.
+    // We could set qos_correction_interval_min to longer duration than
+    // 0ns, however that would introduce some latency for our QoS controller.
+    // We make 20 iterations and try to find correction:
+    this->iterations = 0;
+    // TODO(bplotka): Filter out the same corrections as in previous message
+    while(corrections.empty() && this->iterations < 20) {
+      // TODO(bplotka): For tests we need ability to mock sleep.
+      os::sleep(Duration::create(60).get());
 
+      ResourceUsage usage = this->usage().get();
+      corrections = this->__corrections(usage);
+      this->iterations++;
+    }
     return corrections;
   }
 
@@ -65,14 +65,12 @@ class SerenityControllerProcess :
     Try<QoSCorrections> ret = this->pipeline->run(_resourceUsage.get());
 
     QoSCorrections corrections;
-
     if (ret.isError()) {
       LOG(ERROR) << ret.error();
       // Return empty corrections.
     } else {
       corrections = ret.get();
     }
-
     return corrections;
   }
 

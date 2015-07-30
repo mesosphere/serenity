@@ -12,7 +12,7 @@ namespace serenity {
 
 /**
  * Base class for pipeline. It becomes source and sink in the
- * same time to integrate with filters and modules.
+ * same time to integrate with filters within the module.
  * In order to introduce a new pipeline using this base class, filters need
  * to be connected to this instance at the beginning and the end of pipeline.
  *
@@ -39,7 +39,7 @@ class Pipeline : public Producer<Product>, public Consumer<Consumable> {
     if (this->result.isNone()) {
       // End of pipeline did not consume anything.
       return Error(
-          "Filters are not properly feeded - haven't got any "
+          "[Serenity] Pipeline is blocked - haven't got any "
               "consumable from pipeline.");
     }
 

@@ -25,15 +25,10 @@ using mesos::slave::ResourceEstimator;
 static ResourceEstimator* createSerenityEstimator(
     const Parameters& parameters) {
   LOG(INFO) << "Loading Serenity Estimator module";
-  // Obtain the type of pipeline from parameters. Default one is
-  // CpuEstimatorPipeline.
-  std::shared_ptr<ResourceEstimatorPipeline> pipeline(
-      new CpuEstimatorPipeline());
-  foreach(const Parameter& parameter, parameters.parameter())
-    if (parameter.key() == "pipeline") {
-      // TODO(bplotka) place different types here if needed.
-    }
-  Try<ResourceEstimator*> result = SerenityEstimator::create(pipeline);
+  // TODO(bplotka) Obtain the type of pipeline from parameters.
+
+  Try<ResourceEstimator*> result = SerenityEstimator::create(
+    std::shared_ptr<ResourceEstimatorPipeline>(new CpuEstimatorPipeline()));
   if (result.isError()) {
     return NULL;
   }
