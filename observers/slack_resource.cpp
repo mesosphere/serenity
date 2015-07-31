@@ -26,6 +26,9 @@ Try<Nothing> SlackResourceObserver::consume(const ResourceUsage& usage) {
         Result<double_t> slackResource = CalculateCpuSlack(
             (*previousSample), executor);
         if (slackResource.isSome()) {
+            LOG(INFO) << this->name << "Estimated revocable resources for "
+                      << executor.executor_info().name() << ": "
+                      << slackResource.get();
             cpuSlack += slackResource.get();
         } else if (slackResource.isError()) {
           LOG(ERROR) << slackResource.error();

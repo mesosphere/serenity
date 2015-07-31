@@ -4,8 +4,9 @@
 #include "serenity/serenity.hpp"
 
 #include "stout/error.hpp"
-#include "stout/try.hpp"
 #include "stout/nothing.hpp"
+#include "stout/result.hpp"
+#include "stout/try.hpp"
 
 namespace mesos {
 namespace serenity {
@@ -24,7 +25,7 @@ class Pipeline : public Producer<Product>, public Consumer<Consumable> {
  public:
   virtual ~Pipeline() {}
 
-  virtual Try<Consumable> run(const Product& _product) {
+  virtual Result<Consumable> run(const Product& _product) {
     // Reset result.
     this->result = None();
 
@@ -34,16 +35,7 @@ class Pipeline : public Producer<Product>, public Consumer<Consumable> {
       return Error(ret.error());
     }
 
-    // Proper pipeline should fill result at the end.
-    // (run this->consume(..))
-    if (this->result.isNone()) {
-      // End of pipeline did not consume anything.
-      return Error(
-          "[Serenity] Pipeline is blocked - haven't got any "
-              "consumable from pipeline.");
-    }
-
-    return this->result.get();
+    return this->result;
   }
 
   virtual Try<Nothing> consume(const Consumable& in) {

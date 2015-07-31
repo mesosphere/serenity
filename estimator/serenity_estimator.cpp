@@ -35,10 +35,12 @@ class SerenityEstimatorProcess :
 
   Future<Resources> _oversubscribable(
       const Future<ResourceUsage>& _resourceUsage) {
-    Try<Resources> ret = this->pipeline->run(_resourceUsage.get());
+    Result<Resources> ret = this->pipeline->run(_resourceUsage.get());
 
     if (ret.isError()) {
       LOG(ERROR) << ret.error();
+      return Resources();
+    } else if (ret.isNone()) {
       return Resources();
     }
 

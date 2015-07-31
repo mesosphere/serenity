@@ -31,7 +31,7 @@ class TestCorrectionPipeline : public QoSControllerPipeline {
  public:
   TestCorrectionPipeline() {}
 
-  virtual Try<QoSCorrections> run(const ResourceUsage& _product) {
+  virtual Result<QoSCorrections> run(const ResourceUsage& _product) {
     QoSCorrections corrections;
 
     ExecutorInfo executorInfo;

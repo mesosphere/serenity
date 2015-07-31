@@ -36,7 +36,7 @@ class SlackResourceObserver : public Consumer<ResourceUsage>,
 
   Try<Nothing> consume(const ResourceUsage& usage) override;
 
-  static constexpr const char* name = "[Serenity] SlackObservers: ";
+  static constexpr const char* name = "[Serenity] SlackObserver: ";
 
  protected:
   Result<double_t> CalculateCpuSlack(const ResourceUsage_Executor& prev,
