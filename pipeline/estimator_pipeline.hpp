@@ -65,6 +65,7 @@ class CpuEstimatorPipeline : public ResourceEstimatorPipeline {
       valveFilter(ValveFilter(
           &utilizationFilter, ValveType::RESOURCE_ESTIMATOR_VALVE)) {
     // Setup beginning producer.
+    this->ignoreNewExecutorsFilter.setThreshold(60);  // One minute.
     this->addConsumer(&valveFilter);
   }
 
