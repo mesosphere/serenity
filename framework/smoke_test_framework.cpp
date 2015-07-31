@@ -140,8 +140,12 @@ public:
       SchedulerDriver* driver,
       const vector<Offer>& offers)
   {
+
     foreach (const Offer& offer, offers) {
-      if (jobScheduled >= jobs.size()) continue;
+      if (jobScheduled >= jobs.size()) {
+        driver->declineOffer(offer);
+        continue;
+      }
       LOG(INFO) << "Received offer " << offer.id() << " from slave "
                 << offer.slave_id() << " (" << offer.hostname() << ") "
                 << "with " << offer.resources();
@@ -299,6 +303,11 @@ public:
         "Whether to enable checkpointing (true by default).",
         true);
 
+    add(&role,
+        "role",
+        "Framework role.",
+        "*");
+
     add(&principal,
         "principal",
         "To enable authentication, both --principal and --secret\n"
@@ -352,6 +361,7 @@ public:
   Option<size_t> num_tasks;
   Option<string> tasks_json_path;
   Option<string> target_hostname;
+  Option<string> role;
 };
 
 
@@ -494,6 +504,7 @@ int main(int argc, char** argv)
   framework.set_user(""); // Have Mesos fill in the current user.
   framework.set_name("Serenity Smoke Test Framework");
   framework.set_checkpoint(flags.checkpoint);
+  framework.set_role(flags.role);
 
   list<JobSpec> jobs;
   if (flags.tasks_json_path.isSome())
