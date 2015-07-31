@@ -105,7 +105,8 @@ public:
       jobs(_jobs),
       tasksFinished(0u),
       tasksTerminated(0u),
-      tasksTodo(0u) {
+      tasksTodo(0u),
+      jobScheduled(0u) {
     foreach (const JobSpec& job, jobs) {
       tasksTodo += job.totalTasks;
     }
@@ -140,6 +141,7 @@ public:
       const vector<Offer>& offers)
   {
     foreach (const Offer& offer, offers) {
+      if (jobScheduled >= jobs.size()) continue;
       LOG(INFO) << "Received offer " << offer.id() << " from slave "
                 << offer.slave_id() << " (" << offer.hostname() << ") "
                 << "with " << offer.resources();
@@ -173,6 +175,7 @@ public:
           LOG(INFO) << "Launching " << task.task_id();
           if (job->tasksLaunched  >= job->totalTasks) {
             job->scheduled = true;
+            jobScheduled++;
             break;
           }
         }
@@ -274,7 +277,7 @@ private:
   size_t tasksTerminated;
   hashset<TaskID> activeTasks;
   size_t tasksTodo;
-
+  size_t jobScheduled;
 };
 
 
