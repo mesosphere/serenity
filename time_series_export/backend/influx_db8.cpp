@@ -4,6 +4,8 @@
 #include "curl/curl.h"
 #include "curl_easy.h"  // NOLINT(build/include)
 
+#include "glog/logging.h"
+
 #include "influx_db8.hpp"
 
 #include "serenity/metrics_helper.hpp"
@@ -24,7 +26,15 @@ void InfluxDb8Backend::PutMetric(const TimeSeriesRecord&_tsRecord) {
   easy.add(curl_pair<CURLoption, int64_t>(CURLOPT_POSTFIELDSIZE,
                                           content.size()));
   easy.add(curl_pair<CURLoption, std::string>(CURLOPT_POSTFIELDS, content));
-  easy.perform();
+
+  try {
+    easy.perform();
+  }
+  catch (curl_easy_exception error) {
+    LOG(ERROR) << "InfluxDB8: Error while executing GET on " << url << "\n"
+    << error.what();
+    return;
+  }
 
   return;
 }

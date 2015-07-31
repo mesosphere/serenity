@@ -17,11 +17,13 @@ Try<Nothing> ResourceUsageTimeSeriesExporter::consume(
   std::vector<TimeSeriesRecord> product;
   Try<std::string> hostname = AgentInfo::GetHostName();
   if (hostname.isError()) {
-    return Error(hostname.error());
+    LOG(ERROR) << "ResourceUsageTimeSeriesExporter: cannot get hostname";
+    return Nothing();  // Do not ruin serenity because small thing
   }
   Try<std::string> agentId = AgentInfo::GetAgentId();
   if (agentId.isError()) {
-    return Error(agentId.error());
+    LOG(ERROR) << "ResourceUsageTimeSeriesExporter: cannot get agent id";
+    return Nothing();  // Do not ruin serenity because small thing
   }
 
   for (const auto& executor : _res.executors()) {
