@@ -1,0 +1,11 @@
+{
+  "tasks": [
+    {
+      "command": "bash",
+      "taskResources": "mem:64",
+      "revocableResources": "",
+      "targetHostname": "kp10.intelsdi.com",
+      "totalTasks": 1
+    }
+  ]
+}
