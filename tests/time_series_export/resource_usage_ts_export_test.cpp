@@ -1,18 +1,19 @@
 #include "tests/common/sources/json_source.hpp"
 #include "tests/common/sinks/mock_sink.hpp"
 
-#include "visualisation/resource_usage_visualisation.hpp"
+#include "time_series_export/resource_usage_ts_export.hpp"
+#include "time_series_export/backend/influx_db8.hpp"
 
 namespace mesos {
 namespace serenity {
 namespace tests {
 
-TEST(ResourceUsageVisualisation, BasicTest) {
-  ResourceUsageVisualisation resourceVisualisation;
+TEST(ResourceUsageTimeSeriesExport, BasicTest) {
+  ResourceUsageTimeSeriesExporter ruExporter;
   JsonSource jsonSource;
   MockSink<ResourceUsage> mockSink;
 
-  jsonSource.addConsumer(&resourceVisualisation);
+  jsonSource.addConsumer(&ruExporter);
   jsonSource.addConsumer(&mockSink);
 
   jsonSource.RunTests(

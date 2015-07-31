@@ -1,13 +1,46 @@
 #ifndef SERENITY_METRICS_HELPER_HPP
 #define SERENITY_METRICS_HELPER_HPP
 
-#include <stout/error.hpp>
-#include <stout/try.hpp>
+#include <iostream>
+#include <iomanip>
+#include <string>
+#include <ratio> // NOLINT [build/c++11]
+
+#include "stout/error.hpp"
+#include "stout/try.hpp"
 
 #include "mesos/mesos.hpp"
 
 namespace mesos {
 namespace serenity {
+
+/**
+ * Transforms double timestamp from eg. Resource Usage to string,
+ * with certain precision
+ * @param _timestamp double timestamp
+ * @param _precision std::ratio of precision. Default std::micro
+ */
+template <typename Ratio = std::milli>
+inline std::string DblTimestampToString(
+    const double_t _timestamp,
+    const Ratio _precision = std::micro()) {
+  // count number of places after decimal
+  int precision = (std::to_string(_precision.den)).length() - 1;
+
+  std::stringstream timeStream;
+  timeStream << std::fixed << std::setprecision(precision)
+  << _timestamp;
+
+  std::string timeStr(timeStream.str());
+  timeStr.erase(std::remove(
+                    timeStr.begin(),
+                    timeStr.end(),
+                    '.'),
+                timeStr.end());
+
+  return timeStr;
+}
+
 
 inline Try<double_t> CountCpuUsage(const ResourceUsage_Executor& previous,
                             const ResourceUsage_Executor& current) {

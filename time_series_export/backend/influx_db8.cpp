@@ -4,6 +4,8 @@
 #include "curl/curl.h"
 #include "curl_easy.h"  // NOLINT(build/include)
 
+#include "serenity/metrics_helper.hpp"
+
 #include "influx_db8.hpp"
 
 namespace mesos {
@@ -11,9 +13,9 @@ namespace serenity {
 
 using curl::curl_easy;
 
-void InfluxDb8Backend::PutMetric(const VisualisationRecord& _visRecord) {
+void InfluxDb8Backend::PutMetric(const TimeSeriesRecord&_tsRecord) {
   std::string url = this->GetDbUrl();
-  std::string content = this->SerializeRecord(_visRecord);
+  std::string content = this->SerializeRecord(_tsRecord);
 
   curl_easy easy;
 
@@ -32,7 +34,7 @@ std::string InfluxDb8Backend::GetDbUrl() const {
   constexpr uint32_t kBufferLen = 256;
   char buffer[kBufferLen];
   snprintf(buffer, kBufferLen, "http://%s:%d/db/%s/series?u=%s&p=%s",
-                 this->influxDbAddess.c_str(),
+                 this->influxDbAddress.c_str(),
                  this->influxDbPort,
                  this->influxDbName.c_str(),
                  this->influxDbUser.c_str(),
@@ -42,24 +44,26 @@ std::string InfluxDb8Backend::GetDbUrl() const {
 }
 
 
-
 std::string InfluxDb8Backend::SerializeRecord(
-    const VisualisationRecord& _visRecord) const {
+    const TimeSeriesRecord&_tsRecord) const {
+  // TODO(skonefal): rewrite this in rapidjson.
   constexpr char SEP = ',';
   std::string result;
-  std::string series = "\"name\": \"" + _visRecord.getSeriesName() + "\"";
+  std::string series = "\"name\": \"" + _tsRecord.getSeriesName() + "\"";
   std::stringstream columnsStream; columnsStream << "\"columns\": [";
   std::stringstream pointsStream;  pointsStream  << "\"points\": [ [";
 
-  // Add time.
-  std::string timestamp = DblTimestampToString(
-      _visRecord.getTimestamp().get(),
-      this->timePrecision);
+  // Add time if exists.
+  if (_tsRecord.getTimestamp().isSome()) {
+    std::string timestamp = DblTimestampToString(
+        _tsRecord.getTimestamp().get(),
+        this->timePrecision);
 
-  columnsStream << "\"time\"" << SEP;
-  pointsStream << timestamp << SEP;
+    columnsStream << "\"time\"" << SEP;
+    pointsStream << timestamp << SEP;
+  }
 
-  const auto& tags = _visRecord.getTags();
+  const auto& tags = _tsRecord.getTags();
   for (const auto& tag : tags) {
     std::string key = tag.first;
     auto value = tag.second;
@@ -67,7 +71,7 @@ std::string InfluxDb8Backend::SerializeRecord(
     // Adding key to json
     columnsStream << "\"" << key << "\"" << SEP;
 
-    if (VisualisationRecord::isVariantString(value)) {
+    if (TimeSeriesRecord::isVariantString(value)) {
       pointsStream << "\"" << value << "\"" << SEP;
     } else {
       pointsStream << value << SEP;

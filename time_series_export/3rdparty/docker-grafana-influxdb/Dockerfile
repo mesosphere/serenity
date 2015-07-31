@@ -46,16 +46,15 @@ ENV		ROOT_PW root
 ADD		./grafana-influxdb-wiring.sh /grafana-influxdb-wiring.sh
 
 # Configure nginx and supervisord
-ADD		./nginx/nginx.conf /etc/nginx/nginx.conf
 ADD		./supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # ----------- #
 #   Cleanup   #
 # ----------- #
 
-RUN		apt-get autoremove -y wget && \
-			apt-get -y clean && \
-			rm -rf /var/lib/apt/lists/*
+#RUN		apt-get autoremove -y wget && \
+#			apt-get -y clean && \
+#			rm -rf /var/lib/apt/lists/*
 
 # ---------------- #
 #   Expose Ports   #

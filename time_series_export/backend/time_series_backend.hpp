@@ -1,5 +1,5 @@
-#ifndef SERENITY_VISUALISATION_BACKEND_HPP
-#define SERENITY_VISUALISATION_BACKEND_HPP
+#ifndef SERENITY_TIME_SERIES_BACKEND_HPP
+#define SERENITY_TIME_SERIES_BACKEND_HPP
 
 #include <string>
 #include <unordered_map>
@@ -22,7 +22,9 @@ enum class Series : uint8_t {
   CPU_USAGE_SYS,
   CPU_USAGE_USR,
   CPU_ALLOC,
-  IPC,
+  CYCLES,
+  INSTRUCTIONS,
+  CACHE_MISSES
 };
 
 static std::string SeriesString(Series series) {
@@ -31,7 +33,9 @@ static std::string SeriesString(Series series) {
     case Series::CPU_USAGE_SYS:   return "CpuUsageSys";
     case Series::CPU_USAGE_USR:   return "CpuUsageUsr";
     case Series::CPU_ALLOC:       return "CpuAllocation";
-    case Series::IPC:             return "Ipc";
+    case Series::CYCLES:          return "Cycles";
+    case Series::INSTRUCTIONS:    return "Instructions";
+    case Series::CACHE_MISSES:    return "CacheMisses";
   }
 }
 
@@ -42,7 +46,8 @@ static std::string SeriesString(Series series) {
 enum class Tag : uint8_t {
   EXECUTOR_ID,
   FRAMEWORK_ID,
-  NODE,
+  HOSTNAME,
+  AGENT_ID,
   TAG,
   VALUE,
 };
@@ -51,26 +56,31 @@ static std::string TagString(Tag tag) {
   switch (tag) {
     case Tag::EXECUTOR_ID:  return "ExecutorId";
     case Tag::FRAMEWORK_ID: return "FrameworkId";
-    case Tag::NODE:         return "Node";
+    case Tag::HOSTNAME:     return "Node";
+    case Tag::AGENT_ID:     return "AgentId";
     case Tag::TAG:          return "Tag";
     case Tag::VALUE:        return "Value";
   }
 }
 
-using Variant = boost::variant<int32_t, double_t, std::string>;
+/**
+ * Variant type for storing multiple types of data that will be stored in
+ * time series backend.
+ * This alias must resemble VariantType enum.
+ */
+using Variant = boost::variant<uint64_t, int64_t, double_t, std::string>;
 
 /**
- * Record to be stored in visualisation backend
+ * Record to be stored in time series backend
  */
-class VisualisationRecord {
+class TimeSeriesRecord {
  public:
-  VisualisationRecord(const Series _series,
+  TimeSeriesRecord(const Series _series,
                       const Variant _variant = 0.0,
                       const Option<double_t> _timestamp = None()) :
       seriesName(SeriesString(_series)),
       timestamp(_timestamp),
-      tags(std::unordered_map<std::string,
-           boost::variant<int32_t, double_t, std::string>>()) {
+      tags(std::unordered_map<std::string, Variant>()) {
     setTag(Tag::VALUE, _variant);
   }
 
@@ -85,8 +95,7 @@ class VisualisationRecord {
   }
 
 
-  const std::unordered_map<std::string,
-      boost::variant<int32_t, double_t, std::string>>& getTags() const {
+  const std::unordered_map<std::string, Variant>& getTags() const {
     return this->tags;
   }
 
@@ -115,10 +124,12 @@ class VisualisationRecord {
 
  /**
   * Variant types inside tags map.
-  * Used for preparing json
+  * Used for preparing json.
+  * Must resemble Variant alias.
   */
   enum class VariantType : uint8_t{
-    INT32,
+    UINT64,
+    INT64,
     DOUBLE,
     STRING,
   };
@@ -142,14 +153,14 @@ class VisualisationRecord {
 
 
 /**
- * Visualisation backend interface.
+ * Time Series backend interface.
  */
-class VisualisationBackend {
+class TimeSeriesBackend {
  public:
-  virtual void PutMetric(const VisualisationRecord& _visualisationRecord) = 0;
+  virtual void PutMetric(const TimeSeriesRecord& _timeSeriesRecord) = 0;
 
 
-  virtual void PutMetric(const std::vector<VisualisationRecord>& _recordList){
+  virtual void PutMetric(const std::vector<TimeSeriesRecord>& _recordList){
     for (const auto& record : _recordList) {
       this->PutMetric(record);
     }
@@ -159,4 +170,4 @@ class VisualisationBackend {
 }  // namespace serenity
 }  // namespace mesos
 
-#endif  // SERENITY_VISUALISATION_BACKEND_HPP
+#endif  // SERENITY_TIME_SERIES_BACKEND_HPP

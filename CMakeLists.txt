@@ -27,6 +27,7 @@ ENDIF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 # untar libs.
 execute_process(
     COMMAND ${CMAKE_COMMAND} -E tar xzf curlcpp.tar.gz
+    COMMAND ${CMAKE_COMMAND} -E tar xzf rapidjson-v1.0.2.tar.gz
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib
 )
 
@@ -41,6 +42,10 @@ set(pbjson_SOURCE_DIR lib/pbjson)
 # curlcpp
 ADD_SUBDIRECTORY(lib/curlcpp)
 INCLUDE_DIRECTORIES(${CURLCPP_SOURCE_DIR}/include)
+
+# rapidjson
+ADD_SUBDIRECTORY(lib/rapidjson-1.0.2)
+INCLUDE_DIRECTORIES(lib/rapidjson-1.0.2/include)
 
 # Protobuf stuff.
 find_package(Protobuf REQUIRED)
@@ -90,9 +95,10 @@ set(SERENITY_SOURCES
     qos_controller/serenity_controller_module.cpp
     serenity/wid.cpp
     sources/dummy_source.cpp
-    visualisation/resource_usage_visualisation.cpp
-    visualisation/slack_visualisation.cpp
-    visualisation/backend/influx_db8.cpp
+    time_series_export/resource_usage_ts_export.cpp
+    time_series_export/slack_ts_export.cpp
+    time_series_export/backend/influx_db8.cpp
+    serenity/agent_utils.cpp
 )
 
 set(SERENITY_TEST_SOURCES
@@ -115,9 +121,12 @@ set(SERENITY_TEST_SOURCES
 
 if (INTEGRATION_TESTS)
     SET(INTEGRATION_TEST_SOURCES
-        # needs InfluxDB 8
-        tests/visualisation/resource_usage_visualisation_test.cpp
-        tests/visualisation/slack_visualisation_test.cpp
+        # needs InfluxDB 8.
+        tests/time_series_export/resource_usage_ts_export_test.cpp
+        tests/time_series_export/slack_ts_export_test.cpp
+
+        # needs Mesos Agent working on http://localhost:5051.
+        tests/serenity/agent_utils_tests.cpp
     )
 endif(INTEGRATION_TESTS)
 
