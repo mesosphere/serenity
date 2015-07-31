@@ -76,7 +76,6 @@ set(SERENITY_SOURCES
     qos_controller/serenity_controller.cpp
     qos_controller/serenity_controller_module.cpp
     serenity/wid.cpp
-    sources/dummy_source.cpp
 )
 
 set(SERENITY_TEST_SOURCES
@@ -92,6 +91,8 @@ set(SERENITY_TEST_SOURCES
     tests/filters/pr_executor_pass_test.cpp
     tests/filters/utilization_threshold_test.cpp
     tests/filters/valve_test.cpp
+    tests/pipeline/estimator_pipeline_test.cpp
+    tests/pipeline/qos_pipeline_test.cpp
     tests/observers/slack_resource_test.cpp
     tests/observers/qos_correction_test.cpp
     tests/sources/json_source_test.cpp
@@ -103,7 +104,7 @@ file(COPY ${TestFixtures} DESTINATION tests/)
 
 # Serenity library.
 add_library(serenity SHARED ${SERENITY_SOURCES})
-target_link_libraries(serenity messages mesos glog)
+target_link_libraries(serenity messages)
 
 # Tests.
 add_executable(serenity-tests ${SERENITY_TEST_SOURCES})
@@ -113,6 +114,7 @@ target_link_libraries(serenity-tests
     gtest
     gtest_main
     mesos
+    glog # Need to be specified after libmesos
     messages-test
     pbjson
     serenity

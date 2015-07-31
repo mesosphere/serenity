@@ -49,8 +49,9 @@ Try<QoSCorrections> SeverityBasedCpuDecider::decide(
     }
 
     if (contention.type() != Contention_Type_CPU) {
-      LOG(ERROR) << "Other contention types than CPU is not supported in "
-                    "this interpeter.";
+      LOG(ERROR) << QoSCorrectionObserver::name <<
+                    "Other contention types than CPU is "
+                    "not supported in this interpeter.";
       continue;
     }
 
@@ -73,9 +74,9 @@ Try<QoSCorrections> SeverityBasedCpuDecider::decide(
     } else {
       float_t severity = 0.1;
       if (!contention.has_severity()) {
-        LOG(INFO) << "QoS Controller got contention without severity being "
-                     "specified. Assuming that no severity field means lowest "
-                     "severity.";
+        LOG(INFO) << QoSCorrectionObserver::name <<
+                    "Got contention without severity being specified. "
+                    "Assuming that no severity field means lowest severity.";
         // In such case we kill most active Be task to ensure QoS and solve
         // this contention.
       } else {
@@ -100,8 +101,9 @@ Try<QoSCorrections> SeverityBasedCpuDecider::decide(
               if (aggressorsAllocation.cpus().isSome()) {
                 severity -= aggressorsAllocation.cpus().get();
 
-                LOG(INFO) << "Decided to kill Executor: " <<
-                possibleAggressor.executor_info().executor_id();
+                LOG(INFO) << QoSCorrectionObserver::name
+                          <<"Decided to kill ""Executor: "
+                          <<possibleAggressor.executor_info().executor_id();
 
                 aggressorsToKill.push_back(
                     createKill(possibleAggressor.executor_info()));
@@ -114,8 +116,9 @@ Try<QoSCorrections> SeverityBasedCpuDecider::decide(
       if (severity > 0) {
         // In such case even if we kill all BE executors contention is not
         // solved.
-        LOG(ERROR) << "Aggressors are not the cause of CPU contention"
-            " or lack of info about some aggressors.";
+        LOG(ERROR) << QoSCorrectionObserver::name <<
+                      "Aggressors are not the cause of CPU contention"
+                      " or lack of info about some aggressors.";
         break;
       }
 
@@ -182,7 +185,7 @@ Try<Nothing> QoSCorrectionObserver::__correctSlave() {
         this->contentionDecider->decide(this->currentContentions.get(),
                                         this->currentUsage.get());
     if (corrections.isError()) {
-      // TODO(bplotka) Error handling behaviours need to be defined.
+      // In case of Error produce empty corrections.
       produce(QoSCorrections());
     } else {
       produce(corrections.get());

@@ -46,6 +46,8 @@ class ValveFilterEndpointProcess;
 class ValveFilter :
     public Consumer<ResourceUsage>, public Producer<ResourceUsage> {
  public:
+  explicit ValveFilter(ValveType valveType, bool _opened = true);
+
   ValveFilter(
       Consumer<ResourceUsage>* _consumer,
       ValveType valveType,
@@ -54,6 +56,8 @@ class ValveFilter :
   ~ValveFilter();
 
   Try<Nothing> consume(const ResourceUsage& in);
+
+  static constexpr const char* name = "[Serenity] ValveFilter: ";
 
  private:
   lambda::function<process::Future<bool>()> isOpened;

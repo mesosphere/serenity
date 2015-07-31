@@ -38,6 +38,8 @@ class UtilizationThresholdFilter :
 
   Try<Nothing> consume(const ResourceUsage& in);
 
+  static constexpr const char* name = "[Serenity] UtilizationFilter: ";
+
  protected:
   double_t utilizationThreshold;
   std::unique_ptr<ExecutorSet> previousSamples;

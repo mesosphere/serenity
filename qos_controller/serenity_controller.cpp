@@ -1,10 +1,18 @@
-#include <process/defer.hpp>
-#include <process/dispatch.hpp>
-#include <process/process.hpp>
-
-#include <stout/error.hpp>
-
 #include <list>
+#include <memory>
+
+#include "glog/logging.h"
+
+#include "messages/serenity.hpp"
+
+#include "pipeline/qos_pipeline.hpp"
+
+#include "process/defer.hpp"
+#include "process/delay.hpp"
+#include "process/dispatch.hpp"
+#include "process/process.hpp"
+
+#include "stout/error.hpp"
 
 #include "qos_controller/serenity_controller.hpp"
 
@@ -22,25 +30,55 @@ class SerenityControllerProcess :
     public Process<SerenityControllerProcess> {
  public:
   SerenityControllerProcess(
-      const lambda::function<Future<ResourceUsage>()>& _usage)
-      : usage(_usage) {}
+      const lambda::function<Future<ResourceUsage>()>& _usage,
+      std::shared_ptr<QoSControllerPipeline> _pipeline)
+    : usage(_usage), pipeline(_pipeline) {}
 
-  Future<list<QoSCorrection>> corrections() {
+  Future<QoSCorrections> corrections() {
     return this->usage()
       .then(defer(self(), &Self::_corrections, lambda::_1));
   }
 
-  Future<list<QoSCorrection>> _corrections(
+  Future<QoSCorrections> _corrections(
       const Future<ResourceUsage>& _resourceUsage) {
-    // TODO(bplotka) Set up the main qos correction pipeline here.
-    std::cout << "Serenity QoS Controller pipeline run." << "\n";
+    QoSCorrections corrections = this->__corrections(_resourceUsage);
 
-    // For now return unsatisfied Future.
-    return Future<list<QoSCorrection>>();
+    // TODO(bplotka): We don't want to spam slave with empty corrections.
+    // We could set qos_correction_interval_min to longer duration than
+    // 0ns, however that would introduce some latency for our QoS controller.
+    // We make 20 iterations and try to find correction:
+    this->iterations = 0;
+    // TODO(bplotka): Filter out the same corrections as in previous message
+    while (corrections.empty() && this->iterations < 20) {
+      // TODO(bplotka): For tests we need ability to mock sleep.
+      os::sleep(Duration::create(60).get());
+
+      ResourceUsage usage = this->usage().get();
+      corrections = this->__corrections(usage);
+      this->iterations++;
+    }
+    return corrections;
+  }
+
+  QoSCorrections __corrections(
+      const Future<ResourceUsage>& _resourceUsage) {
+    Try<QoSCorrections> ret = this->pipeline->run(_resourceUsage.get());
+
+    QoSCorrections corrections;
+    if (ret.isError()) {
+      LOG(ERROR) << ret.error();
+      // Return empty corrections.
+    } else {
+      corrections = ret.get();
+    }
+    return corrections;
   }
 
  private:
   const lambda::function<Future<ResourceUsage>()> usage;
+  std::shared_ptr<QoSControllerPipeline> pipeline;
+  //! Safeguard against infinite loop.
+  uint64_t iterations = 0;
 };
 
 
@@ -58,7 +96,7 @@ Try<Nothing> SerenityController::initialize(
     return Error("Serenity QoS Controller has already been initialized");
   }
 
-  process.reset(new SerenityControllerProcess(usage));
+  process.reset(new SerenityControllerProcess(usage, this->pipeline));
   spawn(process.get());
 
   return Nothing();

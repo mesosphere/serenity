@@ -51,8 +51,7 @@ class JsonUsage {
 
 /**
  * Fake usage function (same method as in mesos::slave::Slave).
- * This is used only to test integration with mesos.
- * For internal or filter tests use JsonSource.
+ * For internal unit tests use JsonSource.
  */
 class MockSlaveUsage {
  public:
@@ -61,16 +60,20 @@ class MockSlaveUsage {
     if (usages.isError()) {
       LOG(ERROR) << "Json Usage failed: " << usages.error() << std::endl;
     }
-    // Take first fixture only.
-    results = usages.get().resource_usage(0);
+
+    results = usages.get();
   }
 
   process::Future<ResourceUsage> usage() {
-    return results;
+    if (iteration >= results.resource_usage_size())
+      return ResourceUsage();
+    std::cout<< iteration << std::endl;
+    return results.resource_usage(iteration++);
   }
 
  private:
-  ResourceUsage results;
+  mesos::FixtureResourceUsage results;
+  int iteration = 0;
 };
 
 }  // namespace tests

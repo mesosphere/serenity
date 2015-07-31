@@ -67,15 +67,15 @@ Try<Nothing> DropFilter<T>::consume(const ResourceUsage& in) {
 
   for (ResourceUsage_Executor inExec : in.executors()) {
     if (!inExec.has_executor_info()) {
-      LOG(ERROR) << "Executor <unknown>"
-      << " does not include executor_info";
+      LOG(ERROR) << name << "Executor <unknown>"
+                 << " does not include executor_info";
       // Filter out these executors.
       continue;
     }
     if (!inExec.has_statistics()) {
-      LOG(ERROR) << "Executor "
-      << inExec.executor_info().executor_id().value()
-      << " does not include statistics.";
+      LOG(ERROR) << name << "Executor "
+                 << inExec.executor_info().executor_id().value()
+                 << " does not include statistics.";
       // Filter out these executors.
       continue;
     }
@@ -122,6 +122,7 @@ Try<Nothing> DropFilter<T>::consume(const ResourceUsage& in) {
   this->previousSamples->clear();
   this->previousSamples = std::move(newSamples);
 
+  // Continue pipeline.
   produce(product);
 
   return Nothing();

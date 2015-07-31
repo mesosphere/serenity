@@ -1,6 +1,8 @@
 #ifndef SERENITY_PR_EXECUTOR_PASS_FILTER_HPP
 #define SERENITY_PR_EXECUTOR_PASS_FILTER_HPP
 
+#include <string>
+
 #include "serenity/serenity.hpp"
 
 #include "stout/lambda.hpp"
@@ -21,6 +23,8 @@ class PrExecutorPassFilter :
   ~PrExecutorPassFilter() {}
 
   Try<Nothing> consume(const ResourceUsage& in);
+
+  static constexpr const char* name = "[Serenity] PrExecutorPasFilter: ";
 };
 
 }  // namespace serenity
