@@ -140,10 +140,11 @@ public:
       SchedulerDriver* driver,
       const vector<Offer>& offers)
   {
-
+    Filters filters;
+    filters.set_refuse_seconds(Duration::max().secs());
     foreach (const Offer& offer, offers) {
       if (jobScheduled >= jobs.size()) {
-        driver->declineOffer(offer);
+        driver->declineOffer(offer.id(), filters);
         continue;
       }
       LOG(INFO) << "Received offer " << offer.id() << " from slave "
@@ -361,7 +362,7 @@ public:
   Option<size_t> num_tasks;
   Option<string> tasks_json_path;
   Option<string> target_hostname;
-  Option<string> role;
+  string role;
 };
 
 
