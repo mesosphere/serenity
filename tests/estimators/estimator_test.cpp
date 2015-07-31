@@ -22,10 +22,24 @@ namespace mesos {
 namespace serenity {
 namespace tests {
 
-// NOTE: For now checking only the interface.
-TEST(SerenityEstimatorTest, EmptySlackEstimation) {
+class TestEstimationPipeline : public ResourceEstimatorPipeline {
+ public:
+  TestEstimationPipeline() {}
+
+  virtual Try<Resources> run(const ResourceUsage& _product) {
+    return Resources::parse("cpus(*):16");
+  }
+};
+
+
+/**
+ * This tests checks the interface.
+ */
+TEST(SerenityEstimatorTest, PipelineIntegration) {
   Try<ResourceEstimator*> resourceEstimator =
-    serenity::SerenityEstimator::create(None());
+    serenity::SerenityEstimator::create(
+      std::shared_ptr<ResourceEstimatorPipeline>(
+          new TestEstimationPipeline()));
   ASSERT_SOME(resourceEstimator);
 
   ResourceEstimator* estimator = resourceEstimator.get();
@@ -42,7 +56,8 @@ TEST(SerenityEstimatorTest, EmptySlackEstimation) {
 
   for (Resources slack : result.get()) {
     for (Resource slack_resource : slack) {
-      EXPECT_TRUE(Resources::isEmpty(slack_resource));
+      EXPECT_EQ("cpus", slack_resource.name());
+      EXPECT_EQ(16, slack_resource.scalar().value());
     }
   }
 }

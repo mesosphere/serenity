@@ -1,4 +1,5 @@
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "glog/logging.h"
@@ -65,7 +66,8 @@ Result<double_t> SlackResourceObserver::CalculateCpuSlack(
   if (cpuUsage.isError()) {
     return Error(cpuUsage.error());
   } else if (!current.statistics().has_cpus_limit()) {
-    return Error("Cannot count slack. You lack cpus_limit in statistcs");
+    return Error(std::string(name) +
+                 "Cannot count slack. Lack of cpus_limit in statistcs");
   }
 
   double_t cpuLimit = current.statistics().cpus_limit();

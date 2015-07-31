@@ -6,12 +6,13 @@
 
 int main(int argc, char** argv) {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
-  // Initialize Google's logging library.
   FLAGS_logtostderr = true;
-  FLAGS_minloglevel = google::WARNING;
-  google::InitGoogleLogging(argv[0]);
+  FLAGS_minloglevel = google::ERROR;
 
   ::testing::InitGoogleTest(&argc, argv);
+  // Initialize Google's logging library.
+  // Comment that for debug log (INFO lvl)
+  google::InitGoogleLogging(argv[0]);
 
   return RUN_ALL_TESTS();
 }

@@ -28,9 +28,15 @@ class SlackResourceObserver : public Consumer<ResourceUsage>,
  public:
   SlackResourceObserver() : previousSamples(new ExecutorSet()) {}
 
+  explicit SlackResourceObserver(Consumer<Resources>* _consumer)
+    : Producer<Resources>(_consumer),
+      previousSamples(new ExecutorSet()) {}
+
   ~SlackResourceObserver() {}
 
   Try<Nothing> consume(const ResourceUsage& usage) override;
+
+  static constexpr const char* name = "[Serenity] SlackObservers: ";
 
  protected:
   Result<double_t> CalculateCpuSlack(const ResourceUsage_Executor& prev,

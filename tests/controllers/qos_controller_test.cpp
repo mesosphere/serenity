@@ -10,6 +10,8 @@
 #include "process/clock.hpp"
 #include "process/gtest.hpp"
 
+#include "pipeline/qos_pipeline.hpp"
+
 #include "qos_controller/serenity_controller.hpp"
 
 #include "stout/gtest.hpp"
@@ -25,10 +27,32 @@ namespace mesos {
 namespace serenity {
 namespace tests {
 
-// NOTE: For now checking only the interface.
-TEST(SerenityControllerTest, NoQoSCorrections) {
+class TestCorrectionPipeline : public QoSControllerPipeline {
+ public:
+  TestCorrectionPipeline() {}
+
+  virtual Try<QoSCorrections> run(const ResourceUsage& _product) {
+    QoSCorrections corrections;
+
+    ExecutorInfo executorInfo;
+    executorInfo.mutable_framework_id()->set_value("Framework1");
+    executorInfo.mutable_executor_id()->set_value("Executor1");
+
+    QoSCorrection correction =
+      createKillQoSCorrection(createKill(executorInfo));
+    corrections.push_back(correction);
+    return corrections;
+  }
+};
+
+/**
+ * This tests checks the interface.
+ */
+TEST(SerenityControllerTest, PipelineIntegration) {
   Try<QoSController*> qoSController =
-    serenity::SerenityController::create(None());
+    serenity::SerenityController::create(
+        std::shared_ptr<QoSControllerPipeline>(
+            new TestCorrectionPipeline()));
   ASSERT_SOME(qoSController);
 
   QoSController* controller = qoSController.get();
@@ -39,17 +63,14 @@ TEST(SerenityControllerTest, NoQoSCorrections) {
   Try<Nothing> initialize = controller->initialize(
       lambda::bind(&MockSlaveUsage::usage, &usage));
 
-  process::Clock::pause();
-
   process::Future<list<QoSCorrection>> result = controller->corrections();
 
-  // Wait for internal QosCorrection defers to be done.
-  process::Clock::settle();
+  AWAIT_READY(result);
 
-  // So far we did not expect QoSCorrections.
-  EXPECT_FALSE(result.isReady());
+  EXPECT_EQ(1u, result.get().size());
 
-  process::Clock::resume();
+  EXPECT_EQ("Executor1", result.get().front().kill().executor_id().value());
+  EXPECT_EQ("Framework1", result.get().front().kill().framework_id().value());
 }
 
 }  // namespace tests

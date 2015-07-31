@@ -1,5 +1,6 @@
 #include <ctime>
 #include <memory>
+#include <string>
 
 #include "mesos/mesos.hpp"
 
@@ -57,6 +58,8 @@ class IgnoreNewExecutorsFilter : public Consumer<ResourceUsage>,
   uint32_t threshold;  //!< #seconds when executor is considered too fresh.
 
   std::unique_ptr<ExecutorMap<time_t>> executorTimestamps;
+
+  static constexpr const char* name = "[Serenity] IgnoreNewExecutorsFilter: ";
 };
 
 }  // namespace serenity

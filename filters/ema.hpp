@@ -5,6 +5,7 @@
 
 #include <cmath>
 #include <memory>
+#include <string>
 
 #include "messages/serenity.hpp"
 
@@ -117,6 +118,8 @@ class EMAFilter :
   ~EMAFilter() {}
 
   Try<Nothing> consume(const ResourceUsage& in);
+
+  static constexpr const char* name = "[Serenity] EmaFilter: ";
 
  protected:
   double_t alpha;
