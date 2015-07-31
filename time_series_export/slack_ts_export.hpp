@@ -15,8 +15,8 @@ namespace serenity {
 class SlackTimeSeriesExporter : public Consumer<Resources> {
  public:
   SlackTimeSeriesExporter(
-      TimeSeriesBackend* _timeSeriesBackend = new InfluxDb8Backend(),
-      Variant _tag = "") :
+      Variant _tag = "",
+      TimeSeriesBackend* _timeSeriesBackend = new InfluxDb8Backend()) :
   timeSeriesBackend(_timeSeriesBackend),
   customTag(_tag) {}
 

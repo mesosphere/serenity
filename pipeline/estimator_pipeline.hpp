@@ -15,6 +15,8 @@
 
 #include "serenity/serenity.hpp"
 
+#include "time_series_export/slack_ts_export.hpp"
+
 namespace mesos {
 namespace serenity {
 
@@ -43,16 +45,19 @@ using ResourceEstimatorPipeline = Pipeline<ResourceUsage, Resources>;
  *      |ResourceUsage|
  *            |
  *    {{ Slack Observer }} // Last item.
- *            |
- *       |Resources|
- *            |
- *     {{ PIPELINE SINK }}
+ *            |         \
+ *       |Resources|   [Resources]
+ *            |                |
+ *     {{ PIPELINE SINK }}  {{ Slack Time Series Export }}
  *
  * For detailed schema please see: docs/pipeline.md
  */
 class CpuEstimatorPipeline : public ResourceEstimatorPipeline {
  public:
   CpuEstimatorPipeline() :
+      // Time series exporters.
+      slackTimeSeriesExporter(),
+
       // Last item in pipeline.
       slackObserver(this),
       // 4th item in pipeline.
@@ -66,6 +71,8 @@ class CpuEstimatorPipeline : public ResourceEstimatorPipeline {
           &utilizationFilter, ValveType::RESOURCE_ESTIMATOR_VALVE)) {
     // Setup beginning producer.
     this->addConsumer(&valveFilter);
+    // Setup Time Series Exports
+    slackObserver.addConsumer(&slackTimeSeriesExporter);
   }
 
  private:
@@ -77,6 +84,9 @@ class CpuEstimatorPipeline : public ResourceEstimatorPipeline {
 
   // --- Observers ---
   SlackResourceObserver slackObserver;
+
+  // --- Time Series Exporters ---
+  SlackTimeSeriesExporter slackTimeSeriesExporter;
 };
 
 }  // namespace serenity

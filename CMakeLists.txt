@@ -115,6 +115,7 @@ set(SERENITY_TEST_SOURCES
     tests/pipeline/qos_pipeline_test.cpp
     tests/observers/slack_resource_test.cpp
     tests/observers/qos_correction_test.cpp
+    tests/serenity/os_utils_tests.cpp
     tests/sources/json_source_test.cpp
 )
 

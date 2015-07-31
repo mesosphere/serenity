@@ -11,7 +11,7 @@ namespace tests {
 
 TEST(SlackResourceTimeSeriesExportTest, BasicTest) {
   SlackResourceObserver observer;
-  SlackTimeSeriesExporter slackExporter;
+  SlackTimeSeriesExporter slackExporter("tagged-test");
   JsonSource jsonSource;
   MockSink<Resources> mockSink;
 

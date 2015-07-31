@@ -23,10 +23,10 @@ namespace serenity {
 class ResourceUsageTimeSeriesExporter : public Consumer<ResourceUsage> {
  public:
   ResourceUsageTimeSeriesExporter(
-      TimeSeriesBackend* _timeSeriesBackend = new InfluxDb8Backend(),
-      Variant _tag = "") :
-      timeSeriesBackend(_timeSeriesBackend),
-       customTag(_tag) {}
+      Variant _tag = "",
+      TimeSeriesBackend* _timeSeriesBackend = new InfluxDb8Backend()) :
+        timeSeriesBackend(_timeSeriesBackend),
+        customTag(_tag) {}
 
   Try<Nothing> consume(const ResourceUsage& resources) override;
 

@@ -9,7 +9,7 @@ namespace serenity {
 namespace tests {
 
 TEST(ResourceUsageTimeSeriesExport, BasicTest) {
-  ResourceUsageTimeSeriesExporter ruExporter;
+  ResourceUsageTimeSeriesExporter ruExporter("tagged-test");
   JsonSource jsonSource;
   MockSink<ResourceUsage> mockSink;
 

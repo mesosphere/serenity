@@ -13,7 +13,7 @@
  *  - else return default value
  */
 inline static std::string EnviromentVariableInitializer(
-    const Option<std::string>& _constructorValue,
+    const Option<std::string> _constructorValue,
     const char* _enviromentVariable,
     const std::string& _defaultValue) {
   if (_constructorValue.isSome()) {
