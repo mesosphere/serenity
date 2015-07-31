@@ -63,12 +63,14 @@ static std::string TagString(Tag tag) {
   }
 }
 
+
 /**
- * Variant type for storing multiple types of data that will be stored in
- * time series backend.
- * This alias must resemble VariantType enum.
- */
+* Variant type for storing multiple types of data that will be stored in
+* time series backend.
+* This alias must resemble VariantType enum.
+*/
 using Variant = boost::variant<uint64_t, int64_t, double_t, std::string>;
+
 
 /**
  * Record to be stored in time series backend
@@ -76,14 +78,29 @@ using Variant = boost::variant<uint64_t, int64_t, double_t, std::string>;
 class TimeSeriesRecord {
  public:
   TimeSeriesRecord(const Series _series,
-                      const Variant _variant = 0.0,
-                      const Option<double_t> _timestamp = None()) :
+                   const Variant _variant = 0.0,
+                   const Option<double_t> _timestamp = None()) :
       seriesName(SeriesString(_series)),
       timestamp(_timestamp),
       tags(std::unordered_map<std::string, Variant>()) {
     setTag(Tag::VALUE, _variant);
   }
 
+/**
+ * Variant types inside tags map.
+ * Used for preparing json.
+ * Must resemble Variant alias.
+ */
+  enum class VariantType : uint8_t{
+    UINT64,
+    INT64,
+    DOUBLE,
+    STRING,
+  };
+
+  static bool isVariantString(Variant _variant) {
+    return _variant.which() == static_cast<uint8_t>(VariantType::STRING);
+  }
 
   Option<double_t> getTimestamp() const {
     return this->timestamp;
@@ -121,24 +138,6 @@ class TimeSeriesRecord {
     tags[TagString(tag)] = val;
   }
 
-
- /**
-  * Variant types inside tags map.
-  * Used for preparing json.
-  * Must resemble Variant alias.
-  */
-  enum class VariantType : uint8_t{
-    UINT64,
-    INT64,
-    DOUBLE,
-    STRING,
-  };
-
-
-  static bool isVariantString(Variant _variant) {
-    return _variant.which() == static_cast<uint8_t>(VariantType::STRING);
-  }
-
  protected:
   /**
    * String with tags that will be added to database
@@ -158,7 +157,6 @@ class TimeSeriesRecord {
 class TimeSeriesBackend {
  public:
   virtual void PutMetric(const TimeSeriesRecord& _timeSeriesRecord) = 0;
-
 
   virtual void PutMetric(const std::vector<TimeSeriesRecord>& _recordList){
     for (const auto& record : _recordList) {

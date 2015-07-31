@@ -1,8 +1,8 @@
 #ifndef SERENITY_METRICS_HELPER_HPP
 #define SERENITY_METRICS_HELPER_HPP
 
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 #include <string>
 #include <ratio> // NOLINT [build/c++11]
 

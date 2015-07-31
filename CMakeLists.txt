@@ -56,8 +56,6 @@ file(GLOB ProtoFiles "messages/serenity.proto")
 PROTOBUF_GENERATE_CPP(ProtoSources ProtoHeaders ${ProtoFiles})
 add_library(messages STATIC ${ProtoSources} ${ProtoHeaders})
 
-
-
 # Add message-test proto files.
 file(GLOB TestProtoFiles "tests/common/sources/json_source.proto")
 PROTOBUF_GENERATE_CPP(TestProtoSources TestProtoHeaders ${TestProtoFiles})

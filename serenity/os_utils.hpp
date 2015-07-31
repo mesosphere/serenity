@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "stout/option.hpp"
+
 /**
  * Initialization helper for constructor.
  * Returns values in order:

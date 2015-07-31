@@ -4,9 +4,9 @@
 #include "curl/curl.h"
 #include "curl_easy.h"  // NOLINT(build/include)
 
-#include "serenity/metrics_helper.hpp"
-
 #include "influx_db8.hpp"
+
+#include "serenity/metrics_helper.hpp"
 
 namespace mesos {
 namespace serenity {

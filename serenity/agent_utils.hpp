@@ -1,8 +1,8 @@
 #ifndef SERENITY_AGENT_UTILS_HPP
 #define SERENITY_AGENT_UTILS_HPP
 
-#include <string>
 #include <mutex>  // NOLINT [build/c++11]
+#include <string>
 
 #include "curl_easy.h"  // NOLINT [build/include]
 
@@ -17,7 +17,6 @@
 
 namespace mesos {
 namespace serenity {
-
 
 class AgentInfo {
  public:
@@ -76,8 +75,8 @@ class AgentInfo {
     catch (curl_easy_exception error) {
       LOG(ERROR) << "Error while executing GET on " << agentUrl << "\n"
                  << error.what();
-      return Error( "Error while executing GET on " + agentUrl + "\n"
-                    + error.what());
+      return Error("Error while executing GET on " + agentUrl + "\n"
+                   + error.what());
     }
 
     return responseStream.str();
