@@ -106,7 +106,6 @@ public:
       tasksFinished(0u),
       tasksTerminated(0u),
       tasksTodo(0u) {
-
     foreach (const JobSpec& job, jobs) {
       tasksTodo += job.totalTasks;
     }
@@ -147,38 +146,36 @@ public:
 
       Resources remaining = offer.resources();
       vector<TaskInfo> tasks;
-
       int i = 0;
-      foreach (JobSpec job, jobs) {
-        if (job.scheduled) continue;
-        if (job.targetHostname.isSome() &&
-            job.targetHostname.get().compare(offer.hostname()) != 0){
+      for(auto job=jobs.begin(); job != jobs.end(); ++job, ++i) {
+        if (job->scheduled) continue;
+        if (job->targetHostname.isSome() &&
+            job->targetHostname.get().compare(offer.hostname()) != 0){
           LOG(INFO) << "Hosts not matched! Omitting.";
           continue;
         }
 
-        while (remaining.contains(job.taskResources)) {
+        while (remaining.contains(job->taskResources)) {
           TaskInfo task;
           task.mutable_task_id()->set_value(
-              stringify(i) + "_" + stringify(job.tasksLaunched));
-          task.set_name(stringify(i) + "_" + job.command);
+              stringify(i) + "_" + stringify(job->tasksLaunched));
+          task.set_name(stringify(i) + "_" + job->command);
           task.mutable_slave_id()->CopyFrom(offer.slave_id());
-          task.mutable_resources()->CopyFrom(job.taskResources);
+          task.mutable_resources()->CopyFrom(job->taskResources);
           task.mutable_command()->set_shell(true);
-          task.mutable_command()->set_value(job.command);
+          task.mutable_command()->set_value(job->command);
 
-          remaining -= job.taskResources;
+          remaining -= job->taskResources;
 
           tasks.push_back(task);
           activeTasks.insert(task.task_id());
-          job.tasksLaunched++;
+          job->tasksLaunched++;
           LOG(INFO) << "Launching " << task.task_id();
-          if ( job.tasksLaunched  >= job.totalTasks) {
-            job.scheduled = true;
+          if (job->tasksLaunched  >= job->totalTasks) {
+            job->scheduled = true;
             break;
           }
         }
-        i++;
       }
 
       driver->acceptOffers({offer.id()}, {LAUNCH(tasks)});

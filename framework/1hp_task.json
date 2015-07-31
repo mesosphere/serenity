@@ -1,8 +1,8 @@
 {
   "tasks": [
     {
-      "command": "bash",
-      "taskResources": "mem:64",
+      "command": "echo 'some test' > /tmp/test && bash",
+      "taskResources": "cpus:2;mem:64",
       "revocableResources": "",
       "targetHostname": "kp10.intelsdi.com",
       "totalTasks": 1
