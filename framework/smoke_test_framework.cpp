@@ -472,7 +472,7 @@ int parseTaskJson(list<JobSpec>& jobs, const Flags flags, bool& revocable) {
 
 int main(int argc, char** argv)
 {
-  bool revocable = false;
+  bool enableRevocable = false;
   Flags flags;
 
   Try<Nothing> load = flags.load("MESOS_", argc, argv);
@@ -509,7 +509,7 @@ int main(int argc, char** argv)
   list<JobSpec> jobs;
   if (flags.tasks_json_path.isSome())
   {
-    parseTaskJson(jobs, flags, revocable);
+    parseTaskJson(jobs, flags, enableRevocable);
 
   } else {
     // Task specification.
@@ -525,7 +525,7 @@ int main(int argc, char** argv)
     Resources taskResources = resources.get();
 
     if (flags.task_revocable_resources.isSome()) {
-      revocable = true;
+      enableRevocable = true;
       Try<Resources> revocableResources =
           Resources::parse(flags.task_revocable_resources.get());
 
@@ -548,7 +548,8 @@ int main(int argc, char** argv)
 
   }
 
-  if (revocable) {
+  if (enableRevocable) {
+    LOG(INFO) << "Enabled getting revocable resources.";
     framework.add_capabilities()->set_type(
         FrameworkInfo::Capability::REVOCABLE_RESOURCES);
   }

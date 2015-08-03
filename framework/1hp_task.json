@@ -2,7 +2,7 @@
   "tasks": [
     {
       "command": "echo some_test > /tmp/test && sleep 999d",
-      "taskResources": "cpus:2;mem:64",
+      "taskResources": "cpus(serenity):2;mem(serenity):64",
       "revocableResources": "",
       "targetHostname": "kp10.intelsdi.com",
       "totalTasks": 1

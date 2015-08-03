@@ -2,8 +2,8 @@
   "tasks": [
     {
       "command": "echo some_test > /tmp/test && sleep 999d",
-      "taskResources": "mem:64",
-      "revocableResources": "cpu:2",
+      "taskResources": "mem(serenity):64",
+      "revocableResources": "cpus(serenity):2;",
       "targetHostname": "kp10.intelsdi.com",
       "totalTasks": 1
     }
