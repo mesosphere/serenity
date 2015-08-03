@@ -49,8 +49,8 @@ class SerenityEstimatorProcess :
     } else if (ret.isNone()) {
       return Resources();
     }
-
-    return ret.get() - allocatedRevocable;
+    LOG(INFO) << allocatedRevocable;
+    return (ret.get() - allocatedRevocable);
   }
 
  private:
