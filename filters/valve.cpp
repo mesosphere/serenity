@@ -222,7 +222,7 @@ Try<Nothing> ValveFilter::consume(const ResourceUsage& in) {
     LOG(INFO) << ValveFilter::name
               << (this->valveType == RESOURCE_ESTIMATOR_VALVE?
                   "Estimator ":
-                  "QoSController")
+                  "QoSController ")
               << "pipeline is closed";
   }
 
