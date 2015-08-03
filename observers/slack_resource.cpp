@@ -42,6 +42,7 @@ Try<Nothing> SlackResourceObserver::consume(const ResourceUsage& usage) {
   cpuSlackScalar->set_value(cpuSlack);
 
   slackResult.set_name("cpus");
+  slackResult.set_role(this->default_role);
   slackResult.set_type(Value::SCALAR);
   slackResult.set_allocated_scalar(cpuSlackScalar);
   slackResult.set_allocated_revocable(new Resource_RevocableInfo());
