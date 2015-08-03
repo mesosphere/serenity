@@ -165,7 +165,7 @@ public:
         while (true) {
           if (!remaining.contains(job->taskResources)) {
             LOG(INFO) << "Not enough resources for "
-                      << stringify(i) + "_" +  job->command
+                      << stringify(i) + "_" + stringify(job->tasksLaunched)
                       << " job. Needed: " << job->taskResources
                       << " Offered: " << remaining;
             break;
