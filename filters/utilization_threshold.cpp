@@ -86,6 +86,7 @@ Try<Nothing> UtilizationThresholdFilter::consume(const ResourceUsage& product) {
   this->previousSamples = std::move(newSamples);
 
   if (this->previousSamples->empty()) {
+    // Don't log it in real env.
     LOG(INFO) << name << "No Executor in Usage.";
     return Nothing();
   }
