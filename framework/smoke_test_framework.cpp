@@ -162,7 +162,14 @@ public:
           continue;
         }
 
-        while (remaining.contains(job->taskResources)) {
+        while (true) {
+          if (!remaining.contains(job->taskResources)) {
+            LOG(INFO) << "Not enough resources for "
+                      << stringify(i) + "_" +  job->command
+                      << " job. Needed: " << job->taskResources
+                      << " Offered: " << remaining;
+            break;
+          }
           TaskInfo task;
           task.mutable_task_id()->set_value(
               stringify(i) + "_" + stringify(job->tasksLaunched));
