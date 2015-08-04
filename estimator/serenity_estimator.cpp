@@ -35,7 +35,6 @@ class SerenityEstimatorProcess :
 
   Future<Resources> _oversubscribable(
       const Future<ResourceUsage>& _resourceUsage) {
-    // TODO(bplotka): Decide if need such simple algorithm.
     Resources allocatedRevocable;
     foreach(auto& executor, _resourceUsage.get().executors()) {
       allocatedRevocable += Resources(executor.allocated()).revocable();

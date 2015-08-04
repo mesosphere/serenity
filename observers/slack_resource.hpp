@@ -22,9 +22,8 @@ namespace serenity {
 inline std::string getDefaultRole() {
   if (const char* env = std::getenv("MESOS_DEFAULT_ROLE")) {
     return env;
-  } else {
-    return "*";
   }
+  return "*";
 }
 
 

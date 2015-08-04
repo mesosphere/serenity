@@ -27,7 +27,8 @@ Try<Nothing> SlackResourceObserver::consume(const ResourceUsage& usage) {
             (*previousSample), executor);
         if (slackResource.isSome()) {
             LOG(INFO) << this->name << "Estimated revocable resources for "
-                      << executor.executor_info().name() << ": "
+                      << executor.executor_info().name() << " FrameworkID("
+                      << executor.executor_info().framework_id() << "): "
                       << slackResource.get();
             cpuSlack += slackResource.get();
         } else if (slackResource.isError()) {

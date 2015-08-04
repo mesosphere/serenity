@@ -64,8 +64,10 @@ class CpuEstimatorPipeline : public ResourceEstimatorPipeline {
       // First item in pipeline.
       valveFilter(ValveFilter(
           &utilizationFilter, ValveType::RESOURCE_ESTIMATOR_VALVE)) {
+    // NOTE(bplotka): Currently we wait one minute for testing purposes.
+    // However in production env 5 minutes is a better value.
+    this->ignoreNewExecutorsFilter.setThreshold(60);
     // Setup beginning producer.
-    this->ignoreNewExecutorsFilter.setThreshold(60);  // One minute.
     this->addConsumer(&valveFilter);
   }
 
