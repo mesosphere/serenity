@@ -91,11 +91,12 @@ set(SERENITY_SOURCES
     observers/slack_resource.cpp
     qos_controller/serenity_controller.cpp
     qos_controller/serenity_controller_module.cpp
+    serenity/agent_utils.cpp
     serenity/wid.cpp
     time_series_export/resource_usage_ts_export.cpp
     time_series_export/slack_ts_export.cpp
     time_series_export/backend/influx_db8.cpp
-    serenity/agent_utils.cpp
+
 )
 
 set(SERENITY_TEST_SOURCES
@@ -127,9 +128,6 @@ if (INTEGRATION_TESTS)
 
         # needs Mesos Agent working on http://localhost:5051.
         tests/serenity/agent_utils_tests.cpp
-
-        # needs MesosDNS with grafana.marathon.mesos service
-        tests/serenity/cluster_utils_tests.cpp
     )
 endif(INTEGRATION_TESTS)
 
