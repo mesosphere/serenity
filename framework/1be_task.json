@@ -1,10 +1,10 @@
 {
   "tasks": [
     {
-      "command": "echo some_test > /tmp/test && sleep 999d",
+      "command": "stress -c 1",
       "taskResources": "mem(serenity):64",
-      "revocableResources": "cpus(serenity):2;",
-      "targetHostname": "kp10.intelsdi.com",
+      "revocableResources": "cpus(serenity):1.0;",
+      "targetHostname": "<target_ip>",
       "totalTasks": 1
     }
   ]

@@ -4,6 +4,13 @@
       "command": "stress -c 1",
       "taskResources": "cpus(serenity):2;mem(serenity):64",
       "revocableResources": "",
+      "targetHostname": "<target ip>",
+      "totalTasks": 1
+    },
+    {
+      "command": "stress -c 1",
+      "taskResources": "mem(serenity):64",
+      "revocableResources": "cpus(serenity):1.0",
       "targetHostname": "<target_ip>",
       "totalTasks": 1
     }

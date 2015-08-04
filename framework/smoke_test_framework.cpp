@@ -105,10 +105,11 @@ public:
       jobs(_jobs),
       tasksFinished(0u),
       tasksTerminated(0u),
-      tasksTodo(0u),
-      jobScheduled(0u) {
+      tasksPending(0u),
+      jobScheduled(0u),
+      idIterator(0u) {
     foreach (const JobSpec& job, jobs) {
-      tasksTodo += job.totalTasks;
+      tasksPending += job.totalTasks;
     }
   }
 
@@ -153,27 +154,29 @@ public:
 
       Resources remaining = offer.resources();
       vector<TaskInfo> tasks;
-      int i = 0;
-      for(auto job=jobs.begin(); job != jobs.end(); ++job, ++i) {
+      for(auto job=jobs.begin(); job != jobs.end(); ++job, ++idIterator) {
         if (job->scheduled) continue;
         if (job->targetHostname.isSome() &&
             job->targetHostname.get().compare(offer.hostname()) != 0){
-          LOG(INFO) << "Hosts not matched! Omitting.";
+          LOG(INFO) << "Offered host " << offer.hostname()
+                    << " not matched with target " << job->targetHostname.get()
+                    << ". Omitting.";
           continue;
         }
 
         while (true) {
           if (!remaining.contains(job->taskResources)) {
             LOG(INFO) << "Not enough resources for "
-                      << stringify(i) + "_" + stringify(job->tasksLaunched)
+                      << stringify(idIterator) + "_"
+                         + stringify(job->tasksLaunched)
                       << " job. Needed: " << job->taskResources
                       << " Offered: " << remaining;
             break;
           }
           TaskInfo task;
           task.mutable_task_id()->set_value(
-              stringify(i) + "_" + stringify(job->tasksLaunched));
-          task.set_name(stringify(i) + "_" + job->command);
+              stringify(idIterator) + "_" + stringify(job->tasksLaunched));
+          task.set_name(stringify(idIterator) + "_" + job->command);
           task.mutable_slave_id()->CopyFrom(offer.slave_id());
           task.mutable_resources()->CopyFrom(job->taskResources);
           task.mutable_command()->set_shell(true);
@@ -236,12 +239,12 @@ public:
       activeTasks.erase(status.task_id());
     }
 
-    if ( tasksTerminated == tasksTodo) {
+    if ( tasksTerminated == tasksPending) {
       if (tasksTerminated - tasksFinished > 0) {
         EXIT(EXIT_FAILURE)
           << "Failed to complete successfully: "
           << stringify(tasksTerminated - tasksFinished)
-          << " of " << stringify(tasksTodo) << " terminated abnormally";
+          << " of " << stringify(tasksPending) << " terminated abnormally";
       } else {
         driver->stop();
       }
@@ -288,8 +291,9 @@ private:
   size_t tasksFinished;
   size_t tasksTerminated;
   hashset<TaskID> activeTasks;
-  size_t tasksTodo;
+  size_t tasksPending;
   size_t jobScheduled;
+  size_t idIterator;
 };
 
 
@@ -373,8 +377,9 @@ public:
 };
 
 
-int parseTaskJson(list<JobSpec>& jobs, const Flags flags, bool& revocable) {
+list<JobSpec> parseTaskJson(const Flags flags, bool& revocable) {
 
+  list<JobSpec> jobs;
   LOG(INFO) << "Loading JSON with tasks from: " << flags.tasks_json_path.get();
 
   Try<std::string> read = os::read(flags.tasks_json_path.get());
@@ -444,10 +449,10 @@ int parseTaskJson(list<JobSpec>& jobs, const Flags flags, bool& revocable) {
                        _revocableResources.error());
       }
 
-          foreach (Resource _revocable, _revocableResources.get()) {
-              _revocable.mutable_revocable();
-              _resources.get() += _revocable;
-            }
+      foreach (Resource _revocable, _revocableResources.get()) {
+        _revocable.mutable_revocable();
+        _resources.get() += _revocable;
+      }
     }
 
     Option<string> _targetHostname = None();
@@ -476,6 +481,8 @@ int parseTaskJson(list<JobSpec>& jobs, const Flags flags, bool& revocable) {
                            _targetHostname));
     jobs.back().print();
   }
+
+  return jobs;
 }
 
 int main(int argc, char** argv)
@@ -517,7 +524,7 @@ int main(int argc, char** argv)
   list<JobSpec> jobs;
   if (flags.tasks_json_path.isSome())
   {
-    parseTaskJson(jobs, flags, enableRevocable);
+    jobs = parseTaskJson(flags, enableRevocable);
 
   } else {
     // Task specification.
