@@ -18,37 +18,16 @@ TEST(EnviromentVariableInitializer, GetEnvVariable) {
   int result = setenv(envName.c_str(), envVal.c_str(), 1);
   ASSERT_EQ(result, 0);
 
-  std::string res = EnviromentVariableInitializer(None(),
-                                                  envName.c_str(),
-                                                  "err");
-  ASSERT_EQ(res, envVal);
+  Option<std::string> res = GetEnviromentVariable(envName.c_str());
+  ASSERT_TRUE(res.isSome());
+  ASSERT_EQ(res.get(), envVal);
 }
 
-
-TEST(EnviromentVariableInitializerTest, GetConstructorVar) {
-  const std::string envName = "SERENITY_TEST_ENV_VAR";
-  std::string envVal = "bad-envVal";
-  std::string constructorVal = "good";
-
-  // set test variable. Initializer should take constructor val.
-  int result = setenv(envName.c_str(), envVal.c_str(), 1);
-  ASSERT_EQ(result, 0);
-
-  std::string res = EnviromentVariableInitializer(constructorVal,
-                                                  envName.c_str(),
-                                                  "bad-default");
-  ASSERT_EQ(res, constructorVal);
-}
-
-
-TEST(EnviromentVariableInitializerTest, GetDefaultConstructor) {
+TEST(EnviromentVariableInitializer, GetUnexistantEnvVariable) {
   const std::string envName = "SERENITY_TEST_ENV_VAR_NON_EXISTANT";
-  std::string envVal = "bad-envVal";
 
-  std::string res = EnviromentVariableInitializer(None(),
-                                                  envName.c_str(),
-                                                  "good-default");
-  ASSERT_EQ(res, "good-default");
+  Option<std::string> res = GetEnviromentVariable(envName.c_str());
+  ASSERT_TRUE(res.isNone());
 }
 
 }  // namespace tests

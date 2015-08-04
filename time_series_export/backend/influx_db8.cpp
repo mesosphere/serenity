@@ -101,5 +101,32 @@ std::string InfluxDb8Backend::SerializeRecord(
   return result;
 }
 
+std::string InfluxDb8Backend::InitializeField(
+    Option<std::string> _parameterValue,
+    Option<std::string> _serviceName,
+    Option<std::string> _envVariableName,
+    std::string _defaultValue) {
+  if (_parameterValue.isSome()) {
+    return _parameterValue.get();
+  }
+  if (_serviceName.isSome()) {
+    Result<std::string> result = GetIpFromMesosDns(_serviceName.get(),
+                                                   "10.4.1.1",
+                                                   "8123");
+    if (result.isSome()) {
+      return result.get();
+    }
+  }
+  if (_envVariableName.isSome()) {
+    Option<std::string> result = GetEnviromentVariable(
+        _envVariableName.get());
+    if (result.isSome()) {
+      return result.get();
+    }
+  }
+
+  return _defaultValue;
+}
+
 }  // namespace serenity
 }  // namespace mesos

@@ -5,25 +5,12 @@
 
 #include "stout/option.hpp"
 
-/**
- * Initialization helper for constructor.
- * Returns values in order:
- *  - if _constructorValue.isSome - return _constructorValue.get
- *  - if _enviromenetVariable is true - return enviroment variable
- *  - else return default value
- */
-inline static std::string EnviromentVariableInitializer(
-    const Option<std::string> _constructorValue,
-    const char* _enviromentVariable,
-    const std::string& _defaultValue) {
-  if (_constructorValue.isSome()) {
-    return _constructorValue.get();
+inline static Option<std::string> GetEnviromentVariable(
+    const std::string& _enviromentVariable) {
+  if (const char* env = std::getenv(_enviromentVariable.c_str())) {
+    return env;
   } else {
-    if (const char* env = std::getenv(_enviromentVariable)) {
-      return env;
-    } else {
-      return _defaultValue;
-    }
+    return None();
   }
 }
 

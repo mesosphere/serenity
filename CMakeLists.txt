@@ -127,6 +127,9 @@ if (INTEGRATION_TESTS)
 
         # needs Mesos Agent working on http://localhost:5051.
         tests/serenity/agent_utils_tests.cpp
+
+        # needs MesosDNS with grafana.marathon.mesos service
+        tests/serenity/cluster_utils_tests.cpp
     )
 endif(INTEGRATION_TESTS)
 
