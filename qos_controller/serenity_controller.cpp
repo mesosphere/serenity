@@ -62,13 +62,13 @@ class SerenityControllerProcess :
 
   QoSCorrections __corrections(
       const Future<ResourceUsage>& _resourceUsage) {
-    Try<QoSCorrections> ret = this->pipeline->run(_resourceUsage.get());
+    Result<QoSCorrections> ret = this->pipeline->run(_resourceUsage.get());
 
     QoSCorrections corrections;
     if (ret.isError()) {
       LOG(ERROR) << ret.error();
       // Return empty corrections.
-    } else {
+    } else if (ret.isSome()) {
       corrections = ret.get();
     }
     return corrections;

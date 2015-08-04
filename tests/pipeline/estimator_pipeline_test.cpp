@@ -31,8 +31,8 @@ TEST(EstimatorPipelineTest, FiltersNotProperlyFed) {
 
   ResourceEstimatorPipeline* pipeline = new CpuEstimatorPipeline();
 
-  Try<Resources> slack = pipeline->run(usage);
-  EXPECT_ERROR(slack);
+  Result<Resources> slack = pipeline->run(usage);
+  EXPECT_NONE(slack);
 
   delete pipeline;
 }
@@ -50,7 +50,7 @@ TEST(EstimatorPipelineTest, NoSlack) {
 
   ResourceEstimatorPipeline* pipeline = new CpuEstimatorPipeline();
 
-  Try<Resources> slack = pipeline->run(usage);
+  Result<Resources> slack = pipeline->run(usage);
   ASSERT_SOME(slack);
 
   EXPECT_TRUE(slack.get().empty());

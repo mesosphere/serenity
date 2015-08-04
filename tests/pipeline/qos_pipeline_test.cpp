@@ -40,8 +40,8 @@ TEST(QoSPipelineTest, FiltersNotProperlyFed) {
             CONTENTION_COOLDOWN,
             RELATIVE_THRESHOLD));
 
-  Try<QoSCorrections> corrections = pipeline->run(usage);
-  EXPECT_ERROR(corrections);
+  Result<QoSCorrections> corrections = pipeline->run(usage);
+  EXPECT_NONE(corrections);
 
   delete pipeline;
 }
