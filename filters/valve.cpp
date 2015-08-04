@@ -201,7 +201,8 @@ ValveFilter::ValveFilter(
     ValveType _valveType,
     bool _opened)
   : Producer<ResourceUsage>(_consumer),
-    process(new ValveFilterEndpointProcess(_valveType, _opened)) {
+    process(new ValveFilterEndpointProcess(_valveType, _opened)),
+    valveType(_valveType) {
   isOpened = process.get()->getIsOpenedFunction();
   spawn(process.get());
 }
@@ -217,8 +218,12 @@ Try<Nothing> ValveFilter::consume(const ResourceUsage& in) {
   if (this->isOpened().get()) {
     this->produce(in);
   } else {
-    LOG(INFO) << ValveFilter::name << "Pipeline is closed";
-    // Currently we are stopping pipeline in case of blocker.
+    // Currently we are not continuing pipeline in case of closed valve.
+    LOG(INFO) << ValveFilter::name
+              << (this->valveType == RESOURCE_ESTIMATOR_VALVE?
+                  "Estimator ":
+                  "QoSController ")
+              << "pipeline is closed";
   }
 
   return Nothing();

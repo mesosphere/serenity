@@ -85,6 +85,12 @@ Try<Nothing> UtilizationThresholdFilter::consume(const ResourceUsage& product) {
   this->previousSamples->clear();
   this->previousSamples = std::move(newSamples);
 
+  if (this->previousSamples->empty()) {
+    LOG(INFO) << name
+              << "There is no Executor in given usage. Ending the pipeline.";
+    return Nothing();
+  }
+
   Resources totalSlaveResources(product.total());
   Option<double_t> totalSlaveCpus = totalSlaveResources.cpus();
   if (totalSlaveCpus.isSome() && this->previousSamples->size() > 0) {

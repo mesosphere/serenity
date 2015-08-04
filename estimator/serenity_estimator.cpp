@@ -35,14 +35,22 @@ class SerenityEstimatorProcess :
 
   Future<Resources> _oversubscribable(
       const Future<ResourceUsage>& _resourceUsage) {
-    Try<Resources> ret = this->pipeline->run(_resourceUsage.get());
+    Resources allocatedRevocable;
+    foreach(auto& executor, _resourceUsage.get().executors()) {
+      allocatedRevocable += Resources(executor.allocated()).revocable();
+    }
+
+    Result<Resources> ret = this->pipeline->run(_resourceUsage.get());
 
     if (ret.isError()) {
       LOG(ERROR) << ret.error();
       return Resources();
+    } else if (ret.isNone()) {
+      return Resources();
     }
-
-    return ret.get();
+    LOG(INFO) << "[Serenity] Considering allocated revocable resources: "
+              << allocatedRevocable;
+    return (ret.get() - allocatedRevocable);
   }
 
  private:

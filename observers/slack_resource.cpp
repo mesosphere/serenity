@@ -26,6 +26,10 @@ Try<Nothing> SlackResourceObserver::consume(const ResourceUsage& usage) {
         Result<double_t> slackResource = CalculateCpuSlack(
             (*previousSample), executor);
         if (slackResource.isSome()) {
+            LOG(INFO) << this->name << "Estimated revocable resources for "
+                      << executor.executor_info().name() << " FrameworkID("
+                      << executor.executor_info().framework_id() << "): "
+                      << slackResource.get();
             cpuSlack += slackResource.get();
         } else if (slackResource.isError()) {
           LOG(ERROR) << slackResource.error();
@@ -39,6 +43,7 @@ Try<Nothing> SlackResourceObserver::consume(const ResourceUsage& usage) {
   cpuSlackScalar->set_value(cpuSlack);
 
   slackResult.set_name("cpus");
+  slackResult.set_role(this->default_role);
   slackResult.set_type(Value::SCALAR);
   slackResult.set_allocated_scalar(cpuSlackScalar);
   slackResult.set_allocated_revocable(new Resource_RevocableInfo());

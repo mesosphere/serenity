@@ -26,7 +26,7 @@ class TestEstimationPipeline : public ResourceEstimatorPipeline {
  public:
   TestEstimationPipeline() {}
 
-  virtual Try<Resources> run(const ResourceUsage& _product) {
+  virtual Result<Resources> run(const ResourceUsage& _product) {
     return Resources::parse("cpus(*):16");
   }
 };

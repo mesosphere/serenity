@@ -62,6 +62,7 @@ class ValveFilter :
  private:
   lambda::function<process::Future<bool>()> isOpened;
   process::Owned<ValveFilterEndpointProcess> process;
+  ValveType valveType;
 };
 
 }  // namespace serenity
