@@ -2,12 +2,12 @@ cmake_minimum_required(VERSION 3.0.0)
 project(serenity)
 enable_testing()
 
-#Command line options.
+# Command line options.
 SET(WITH_MESOS "/usr" CACHE STRING "Mesos installation directory")
 SET(MESOS_INSTALLATION_DIR ${WITH_MESOS})
 MESSAGE("Mesos installation directory set to: " ${MESOS_INSTALLATION_DIR})
 
-OPTION(INTEGRATION_TESTS "Enable compliation of integration tests." OFF)
+OPTION(INTEGRATION_TESTS "Enable compilation of integration tests." OFF)
 
 # Compiler things.
 include(CheckCXXCompilerFlag)
@@ -18,13 +18,13 @@ else()
     message(STATUS "Error: ${CMAKE_CXX_COMPILER} has no C++11 support")
 endif()
 
-# some libs needs to be compiled position indepenedent.
+# Some libs needs to be compiled position indepenedent.
 IF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 ENDIF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 
 
-# untar libs.
+# Untar libs.
 execute_process(
     COMMAND ${CMAKE_COMMAND} -E tar xzf curlcpp.tar.gz
     COMMAND ${CMAKE_COMMAND} -E tar xzf rapidjson-v1.0.2.tar.gz
@@ -39,11 +39,11 @@ include_directories( ${gtest_SOURCE_DIR} include)
 # Add pbjson - it doesn't have CMakeList.txt so include it manually.
 set(pbjson_SOURCE_DIR lib/pbjson)
 
-# curlcpp
+# Curlcpp.
 ADD_SUBDIRECTORY(lib/curlcpp)
 INCLUDE_DIRECTORIES(${CURLCPP_SOURCE_DIR}/include)
 
-# rapidjson
+# Rapidjson.
 ADD_SUBDIRECTORY(lib/rapidjson-1.0.2)
 INCLUDE_DIRECTORIES(lib/rapidjson-1.0.2/include)
 
@@ -96,7 +96,6 @@ set(SERENITY_SOURCES
     time_series_export/resource_usage_ts_export.cpp
     time_series_export/slack_ts_export.cpp
     time_series_export/backend/influx_db8.cpp
-
 )
 
 set(SERENITY_TEST_SOURCES
@@ -122,12 +121,12 @@ set(SERENITY_TEST_SOURCES
 
 if (INTEGRATION_TESTS)
     SET(INTEGRATION_TEST_SOURCES
-        # needs InfluxDB 8.
+        # Needs Mesos Agent working on http://localhost:5051.
+        tests/serenity/agent_utils_tests.cpp
+
+        # Needs InfluxDB 0.8.8
         tests/time_series_export/resource_usage_ts_export_test.cpp
         tests/time_series_export/slack_ts_export_test.cpp
-
-        # needs Mesos Agent working on http://localhost:5051.
-        tests/serenity/agent_utils_tests.cpp
     )
 endif(INTEGRATION_TESTS)
 

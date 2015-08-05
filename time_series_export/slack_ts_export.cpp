@@ -20,12 +20,14 @@ Try<Nothing> SlackTimeSeriesExporter::consume(const Resources& resources) {
   Try<std::string> hostname = AgentInfo::GetHostName();
   if (hostname.isError()) {
     LOG(ERROR) << "ResourceUsageTimeSeriesExporter: cannot get hostname";
-    return Nothing();  // Do not ruin serenity because small thing
+    return Nothing();  // Do not cause failure in pipeline due to
+                       // stats reporting failure
   }
   Try<std::string> agentId = AgentInfo::GetAgentId();
   if (agentId.isError()) {
     LOG(ERROR) << "ResourceUsageTimeSeriesExporter: cannot get agent id";
-    return Nothing();  // Do not ruin serenity because small thing
+    return Nothing();  // Do not cause failure in pipeline due to
+                       // stats reporting failure
   }
 
   TimeSeriesRecord record(Series::SLACK_RESOURCES);

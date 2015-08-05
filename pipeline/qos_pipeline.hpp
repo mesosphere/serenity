@@ -59,7 +59,8 @@ class CpuQoSPipeline : public QoSControllerPipeline {
                 "Detector must derive from ChangePointDetector");
 
  public:
-  explicit CpuQoSPipeline(ChangePointDetectionState _cpdState) :
+  explicit CpuQoSPipeline(ChangePointDetectionState _cpdState,
+                          bool _visualisation = true) :
       cpdState(_cpdState),
       // Time series exporters.
       rawResourcesExporter("raw"),
@@ -80,8 +81,10 @@ class CpuQoSPipeline : public QoSControllerPipeline {
     valveFilter.addConsumer(&qoSCorrectionObserver);
 
     // Setup Time Series export
-    this->addConsumer(&rawResourcesExporter);
-    emaFilter.addConsumer(&emaFilteredResourcesExporter);
+    if (_visualisation) {
+      this->addConsumer(&rawResourcesExporter);
+      emaFilter.addConsumer(&emaFilteredResourcesExporter);
+    }
   }
 
  private:

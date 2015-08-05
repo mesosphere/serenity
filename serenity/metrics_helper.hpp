@@ -6,10 +6,10 @@
 #include <string>
 #include <ratio> // NOLINT [build/c++11]
 
+#include "mesos/mesos.hpp"
+
 #include "stout/error.hpp"
 #include "stout/try.hpp"
-
-#include "mesos/mesos.hpp"
 
 namespace mesos {
 namespace serenity {

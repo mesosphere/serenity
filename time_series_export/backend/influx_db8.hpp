@@ -4,7 +4,6 @@
 #include <ratio>  // NOLINT [build/c++11]
 #include <string>
 
-#include "serenity/cluster_utils.hpp"
 #include "serenity/os_utils.hpp"
 
 #include "time_series_backend.hpp"
@@ -22,27 +21,22 @@ class InfluxDb8Backend : public TimeSeriesBackend {
                    Option<std::string> _influxDbPass    = None()) :
       influxDbAddress(InitializeField(
           _influxDbAddres,
-          "influxdb.marathon.mesos",
           "INFLUXDB_ADDRESS",
-          "localhost")),
+          "influxdb.marathon.mesos")),
       influxDbPort(std::stoi(InitializeField(
           _influxDbPort,
-          None(),
           "INFLUXDB_PORT",
           "8086"))),
       influxDbName(InitializeField(
           _influxDbName,
-          None(),
           "INFLUXDB_DB_NAME",
           "serenity")),
       influxDbUser(InitializeField(
           _influxDbUser,
-          None(),
           "INFLUXDB_USER",
           "root")),
       influxDbPass(InitializeField(
           _influxDbPass,
-          None(),
           "INFLUXDB_PASSWORD",
           "root")) {}
 
@@ -56,12 +50,11 @@ class InfluxDb8Backend : public TimeSeriesBackend {
  * Initialization helper for constructor.
  * Returns values in order:
  *  - if _constructorValue.isSome - return _constructorValue.get
- *  - if _serviceName.isSome - try to get service address from MesosDNS
+ *  - if _serviceName.isSome -
  *  - if _enviromenetVariable is true - return enviroment variable
  *  - else return default value
  */
   std::string InitializeField(Option<std::string> _parameterValue,
-                              Option<std::string> _serviceName,
                               Option<std::string> _envVariableName,
                               std::string _defaultValue);
 

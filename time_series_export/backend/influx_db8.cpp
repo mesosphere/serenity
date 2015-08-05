@@ -15,7 +15,7 @@ namespace serenity {
 
 using curl::curl_easy;
 
-void InfluxDb8Backend::PutMetric(const TimeSeriesRecord&_tsRecord) {
+void InfluxDb8Backend::PutMetric(const TimeSeriesRecord& _tsRecord) {
   std::string url = this->GetDbUrl();
   std::string content = this->SerializeRecord(_tsRecord);
 
@@ -103,19 +103,10 @@ std::string InfluxDb8Backend::SerializeRecord(
 
 std::string InfluxDb8Backend::InitializeField(
     Option<std::string> _parameterValue,
-    Option<std::string> _serviceName,
     Option<std::string> _envVariableName,
     std::string _defaultValue) {
   if (_parameterValue.isSome()) {
     return _parameterValue.get();
-  }
-  if (_serviceName.isSome()) {
-    Result<std::string> result = GetIpFromMesosDns(_serviceName.get(),
-                                                   "10.4.1.1",
-                                                   "8123");
-    if (result.isSome()) {
-      return result.get();
-    }
   }
   if (_envVariableName.isSome()) {
     Option<std::string> result = GetEnviromentVariable(
@@ -124,7 +115,6 @@ std::string InfluxDb8Backend::InitializeField(
       return result.get();
     }
   }
-
   return _defaultValue;
 }
 

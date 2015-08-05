@@ -86,6 +86,7 @@ class TimeSeriesRecord {
     setTag(Tag::VALUE, _variant);
   }
 
+
 /**
  * Variant types inside tags map.
  * Used for preparing json.
@@ -101,6 +102,7 @@ class TimeSeriesRecord {
   static bool isVariantString(Variant _variant) {
     return _variant.which() == static_cast<uint8_t>(VariantType::STRING);
   }
+
 
   Option<double_t> getTimestamp() const {
     return this->timestamp;

@@ -4,6 +4,8 @@
 #include "gtest/gtest.h"
 #include "mesos/mesos.hpp"
 
+#include "stout/result.hpp"
+
 #include "serenity/os_utils.hpp"
 
 namespace mesos {
@@ -24,7 +26,7 @@ TEST(EnviromentVariableInitializer, GetEnvVariable) {
 }
 
 TEST(EnviromentVariableInitializer, GetUnexistantEnvVariable) {
-  const std::string envName = "SERENITY_TEST_ENV_VAR_NON_EXISTANT";
+  const std::string envName = "SERENITY_TEST_ENV_VAR_NON_EXISTENT";
 
   Option<std::string> res = GetEnviromentVariable(envName.c_str());
   ASSERT_TRUE(res.isNone());

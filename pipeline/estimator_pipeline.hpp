@@ -54,7 +54,7 @@ using ResourceEstimatorPipeline = Pipeline<ResourceUsage, Resources>;
  */
 class CpuEstimatorPipeline : public ResourceEstimatorPipeline {
  public:
-  CpuEstimatorPipeline() :
+  explicit CpuEstimatorPipeline(bool _visualisation = true) :
       // Time series exporters.
       slackTimeSeriesExporter(),
 
@@ -75,7 +75,9 @@ class CpuEstimatorPipeline : public ResourceEstimatorPipeline {
     // Setup beginning producer.
     this->addConsumer(&valveFilter);
     // Setup Time Series Exports
-    slackObserver.addConsumer(&slackTimeSeriesExporter);
+    if (_visualisation) {
+      slackObserver.addConsumer(&slackTimeSeriesExporter);
+    }
   }
 
  private:
