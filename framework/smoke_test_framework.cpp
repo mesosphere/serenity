@@ -106,8 +106,7 @@ public:
       tasksFinished(0u),
       tasksTerminated(0u),
       tasksPending(0u),
-      jobScheduled(0u),
-      idIterator(0u) {
+      jobScheduled(0u) {
     foreach (const JobSpec& job, jobs) {
       tasksPending += job.totalTasks;
     }
@@ -154,7 +153,7 @@ public:
 
       Resources remaining = offer.resources();
       vector<TaskInfo> tasks;
-      for(auto job=jobs.begin(); job != jobs.end(); ++job, ++idIterator) {
+      for(auto job=jobs.begin(); job != jobs.end(); ++job) {
         if (job->scheduled) continue;
         if (job->targetHostname.isSome() &&
             job->targetHostname.get().compare(offer.hostname()) != 0){
@@ -167,7 +166,7 @@ public:
         while (true) {
           if (!remaining.contains(job->taskResources)) {
             LOG(INFO) << "Not enough resources for "
-                      << stringify(idIterator) + "_"
+                      << stringify(jobScheduled) + "_"
                          + stringify(job->tasksLaunched)
                       << " job. Needed: " << job->taskResources
                       << " Offered: " << remaining;
@@ -175,8 +174,8 @@ public:
           }
           TaskInfo task;
           task.mutable_task_id()->set_value(
-              stringify(idIterator) + "_" + stringify(job->tasksLaunched));
-          task.set_name(stringify(idIterator) + "_" + job->command);
+              stringify(jobScheduled) + "_" + stringify(job->tasksLaunched));
+          task.set_name(stringify(jobScheduled) + "_" + job->command);
           task.mutable_slave_id()->CopyFrom(offer.slave_id());
           task.mutable_resources()->CopyFrom(job->taskResources);
           task.mutable_command()->set_shell(true);
@@ -185,12 +184,13 @@ public:
           remaining -= job->taskResources;
 
           tasks.push_back(task);
-          activeTasks.insert(task.task_id());
+          this->activeTasks.insert(task.task_id());
           job->tasksLaunched++;
           LOG(INFO) << "Launching " << task.task_id();
           if (job->tasksLaunched  >= job->totalTasks) {
             job->scheduled = true;
-            jobScheduled++;
+
+            this->jobScheduled++;
             break;
           }
         }
@@ -293,7 +293,6 @@ private:
   hashset<TaskID> activeTasks;
   size_t tasksPending;
   size_t jobScheduled;
-  size_t idIterator;
 };
 
 
