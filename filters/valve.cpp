@@ -82,12 +82,12 @@ Try<string> getFormValue(
   return decodedValue.get();
 }
 
-
-class ValveFilterEndpointProcess : public Process<ValveFilterEndpointProcess> {
+template<class Type>
+class ValveFilterEndpointProcess
+  : public Process<ValveFilterEndpointProcess<Type>> {
  public:
-  ValveFilterEndpointProcess(ValveType _valveType, bool _opened)
-    : ProcessBase(getProcessBaseName(_valveType)),
-      valveType(_valveType),
+  explicit ValveFilterEndpointProcess(bool _opened)
+    : ProcessBase(getValveProcessBaseName<Type>()),
       opened(_opened),
       limiter(2, Seconds(1)) {}  // 2 permits per second.
 
@@ -95,13 +95,13 @@ class ValveFilterEndpointProcess : public Process<ValveFilterEndpointProcess> {
 
   void setOpen(bool open) {
     // NOTE: In future we may want to trigger some actions here.
-    switch (valveType) {
-      case RESOURCE_ESTIMATOR_VALVE:
-        LOG(INFO) << ValveFilter::name
+    switch (Type::type) {
+      case RESOURCE_ESTIMATOR:
+        LOG(INFO) << VALVE_FILTER_NAME
                   << (open?"Enabling":"Disabling") << " slack estimations.";
         break;
-      case QOS_CONTROLLER_VALVE:
-        LOG(INFO) << ValveFilter::name
+      case QOS_CONTROLLER:
+        LOG(INFO) << VALVE_FILTER_NAME
                   << (open?"Enabling":"Disabling") << " QoS assurance.";
         break;
     }
@@ -113,27 +113,30 @@ class ValveFilterEndpointProcess : public Process<ValveFilterEndpointProcess> {
   }
 
   const lambda::function<Future<bool>()> getIsOpenedFunction() {
-    return defer(self(), &Self::isOpened);
+    return defer(this->self(),
+                 &ValveFilterEndpointProcess<Type>::Self::isOpened);
   }
 
  protected:
   virtual void initialize() {
-    switch (valveType) {
-      case RESOURCE_ESTIMATOR_VALVE:
-        route(VALVE_ROUTE,
+    switch (Type::type) {
+      case RESOURCE_ESTIMATOR:
+        this->route(VALVE_ROUTE,
               ESTIMATOR_VALVE_ENDPOINT_HELP(),
-              &ValveFilterEndpointProcess::valve);
-        LOG(INFO) << ValveFilter::name
+              &ValveFilterEndpointProcess<Type>::valve);
+        LOG(INFO) << VALVE_FILTER_NAME
                   << "Resource Estimator endpoint initialized "
-                  << "on /" << RESOURCE_ESTIMATOR_PROCESS_BASE  << VALVE_ROUTE;
+                  << "on /" << RESOURCE_ESTIMATOR_VALVE_PROCESS_BASE
+                  << VALVE_ROUTE;
         break;
-      case QOS_CONTROLLER_VALVE:
-        route(VALVE_ROUTE,
+      case QOS_CONTROLLER:
+        this->route(VALVE_ROUTE,
               CONTROLLER_VALVE_ENDPOINT_HELP(),
-              &ValveFilterEndpointProcess::valve);
-        LOG(INFO) << ValveFilter::name
+              &ValveFilterEndpointProcess<Type>::valve);
+        LOG(INFO) << VALVE_FILTER_NAME
                   << "QoS Controller endpoint initialized "
-                  << "on /" << QOS_CONTROLLER_PROCESS_BASE  << VALVE_ROUTE;
+                  << "on /" << QOS_CONTROLLER_VALVE_PROCESS_BASE
+                  << VALVE_ROUTE;
         break;
     }
   }
@@ -141,7 +144,8 @@ class ValveFilterEndpointProcess : public Process<ValveFilterEndpointProcess> {
  private:
   Future<http::Response> valve(const http::Request& request) {
     return limiter.acquire()
-      .then(defer(self(), &Self::_valve, request));
+      .then(defer(this->self(),
+                  &ValveFilterEndpointProcess<Type>::Self::_valve, request));
   }
 
   Future<http::Response> _valve(const http::Request& request) {
@@ -149,7 +153,7 @@ class ValveFilterEndpointProcess : public Process<ValveFilterEndpointProcess> {
         process::http::query::decode(request.body);
     if (decode.isError()) {
       return http::BadRequest(
-          std::string(ValveFilter::name) + "Unable to decode query string: "
+          std::string(VALVE_FILTER_NAME) + "Unable to decode query string: "
           + decode.error());
     }
     hashmap<string, string> values = decode.get();
@@ -183,51 +187,55 @@ class ValveFilterEndpointProcess : public Process<ValveFilterEndpointProcess> {
   }
 
   atomic_bool opened;
-  ValveType valveType;
   //! Used to rate limit the endpoint.
   RateLimiter limiter;
 };
 
 
-ValveFilter::ValveFilter(ValveType _valveType, bool _opened)
-  : process(new ValveFilterEndpointProcess(_valveType, _opened)) {
+template<class Type>
+ValveFilter<Type>::ValveFilter(bool _opened)
+  : process(new ValveFilterEndpointProcess<Type>(_opened)) {
   isOpened = process.get()->getIsOpenedFunction();
   spawn(process.get());
 }
 
 
-ValveFilter::ValveFilter(
+template<class Type>
+ValveFilter<Type>::ValveFilter(
     Consumer<ResourceUsage>* _consumer,
-    ValveType _valveType,
     bool _opened)
   : Producer<ResourceUsage>(_consumer),
-    process(new ValveFilterEndpointProcess(_valveType, _opened)),
-    valveType(_valveType) {
+    process(new ValveFilterEndpointProcess<Type>(_opened)) {
   isOpened = process.get()->getIsOpenedFunction();
   spawn(process.get());
 }
 
 
-ValveFilter::~ValveFilter() {
+template<class Type>
+ValveFilter<Type>::~ValveFilter() {
   terminate(process.get());
   wait(process.get());
 }
 
 
-Try<Nothing> ValveFilter::consume(const ResourceUsage& in) {
+template<class Type>
+Try<Nothing> ValveFilter<Type>::consume(const ResourceUsage& in) {
   if (this->isOpened().get()) {
     this->produce(in);
   } else {
     // Currently we are not continuing pipeline in case of closed valve.
-    LOG(INFO) << ValveFilter::name
-              << (this->valveType == RESOURCE_ESTIMATOR_VALVE?
-                  "Estimator ":
-                  "QoSController ")
+    LOG(INFO) << VALVE_FILTER_NAME
               << "pipeline is closed";
   }
 
   return Nothing();
 }
+
+// Fix for using templated methods in .cpp file.
+// See:
+//    https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
+template class ValveFilter<Estimator>;
+template class ValveFilter<QoS>;
 
 }  // namespace serenity
 }  // namespace mesos

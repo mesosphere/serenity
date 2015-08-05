@@ -30,9 +30,8 @@ TEST(ValveFilterTest, EstimatorDisableThenEnable) {
   // Second component in pipeline.
   // Valve filter which exposes http endpoint for disabling/enabling
   // slack estimations.
-  ValveFilter valveFilter(
+  ValveFilter<Estimator> valveFilter(
       &mockSink,
-      ValveType::RESOURCE_ESTIMATOR_VALVE,
       true);
 
   // First component in pipeline.
@@ -46,7 +45,7 @@ TEST(ValveFilterTest, EstimatorDisableThenEnable) {
   EXPECT_EQ(1, mockSink.numberOfMessagesConsumed);
 
   // PHASE 2: Disable estimator pipeline.
-  UPID upid(getProcessBaseName(RESOURCE_ESTIMATOR_VALVE), address());
+  UPID upid(getValveProcessBaseName<Estimator>(), address());
 
   Future<http::Response> response =
     http::post(upid, VALVE_ROUTE + "?" +
@@ -86,9 +85,8 @@ TEST(ValveFilterTest, ControllerDisableThenEnable) {
   // Second component in pipeline.
   // Valve filter which exposes http endpoint for disabling/enabling
   // QoS Controller assurance.
-  ValveFilter valveFilter(
+  ValveFilter<QoS> valveFilter(
       &mockSink,
-      ValveType::QOS_CONTROLLER_VALVE,
       true);
 
   // First component in pipeline.
@@ -104,7 +102,7 @@ TEST(ValveFilterTest, ControllerDisableThenEnable) {
   EXPECT_EQ(1, mockSink.numberOfMessagesConsumed);
 
   // PHASE 2: Disable Controller pipeline.
-  UPID upid(getProcessBaseName(QOS_CONTROLLER_VALVE), address());
+  UPID upid(getValveProcessBaseName<QoS>(), address());
 
   Future<http::Response> response =
       http::post(upid,
@@ -147,16 +145,14 @@ TEST(ValveFilterTest, ControllerAndEstimatorEndpointsRunningTogether) {
 
   // Valve filter which exposes http endpoint for disabling/enabling
   // QoS Controller assurance.
-  ValveFilter controllerValveFilter(
+  ValveFilter<QoS> controllerValveFilter(
       &controllerMockSink,
-      ValveType::QOS_CONTROLLER_VALVE,
       true);
 
   // Valve filter which exposes http endpoint for disabling/enabling
   // slack estimations.
-  ValveFilter estimatorValveFilter(
+  ValveFilter<Estimator> estimatorValveFilter(
       &estimatorMockSink,
-      ValveType::RESOURCE_ESTIMATOR_VALVE,
       true);
 
   // First component in pipeline. (Fork for pipeline)
@@ -172,7 +168,7 @@ TEST(ValveFilterTest, ControllerAndEstimatorEndpointsRunningTogether) {
   EXPECT_EQ(1, controllerMockSink.numberOfMessagesConsumed);
 
   // PHASE 2: Disable Controller pipeline.
-  UPID controllerUpid(getProcessBaseName(QOS_CONTROLLER_VALVE), address());
+  UPID controllerUpid(getValveProcessBaseName<QoS>(), address());
 
   Future<http::Response> response =
       http::post(controllerUpid,
@@ -195,7 +191,7 @@ TEST(ValveFilterTest, ControllerAndEstimatorEndpointsRunningTogether) {
 
   AWAIT_EXPECT_RESPONSE_STATUS_EQ(http::OK().status, response);
 
-  UPID estimatorUpid(getProcessBaseName(RESOURCE_ESTIMATOR_VALVE), address());
+  UPID estimatorUpid(getValveProcessBaseName<Estimator>(), address());
   // Disable estimator pipeline.
   response = http::post(estimatorUpid,
                         VALVE_ROUTE + "?" + PIPELINE_ENABLE_KEY + "=false");

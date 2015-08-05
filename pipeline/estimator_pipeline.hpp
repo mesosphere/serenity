@@ -67,8 +67,7 @@ class CpuEstimatorPipeline : public ResourceEstimatorPipeline {
       // 2nd item in pipeline.
       utilizationFilter(&prExecutorPassFilter, DEFAULT_UTILIZATION_THRESHOLD),
       // First item in pipeline.
-      valveFilter(ValveFilter(
-          &utilizationFilter, ValveType::RESOURCE_ESTIMATOR_VALVE)) {
+      valveFilter(&utilizationFilter) {
     // NOTE(bplotka): Currently we wait one minute for testing purposes.
     // However in production env 5 minutes is a better value.
     this->ignoreNewExecutorsFilter.setThreshold(60);
@@ -85,7 +84,7 @@ class CpuEstimatorPipeline : public ResourceEstimatorPipeline {
   PrExecutorPassFilter prExecutorPassFilter;
   IgnoreNewExecutorsFilter ignoreNewExecutorsFilter;
   UtilizationThresholdFilter utilizationFilter;
-  ValveFilter valveFilter;
+  ValveFilter<Estimator> valveFilter;
 
   // --- Observers ---
   SlackResourceObserver slackObserver;

@@ -98,6 +98,28 @@ class Producer : public BusSocket {
   }
 };
 
+
+enum ModuleType {
+  RESOURCE_ESTIMATOR,
+  QOS_CONTROLLER
+};
+
+
+class ResourceEstimatorType {
+ public:
+  static constexpr const char* const name = "[SerenityEstimator] ";
+  static constexpr const ModuleType type = RESOURCE_ESTIMATOR;
+};
+using Estimator = ResourceEstimatorType;
+
+
+class QoSControllerType {
+ public:
+  static constexpr const char* const name = "[SerenityQoSController] ";
+  static constexpr const ModuleType type = QOS_CONTROLLER;
+};
+using QoS = QoSControllerType;
+
 }  // namespace serenity
 }  // namespace mesos
 
