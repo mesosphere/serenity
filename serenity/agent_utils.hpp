@@ -64,7 +64,7 @@ class AgentInfo {
     }
   }
 
-  
+
   static Try<std::string> GetStateFromAgent() {
     Result<std::string> agentUrl = GetLocalMesosAgentAddress();
     if (agentUrl.isNone()) {
