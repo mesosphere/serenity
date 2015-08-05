@@ -54,10 +54,10 @@ using ResourceEstimatorPipeline = Pipeline<ResourceUsage, Resources>;
  */
 class CpuEstimatorPipeline : public ResourceEstimatorPipeline {
  public:
-  explicit CpuEstimatorPipeline(bool _visualisation = true) :
+  explicit CpuEstimatorPipeline(bool _visualisation = true,
+                                bool _valveOpened = true) :
       // Time series exporters.
       slackTimeSeriesExporter(),
-
       // Last item in pipeline.
       slackObserver(this),
       // 4th item in pipeline.
@@ -65,9 +65,13 @@ class CpuEstimatorPipeline : public ResourceEstimatorPipeline {
       // 3rd item in pipeline.
       prExecutorPassFilter(&ignoreNewExecutorsFilter),
       // 2nd item in pipeline.
-      utilizationFilter(&prExecutorPassFilter, DEFAULT_UTILIZATION_THRESHOLD),
+      utilizationFilter(&prExecutorPassFilter,
+                        DEFAULT_UTILIZATION_THRESHOLD,
+                        Tag(QOS_CONTROLLER, "utiliationFilter")),
       // First item in pipeline.
-      valveFilter(Tag(RESOURCE_ESTIMATOR, "valveFilter"), &utilizationFilter) {
+      valveFilter(&utilizationFilter,
+                  _valveOpened,
+                  Tag(RESOURCE_ESTIMATOR, "valveFilter")) {
     // NOTE(bplotka): Currently we wait one minute for testing purposes.
     // However in production env 5 minutes is a better value.
     this->ignoreNewExecutorsFilter.setThreshold(60);

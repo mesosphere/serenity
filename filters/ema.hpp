@@ -107,8 +107,9 @@ class EMAFilter :
       Consumer<ResourceUsage>* _consumer,
       const lambda::function<usage::GetterFunction>& _valueGetFunction,
       const lambda::function<usage::SetterFunction>& _valueSetFunction,
-      double_t _alpha = DEFAULT_EMA_FILTER_ALPHA)
-    : Producer<ResourceUsage>(_consumer),
+      double_t _alpha = DEFAULT_EMA_FILTER_ALPHA,
+      const Tag& _tag = Tag(UNDEFINED, "emaFilter"))
+    : tag(_tag), Producer<ResourceUsage>(_consumer),
       previousSamples(new ExecutorSet),
       emaSamples(new ExecutorMap<ExponentialMovingAverage>()),
       valueGetFunction(_valueGetFunction),
@@ -119,9 +120,8 @@ class EMAFilter :
 
   Try<Nothing> consume(const ResourceUsage& in);
 
-  static constexpr const char* name = "[Serenity] EmaFilter: ";
-
  protected:
+  const Tag tag;
   double_t alpha;
   const lambda::function<usage::GetterFunction>& valueGetFunction;
   const lambda::function<usage::SetterFunction>& valueSetFunction;

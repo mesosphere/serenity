@@ -31,9 +31,9 @@ TEST(ValveFilterTest, EstimatorDisableThenEnable) {
   // Valve filter which exposes http endpoint for disabling/enabling
   // slack estimations.
   ValveFilter valveFilter(
-      Tag(RESOURCE_ESTIMATOR, "valveFilter"),
       &mockSink,
-      true);
+      true,
+      Tag(RESOURCE_ESTIMATOR, "valveFilter"));
 
   // First component in pipeline.
   MockSource<ResourceUsage> mockSource(&valveFilter);
@@ -81,17 +81,16 @@ TEST(ValveFilterTest, ControllerDisableThenEnable) {
   // End of pipeline.
   MockSink<ResourceUsage> mockSink;
   EXPECT_CALL(mockSink, consume(_))
-      .Times(2);
+    .Times(2);
 
   // Second component in pipeline.
   // Valve filter which exposes http endpoint for disabling/enabling
   // QoS Controller assurance.
   ValveFilter valveFilter(
-      Tag(QOS_CONTROLLER, "valveFilter"),
       &mockSink,
-      true);
-  LOG(INFO) << "X";
-  Tag(QOS_CONTROLLER, "valveFilter");
+      true,
+      Tag(QOS_CONTROLLER, "valveFilter"));
+
   // First component in pipeline.
   MockSource<ResourceUsage> mockSource(&valveFilter);
 
@@ -139,27 +138,26 @@ TEST(ValveFilterTest, ControllerAndEstimatorEndpointsRunningTogether) {
   // End of pipeline for Estimator.
   MockSink<ResourceUsage> estimatorMockSink;
   EXPECT_CALL(estimatorMockSink, consume(_))
-      .Times(2);
+    .Times(2);
 
   // End of pipeline for QoSController
   MockSink<ResourceUsage> controllerMockSink;
   EXPECT_CALL(controllerMockSink, consume(_))
-      .Times(2);
-  Tag(QOS_CONTROLLER, "valveFilter");
-  LOG(INFO) << "sfsdf";
+    .Times(2);
+
   // Valve filter which exposes http endpoint for disabling/enabling
   // QoS Controller assurance.
   ValveFilter controllerValveFilter(
-      Tag(QOS_CONTROLLER, "valveFilter"),
       &controllerMockSink,
-      true);
-  LOG(INFO) << "after";
+      true,
+      Tag(QOS_CONTROLLER, "valveFilter"));
+
   // Valve filter which exposes http endpoint for disabling/enabling
   // slack estimations.
   ValveFilter estimatorValveFilter(
-      Tag(RESOURCE_ESTIMATOR, "valveFilter"),
       &estimatorMockSink,
-      true);
+      true,
+      Tag(RESOURCE_ESTIMATOR, "valveFilter"));
 
   // First component in pipeline. (Fork for pipeline)
   MockSource<ResourceUsage> mockSource(

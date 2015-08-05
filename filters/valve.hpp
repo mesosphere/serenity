@@ -39,12 +39,13 @@ class ValveFilterEndpointProcess;
 class ValveFilter :
     public Consumer<ResourceUsage>, public Producer<ResourceUsage> {
  public:
-  explicit ValveFilter(const Tag& _tag, bool _opened = true);
+  explicit ValveFilter(bool _opened = true,
+                       const Tag& _tag = Tag(UNDEFINED, "valveFilter"));
 
   ValveFilter(
-      const Tag& _tag,
       Consumer<ResourceUsage>* _consumer,
-      bool _opened = true);
+      bool _opened = true,
+      const Tag& _tag = Tag(UNDEFINED, "valveFilter"));
 
   ~ValveFilter();
 

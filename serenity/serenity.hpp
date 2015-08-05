@@ -103,6 +103,7 @@ class Producer : public BusSocket {
 enum ModuleType {
   RESOURCE_ESTIMATOR,
   QOS_CONTROLLER,
+  UNDEFINED,
 };
 
 
@@ -122,6 +123,10 @@ class Tag {
       case QOS_CONTROLLER:
         this->prefix = "[SerenityQoSController] ";
         this->aim = "QoS assurance";
+        break;
+      default:
+        this->prefix = "[Serenity] ";
+        this->aim = "";
         break;
     }
 

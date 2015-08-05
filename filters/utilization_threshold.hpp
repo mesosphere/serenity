@@ -29,8 +29,9 @@ class UtilizationThresholdFilter :
  public:
   UtilizationThresholdFilter(
       Consumer<ResourceUsage>* _consumer,
-      double_t _utilizationThreshold = DEFAULT_UTILIZATION_THRESHOLD)
-      : Producer<ResourceUsage>(_consumer),
+      double_t _utilizationThreshold = DEFAULT_UTILIZATION_THRESHOLD,
+      const Tag& _tag = Tag(UNDEFINED, "utilizationFilter"))
+      : tag(_tag), Producer<ResourceUsage>(_consumer),
         utilizationThreshold(_utilizationThreshold),
         previousSamples(new ExecutorSet) {}
 
@@ -38,9 +39,8 @@ class UtilizationThresholdFilter :
 
   Try<Nothing> consume(const ResourceUsage& in);
 
-  static constexpr const char* name = "[Serenity] UtilizationFilter: ";
-
  protected:
+  const Tag tag;
   double_t utilizationThreshold;
   std::unique_ptr<ExecutorSet> previousSamples;
 

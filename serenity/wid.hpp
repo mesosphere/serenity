@@ -68,6 +68,10 @@ class WID {
     return exported;
   }
 
+  inline std::string toString() {
+    return executor_id.value() + "FrameworkID(" + framework_id.value() + ")";
+  }
+
   ExecutorID executor_id;
   FrameworkID framework_id;
 };

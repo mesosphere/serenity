@@ -38,8 +38,7 @@ TEST(QoSPipelineTest, FiltersNotProperlyFed) {
         ChangePointDetectionState::createForRollingDetector(
             WINDOWS_SIZE,
             CONTENTION_COOLDOWN,
-            RELATIVE_THRESHOLD),
-        false);
+            RELATIVE_THRESHOLD), true);
 
   Result<QoSCorrections> corrections = pipeline->run(usage);
   EXPECT_NONE(corrections);
@@ -47,8 +46,28 @@ TEST(QoSPipelineTest, FiltersNotProperlyFed) {
   delete pipeline;
 }
 
-// TODO(bplotka): Make deeper tests for QoS Assurance.
-// Currently let's focus on Estimations.
+
+TEST(QoSPipelineTest, NoCorrections) {
+  uint64_t WINDOWS_SIZE = 10;
+  uint64_t CONTENTION_COOLDOWN = 10;
+  double_t RELATIVE_THRESHOLD = 0.5;
+
+  MockSlaveUsage mockSlaveUsage(
+      "tests/fixtures/pipeline/sufficient_metrics.json");
+
+  QoSControllerPipeline* pipeline =
+      new CpuQoSPipeline<RollingChangePointDetector>(
+          ChangePointDetectionState::createForRollingDetector(
+              WINDOWS_SIZE,
+              CONTENTION_COOLDOWN,
+              RELATIVE_THRESHOLD), true);
+
+  Result<QoSCorrections> corrections =
+      pipeline->run(mockSlaveUsage.usage().get());
+  EXPECT_NONE(corrections);
+
+  delete pipeline;
+}
 
 }  // namespace tests
 }  // namespace serenity

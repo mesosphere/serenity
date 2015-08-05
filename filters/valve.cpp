@@ -171,7 +171,7 @@ class ValveFilterEndpointProcess
 };
 
 
-ValveFilter::ValveFilter(const Tag& _tag, bool _opened)
+ValveFilter::ValveFilter(bool _opened, const Tag& _tag)
   : process(new ValveFilterEndpointProcess(_tag, _opened)), tag(_tag) {
   isOpened = process.get()->getIsOpenedFunction();
   spawn(process.get());
@@ -179,9 +179,9 @@ ValveFilter::ValveFilter(const Tag& _tag, bool _opened)
 
 
 ValveFilter::ValveFilter(
-    const Tag& _tag,
     Consumer<ResourceUsage>* _consumer,
-    bool _opened)
+    bool _opened,
+    const Tag& _tag)
   : Producer<ResourceUsage>(_consumer),
     process(new ValveFilterEndpointProcess(_tag, _opened)),
     tag(_tag) {

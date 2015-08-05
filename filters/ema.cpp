@@ -3,6 +3,7 @@
 #include "filters/ema.hpp"
 
 #include "serenity/metrics_helper.hpp"
+#include "serenity/wid.hpp"
 
 namespace mesos {
 namespace serenity {
@@ -55,13 +56,13 @@ Try<Nothing> EMAFilter::consume(const ResourceUsage& in) {
 
   for (ResourceUsage_Executor inExec : in.executors()) {
     if (!inExec.has_executor_info()) {
-      LOG(ERROR) << name << "Executor <unknown>"
+      SERENITY_LOG(ERROR) << "Executor <unknown>"
                  << " does not include executor_info";
       // Filter out these executors.
       continue;
     }
     if (!inExec.has_statistics()) {
-      LOG(ERROR) << name << "Executor "
+      SERENITY_LOG(ERROR) << "Executor "
                  << inExec.executor_info().executor_id().value()
                  << " does not include statistics.";
       // Filter out these executors.
@@ -72,6 +73,8 @@ Try<Nothing> EMAFilter::consume(const ResourceUsage& in) {
     // Check if EMA for given executor exists.
     auto emaSample = this->emaSamples->find(inExec.executor_info());
     if (emaSample == this->emaSamples->end()) {
+      SERENITY_LOG(ERROR) << "First EMA iteration for: "
+                          << WID(inExec.executor_info()).toString();
       // If not insert new one.
       ExponentialMovingAverage ema(EMA_REGULAR_SERIES, this->alpha);
       emaSamples->insert(std::pair<ExecutorInfo, ExponentialMovingAverage>(
@@ -84,7 +87,7 @@ Try<Nothing> EMAFilter::consume(const ResourceUsage& in) {
         // Get proper value.
         Try<double_t> value = this->valueGetFunction((*previousSample), inExec);
         if (value.isError()) {
-          LOG(ERROR) << value.error();
+          SERENITY_LOG(ERROR) << value.error();
           continue;
         }
 
@@ -98,7 +101,7 @@ Try<Nothing> EMAFilter::consume(const ResourceUsage& in) {
         ResourceUsage_Executor* outExec = new ResourceUsage_Executor(inExec);
         Try<Nothing> result = this->valueSetFunction(emaValue, outExec);
         if (result.isError()) {
-          LOG(ERROR) << result.error();
+          SERENITY_LOG(ERROR) << result.error();
           delete outExec;
           continue;
         }
