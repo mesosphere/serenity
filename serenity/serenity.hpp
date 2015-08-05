@@ -1,6 +1,7 @@
 #ifndef SERENITY_SERENITY_HPP
 #define SERENITY_SERENITY_HPP
 
+#include <string>
 #include <vector>
 
 #include "glog/logging.h"
@@ -101,24 +102,53 @@ class Producer : public BusSocket {
 
 enum ModuleType {
   RESOURCE_ESTIMATOR,
-  QOS_CONTROLLER
+  QOS_CONTROLLER,
 };
 
 
-class ResourceEstimatorType {
+class Tag {
  public:
-  static constexpr const char* const name = "[SerenityEstimator] ";
-  static constexpr const ModuleType type = RESOURCE_ESTIMATOR;
-};
-using Estimator = ResourceEstimatorType;
+  Tag(const ModuleType& _type, const std::string& _name)
+    : type(_type), name(_name) {
+    this->fullName = this->init();
+  }
 
+  const std::string init() {
+    switch (this->type) {
+      case RESOURCE_ESTIMATOR:
+        this->prefix = "[SerenityEstimator] ";
+        this->aim = "Slack estimation";
+        break;
+      case QOS_CONTROLLER:
+        this->prefix = "[SerenityQoSController] ";
+        this->aim = "QoS assurance";
+        break;
+    }
 
-class QoSControllerType {
- public:
-  static constexpr const char* const name = "[SerenityQoSController] ";
-  static constexpr const ModuleType type = QOS_CONTROLLER;
+    return this->prefix + this->name + ": ";
+  }
+
+  const inline std::string NAME() const {
+    return fullName;
+  }
+
+  const inline ModuleType TYPE() const {
+    return type;
+  }
+
+  const inline std::string AIM() const {
+    return aim;
+  }
+
+ protected:
+  const std::string name;
+  const ModuleType type;
+  std::string fullName;
+  std::string prefix;
+  std::string aim;
 };
-using QoS = QoSControllerType;
+
+#define SERENITY_LOG(severity) LOG(severity) << this->tag.NAME()
 
 }  // namespace serenity
 }  // namespace mesos

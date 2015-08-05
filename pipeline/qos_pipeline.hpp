@@ -72,7 +72,9 @@ class CpuQoSPipeline : public QoSControllerPipeline {
                 usage::setEmaIpc, DEFAULT_EMA_FILTER_ALPHA),
       utilizationFilter(&emaFilter, DEFAULT_UTILIZATION_THRESHOLD),
       // First item in pipeline. For now, close the pipeline for QoS.
-      valveFilter(&utilizationFilter, false) {
+      valveFilter(Tag(QOS_CONTROLLER, "valveFilter"),
+                  &utilizationFilter,
+                  false) {
     // Setup starting producer.
     this->addConsumer(&valveFilter);
 
@@ -92,7 +94,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
   EMAFilter emaFilter;
   DropFilter<Detector> ipcDropFilter;
   UtilizationThresholdFilter utilizationFilter;
-  ValveFilter<QoS> valveFilter;
+  ValveFilter valveFilter;
 
   // --- Observers ---
   QoSCorrectionObserver qoSCorrectionObserver;
