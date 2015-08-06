@@ -123,8 +123,8 @@ class EMAFilter :
  protected:
   const Tag tag;
   double_t alpha;
-  const lambda::function<usage::GetterFunction>& valueGetFunction;
-  const lambda::function<usage::SetterFunction>& valueSetFunction;
+  const lambda::function<usage::GetterFunction> valueGetFunction;
+  const lambda::function<usage::SetterFunction> valueSetFunction;
   std::unique_ptr<ExecutorSet> previousSamples;
   std::unique_ptr<ExecutorMap<ExponentialMovingAverage>> emaSamples;
 };
