@@ -64,11 +64,11 @@ Try<Nothing> ResourceUsageTimeSeriesExporter::consume(
     }
 
     for (auto& local : locals) {
-      local.setTag(Tag::FRAMEWORK_ID, info.framework_id().value());
-      local.setTag(Tag::EXECUTOR_ID, info.framework_id().value());
-      local.setTag(Tag::HOSTNAME, hostname.get());
-      local.setTag(Tag::AGENT_ID, agentId.get());
-      local.setTag(Tag::TAG, this->customTag);
+      local.setTag(TsTag::FRAMEWORK_ID, info.framework_id().value());
+      local.setTag(TsTag::EXECUTOR_ID, info.framework_id().value());
+      local.setTag(TsTag::HOSTNAME, hostname.get());
+      local.setTag(TsTag::AGENT_ID, agentId.get());
+      local.setTag(TsTag::TAG, this->customTag);
 
       product.push_back(local);
     }

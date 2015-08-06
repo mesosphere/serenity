@@ -38,7 +38,7 @@ TEST(QoSPipelineTest, FiltersNotProperlyFed) {
         ChangePointDetectionState::createForRollingDetector(
             WINDOWS_SIZE,
             CONTENTION_COOLDOWN,
-            RELATIVE_THRESHOLD), true);
+            RELATIVE_THRESHOLD), false, true);
 
   Result<QoSCorrections> corrections = pipeline->run(usage);
   EXPECT_NONE(corrections);
@@ -60,7 +60,7 @@ TEST(QoSPipelineTest, NoCorrections) {
           ChangePointDetectionState::createForRollingDetector(
               WINDOWS_SIZE,
               CONTENTION_COOLDOWN,
-              RELATIVE_THRESHOLD), true);
+              RELATIVE_THRESHOLD), false, true);
 
   Result<QoSCorrections> corrections =
       pipeline->run(mockSlaveUsage.usage().get());

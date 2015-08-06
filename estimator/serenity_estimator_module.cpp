@@ -28,7 +28,8 @@ static ResourceEstimator* createSerenityEstimator(
   // TODO(bplotka) Obtain the type of pipeline from parameters.
 
   Try<ResourceEstimator*> result = SerenityEstimator::create(
-    std::shared_ptr<ResourceEstimatorPipeline>(new CpuEstimatorPipeline()));
+    std::shared_ptr<ResourceEstimatorPipeline>(
+        new CpuEstimatorPipeline(true, true)));
   if (result.isError()) {
     return NULL;
   }

@@ -43,7 +43,7 @@ static std::string SeriesString(Series series) {
 /**
  * Enum of commonly used column names for storing serenity data
  */
-enum class Tag : uint8_t {
+enum class TsTag : uint8_t {
   EXECUTOR_ID,
   FRAMEWORK_ID,
   HOSTNAME,
@@ -52,14 +52,14 @@ enum class Tag : uint8_t {
   VALUE,
 };
 
-static std::string TagString(Tag tag) {
+static std::string TagString(TsTag tag) {
   switch (tag) {
-    case Tag::EXECUTOR_ID:  return "ExecutorId";
-    case Tag::FRAMEWORK_ID: return "FrameworkId";
-    case Tag::HOSTNAME:     return "Node";
-    case Tag::AGENT_ID:     return "AgentId";
-    case Tag::TAG:          return "Tag";
-    case Tag::VALUE:        return "Value";
+    case TsTag::EXECUTOR_ID:  return "ExecutorId";
+    case TsTag::FRAMEWORK_ID: return "FrameworkId";
+    case TsTag::HOSTNAME:     return "Node";
+    case TsTag::AGENT_ID:     return "AgentId";
+    case TsTag::TAG:          return "Tag";
+    case TsTag::VALUE:        return "Value";
   }
 }
 
@@ -83,7 +83,7 @@ class TimeSeriesRecord {
       seriesName(SeriesString(_series)),
       timestamp(_timestamp),
       tags(std::unordered_map<std::string, Variant>()) {
-    setTag(Tag::VALUE, _variant);
+    setTag(TsTag::VALUE, _variant);
   }
 
 
@@ -136,7 +136,7 @@ class TimeSeriesRecord {
    * Value accepts <int32_t, double_t, std::string>
    */
   template <typename T>
-  void inline setTag(const Tag tag, const T& val) {
+  void inline setTag(const TsTag tag, const T& val) {
     tags[TagString(tag)] = val;
   }
 
