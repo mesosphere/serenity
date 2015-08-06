@@ -31,10 +31,10 @@ Try<Nothing> SlackTimeSeriesExporter::consume(const Resources& resources) {
   }
 
   TimeSeriesRecord record(Series::SLACK_RESOURCES);
-  record.setTag(Tag::VALUE, cpus);
-  record.setTag(Tag::HOSTNAME, hostname.get());
-  record.setTag(Tag::AGENT_ID, agentId.get());
-  record.setTag(Tag::TAG, this->customTag);
+  record.setTag(TsTag::VALUE, cpus);
+  record.setTag(TsTag::HOSTNAME, hostname.get());
+  record.setTag(TsTag::AGENT_ID, agentId.get());
+  record.setTag(TsTag::TAG, this->customTag);
 
   timeSeriesBackend->PutMetric(record);
 

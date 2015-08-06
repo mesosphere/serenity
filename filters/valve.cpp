@@ -82,12 +82,12 @@ Try<string> getFormValue(
   return decodedValue.get();
 }
 
-
-class ValveFilterEndpointProcess : public Process<ValveFilterEndpointProcess> {
+class ValveFilterEndpointProcess
+  : public Process<ValveFilterEndpointProcess> {
  public:
-  ValveFilterEndpointProcess(ValveType _valveType, bool _opened)
-    : ProcessBase(getProcessBaseName(_valveType)),
-      valveType(_valveType),
+  explicit ValveFilterEndpointProcess(const Tag& _tag, bool _opened)
+    : tag(_tag),
+      ProcessBase(getValveProcessBaseName(_tag.TYPE())),
       opened(_opened),
       limiter(2, Seconds(1)) {}  // 2 permits per second.
 
@@ -95,16 +95,7 @@ class ValveFilterEndpointProcess : public Process<ValveFilterEndpointProcess> {
 
   void setOpen(bool open) {
     // NOTE: In future we may want to trigger some actions here.
-    switch (valveType) {
-      case RESOURCE_ESTIMATOR_VALVE:
-        LOG(INFO) << ValveFilter::name
-                  << (open?"Enabling":"Disabling") << " slack estimations.";
-        break;
-      case QOS_CONTROLLER_VALVE:
-        LOG(INFO) << ValveFilter::name
-                  << (open?"Enabling":"Disabling") << " QoS assurance.";
-        break;
-    }
+    SERENITY_LOG(INFO) << (open?"Enabling ":"Disabling ") << " " << tag.AIM();
     this->opened = open;
   }
 
@@ -118,27 +109,19 @@ class ValveFilterEndpointProcess : public Process<ValveFilterEndpointProcess> {
 
  protected:
   virtual void initialize() {
-    switch (valveType) {
-      case RESOURCE_ESTIMATOR_VALVE:
-        route(VALVE_ROUTE,
-              ESTIMATOR_VALVE_ENDPOINT_HELP(),
-              &ValveFilterEndpointProcess::valve);
-        LOG(INFO) << ValveFilter::name
-                  << "Resource Estimator endpoint initialized "
-                  << "on /" << RESOURCE_ESTIMATOR_PROCESS_BASE  << VALVE_ROUTE;
-        break;
-      case QOS_CONTROLLER_VALVE:
-        route(VALVE_ROUTE,
-              CONTROLLER_VALVE_ENDPOINT_HELP(),
-              &ValveFilterEndpointProcess::valve);
-        LOG(INFO) << ValveFilter::name
-                  << "QoS Controller endpoint initialized "
-                  << "on /" << QOS_CONTROLLER_PROCESS_BASE  << VALVE_ROUTE;
-        break;
-    }
+    route(VALVE_ROUTE,
+          (tag.TYPE() == RESOURCE_ESTIMATOR?
+              ESTIMATOR_VALVE_ENDPOINT_HELP():
+              CONTROLLER_VALVE_ENDPOINT_HELP()),
+          &ValveFilterEndpointProcess::valve);
+    SERENITY_LOG(INFO)
+      << "endpoint initialized "
+      << "on /" << getValveProcessBaseName(tag.TYPE())
+      << VALVE_ROUTE;
   }
 
  private:
+  const Tag tag;
   Future<http::Response> valve(const http::Request& request) {
     return limiter.acquire()
       .then(defer(self(), &Self::_valve, request));
@@ -149,7 +132,7 @@ class ValveFilterEndpointProcess : public Process<ValveFilterEndpointProcess> {
         process::http::query::decode(request.body);
     if (decode.isError()) {
       return http::BadRequest(
-          std::string(ValveFilter::name) + "Unable to decode query string: "
+          tag.NAME() + "Unable to decode query string: "
           + decode.error());
     }
     hashmap<string, string> values = decode.get();
@@ -183,14 +166,13 @@ class ValveFilterEndpointProcess : public Process<ValveFilterEndpointProcess> {
   }
 
   atomic_bool opened;
-  ValveType valveType;
   //! Used to rate limit the endpoint.
   RateLimiter limiter;
 };
 
 
-ValveFilter::ValveFilter(ValveType _valveType, bool _opened)
-  : process(new ValveFilterEndpointProcess(_valveType, _opened)) {
+ValveFilter::ValveFilter(bool _opened, const Tag& _tag)
+  : process(new ValveFilterEndpointProcess(_tag, _opened)), tag(_tag) {
   isOpened = process.get()->getIsOpenedFunction();
   spawn(process.get());
 }
@@ -198,11 +180,11 @@ ValveFilter::ValveFilter(ValveType _valveType, bool _opened)
 
 ValveFilter::ValveFilter(
     Consumer<ResourceUsage>* _consumer,
-    ValveType _valveType,
-    bool _opened)
+    bool _opened,
+    const Tag& _tag)
   : Producer<ResourceUsage>(_consumer),
-    process(new ValveFilterEndpointProcess(_valveType, _opened)),
-    valveType(_valveType) {
+    process(new ValveFilterEndpointProcess(_tag, _opened)),
+    tag(_tag) {
   isOpened = process.get()->getIsOpenedFunction();
   spawn(process.get());
 }
@@ -219,15 +201,12 @@ Try<Nothing> ValveFilter::consume(const ResourceUsage& in) {
     this->produce(in);
   } else {
     // Currently we are not continuing pipeline in case of closed valve.
-    LOG(INFO) << ValveFilter::name
-              << (this->valveType == RESOURCE_ESTIMATOR_VALVE?
-                  "Estimator ":
-                  "QoSController ")
-              << "pipeline is closed";
+    SERENITY_LOG(INFO) << "pipeline is closed";
   }
 
   return Nothing();
 }
+
 
 }  // namespace serenity
 }  // namespace mesos

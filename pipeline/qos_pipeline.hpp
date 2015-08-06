@@ -59,21 +59,29 @@ class CpuQoSPipeline : public QoSControllerPipeline {
                 "Detector must derive from ChangePointDetector");
 
  public:
-  explicit CpuQoSPipeline(ChangePointDetectionState _cpdState,
-                          bool _visualisation = true) :
-      cpdState(_cpdState),
+  explicit CpuQoSPipeline(
+      ChangePointDetectionState _cpdState,
+      bool _visualisation = true,
+      bool _valveOpened = false)
+    : cpdState(_cpdState),
       // Time series exporters.
       rawResourcesExporter("raw"),
       emaFilteredResourcesExporter("ema"),
       // Last item in pipeline.
       qoSCorrectionObserver(this, 1),
       ipcDropFilter(&qoSCorrectionObserver, usage::getEmaIpc, cpdState),
-      emaFilter(&ipcDropFilter, usage::getIpc,
-                usage::setEmaIpc, DEFAULT_EMA_FILTER_ALPHA),
-      utilizationFilter(&emaFilter, DEFAULT_UTILIZATION_THRESHOLD),
+      emaFilter(&ipcDropFilter,
+                usage::getIpc,
+                usage::setEmaIpc,
+                DEFAULT_EMA_FILTER_ALPHA,
+                Tag(QOS_CONTROLLER, "emaFilter")),
+      utilizationFilter(&emaFilter,
+                        DEFAULT_UTILIZATION_THRESHOLD,
+                        Tag(QOS_CONTROLLER, "utiliationFilter")),
       // First item in pipeline. For now, close the pipeline for QoS.
-      valveFilter(ValveFilter(
-          &utilizationFilter, ValveType::QOS_CONTROLLER_VALVE, false)) {
+      valveFilter(&utilizationFilter,
+                  _valveOpened,
+                  Tag(QOS_CONTROLLER, "valveFilter")) {
     // Setup starting producer.
     this->addConsumer(&valveFilter);
 

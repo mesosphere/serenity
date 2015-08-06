@@ -34,7 +34,8 @@ static std::shared_ptr<QoSControllerPipeline>
   // TODO(bplotka): Obtain the type of pipeline from parameters.
   std::shared_ptr<QoSControllerPipeline> pipeline(
       new CpuQoSPipeline<RollingChangePointDetector>(
-          ChangePointDetectionState::createForRollingDetector(10, 10, 0.5)));
+          ChangePointDetectionState::createForRollingDetector(10, 10, 0.5),
+          true, false));
   return pipeline;
 }
 

@@ -15,54 +15,46 @@
 namespace mesos {
 namespace serenity {
 
-enum ValveType {
-  RESOURCE_ESTIMATOR_VALVE,
-  QOS_CONTROLLER_VALVE
-};
-
-
 const std::string PIPELINE_ENABLE_KEY = "enabled";
 const std::string VALVE_ROUTE = "/valve";
-const std::string RESOURCE_ESTIMATOR_PROCESS_BASE =
+const std::string RESOURCE_ESTIMATOR_VALVE_PROCESS_BASE =
     "serenity_resource_estimator";
-const std::string QOS_CONTROLLER_PROCESS_BASE =
+const std::string QOS_CONTROLLER_VALVE_PROCESS_BASE =
     "serenity_qos_controller";
 
 
-static const std::string getProcessBaseName(ValveType valveType) {
-  switch (valveType) {
-    case RESOURCE_ESTIMATOR_VALVE:
-      return RESOURCE_ESTIMATOR_PROCESS_BASE;
-    case QOS_CONTROLLER_VALVE:
-      return QOS_CONTROLLER_PROCESS_BASE;
+static const std::string getValveProcessBaseName(const ModuleType type) {
+  switch (type) {
+    case RESOURCE_ESTIMATOR:
+      return RESOURCE_ESTIMATOR_VALVE_PROCESS_BASE;
+    case QOS_CONTROLLER:
+      return QOS_CONTROLLER_VALVE_PROCESS_BASE;
   }
 }
 
 
-// Forward declaration.
+// Forward declaration
 class ValveFilterEndpointProcess;
-
 
 class ValveFilter :
     public Consumer<ResourceUsage>, public Producer<ResourceUsage> {
  public:
-  explicit ValveFilter(ValveType valveType, bool _opened = true);
+  explicit ValveFilter(bool _opened = true,
+                       const Tag& _tag = Tag(UNDEFINED, "valveFilter"));
 
   ValveFilter(
       Consumer<ResourceUsage>* _consumer,
-      ValveType valveType,
-      bool _opened = true);
+      bool _opened = true,
+      const Tag& _tag = Tag(UNDEFINED, "valveFilter"));
 
   ~ValveFilter();
 
   Try<Nothing> consume(const ResourceUsage& in);
 
-  static constexpr const char* name = "[Serenity] ValveFilter: ";
-
  private:
+  const Tag tag;
   lambda::function<process::Future<bool>()> isOpened;
   process::Owned<ValveFilterEndpointProcess> process;
-  ValveType valveType;
 };
 
 }  // namespace serenity
