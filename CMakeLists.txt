@@ -2,10 +2,12 @@ cmake_minimum_required(VERSION 3.0.0)
 project(serenity)
 enable_testing()
 
-#Command line options.
+# Command line options.
 SET(WITH_MESOS "/usr" CACHE STRING "Mesos installation directory")
 SET(MESOS_INSTALLATION_DIR ${WITH_MESOS})
 MESSAGE("Mesos installation directory set to: " ${MESOS_INSTALLATION_DIR})
+
+OPTION(INTEGRATION_TESTS "Enable compilation of integration tests." OFF)
 
 # Compiler things.
 include(CheckCXXCompilerFlag)
@@ -16,6 +18,19 @@ else()
     message(STATUS "Error: ${CMAKE_CXX_COMPILER} has no C++11 support")
 endif()
 
+# Some libs needs to be compiled position indepenedent.
+IF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+ENDIF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
+
+
+# Untar libs.
+execute_process(
+    COMMAND ${CMAKE_COMMAND} -E tar xzf curlcpp.tar.gz
+    COMMAND ${CMAKE_COMMAND} -E tar xzf rapidjson-v1.0.2.tar.gz
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib
+)
+
 # Add gtest.
 ADD_SUBDIRECTORY (lib/gmock-1.7.0)
 include_directories( ${gmock_SOURCE_DIR} include)
@@ -24,8 +39,13 @@ include_directories( ${gtest_SOURCE_DIR} include)
 # Add pbjson - it doesn't have CMakeList.txt so include it manually.
 set(pbjson_SOURCE_DIR lib/pbjson)
 
-# CXX Flags.
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+# Curlcpp.
+ADD_SUBDIRECTORY(lib/curlcpp)
+INCLUDE_DIRECTORIES(${CURLCPP_SOURCE_DIR}/include)
+
+# Rapidjson.
+ADD_SUBDIRECTORY(lib/rapidjson-1.0.2)
+INCLUDE_DIRECTORIES(lib/rapidjson-1.0.2/include)
 
 # Protobuf stuff.
 find_package(Protobuf REQUIRED)
@@ -35,10 +55,6 @@ set(PROTOBUF_IMPORT_DIRS ${MESOS_INSTALLATION_DIR}/include/)
 file(GLOB ProtoFiles "messages/serenity.proto")
 PROTOBUF_GENERATE_CPP(ProtoSources ProtoHeaders ${ProtoFiles})
 add_library(messages STATIC ${ProtoSources} ${ProtoHeaders})
-
-IF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
-    SET_TARGET_PROPERTIES(messages PROPERTIES COMPILE_FLAGS "-fPIC")
-ENDIF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 
 # Add message-test proto files.
 file(GLOB TestProtoFiles "tests/common/sources/json_source.proto")
@@ -75,7 +91,11 @@ set(SERENITY_SOURCES
     observers/slack_resource.cpp
     qos_controller/serenity_controller.cpp
     qos_controller/serenity_controller_module.cpp
+    serenity/agent_utils.cpp
     serenity/wid.cpp
+    time_series_export/resource_usage_ts_export.cpp
+    time_series_export/slack_ts_export.cpp
+    time_series_export/backend/influx_db8.cpp
 )
 
 set(SERENITY_TEST_SOURCES
@@ -95,8 +115,20 @@ set(SERENITY_TEST_SOURCES
     tests/pipeline/qos_pipeline_test.cpp
     tests/observers/slack_resource_test.cpp
     tests/observers/qos_correction_test.cpp
+    tests/serenity/os_utils_tests.cpp
     tests/sources/json_source_test.cpp
 )
+
+if (INTEGRATION_TESTS)
+    SET(INTEGRATION_TEST_SOURCES
+        # Needs Mesos Agent working on http://localhost:5051.
+        tests/serenity/agent_utils_tests.cpp
+
+        # Needs InfluxDB 0.8.8
+        tests/time_series_export/resource_usage_ts_export_test.cpp
+        tests/time_series_export/slack_ts_export_test.cpp
+    )
+endif(INTEGRATION_TESTS)
 
 # Copy fixtures.
 file(GLOB TestFixtures "tests/fixtures")
@@ -104,10 +136,13 @@ file(COPY ${TestFixtures} DESTINATION tests/)
 
 # Serenity library.
 add_library(serenity SHARED ${SERENITY_SOURCES})
-target_link_libraries(serenity messages)
+target_link_libraries(serenity messages curlcpp)
 
 # Tests.
-add_executable(serenity-tests ${SERENITY_TEST_SOURCES})
+add_executable(serenity-tests
+    ${SERENITY_TEST_SOURCES}
+    ${INTEGRATION_TEST_SOURCES}
+)
 target_link_libraries(serenity-tests
     gmock
     gmock_main
@@ -120,6 +155,7 @@ target_link_libraries(serenity-tests
     serenity
 )
 add_test(serenity-tests serenity-tests)
+
 
 # Smoke-test-framework requires mesos source directory.
 # If WITH_SOURCE_MESOS is not specified, test-framework is omitted.

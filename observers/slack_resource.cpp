@@ -26,7 +26,7 @@ Try<Nothing> SlackResourceObserver::consume(const ResourceUsage& usage) {
         Result<double_t> slackResource = CalculateCpuSlack(
             (*previousSample), executor);
         if (slackResource.isSome()) {
-            LOG(INFO) << this->name << "Estimated revocable resources for "
+            LOG(INFO) << NAME << "Estimated revocable resources for "
                       << executor.executor_info().name() << " FrameworkID("
                       << executor.executor_info().framework_id() << "): "
                       << slackResource.get();
@@ -71,7 +71,7 @@ Result<double_t> SlackResourceObserver::CalculateCpuSlack(
   if (cpuUsage.isError()) {
     return Error(cpuUsage.error());
   } else if (!current.statistics().has_cpus_limit()) {
-    return Error(std::string(name) +
+    return Error(std::string(NAME) +
                  "Cannot count slack. Lack of cpus_limit in statistcs");
   }
 

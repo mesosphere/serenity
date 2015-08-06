@@ -48,8 +48,6 @@ class SlackResourceObserver : public Consumer<ResourceUsage>,
 
   Try<Nothing> consume(const ResourceUsage& usage) override;
 
-  static constexpr const char* name = "[Serenity] SlackObserver: ";
-
  protected:
   Result<double_t> CalculateCpuSlack(const ResourceUsage_Executor& prev,
                                      const ResourceUsage_Executor& current)
@@ -58,7 +56,10 @@ class SlackResourceObserver : public Consumer<ResourceUsage>,
   std::unique_ptr<ExecutorSet> previousSamples;
 
   /** Don't report slack when it's less than this value */
-  static constexpr double_t SLACK_EPSILON = 0.001;
+  static constexpr const double_t SLACK_EPSILON = 0.001;
+
+  /** Name of the class for logging purposes */
+  static constexpr const char* NAME = "[Serenity] SlackObserver: ";
 
  private:
   SlackResourceObserver(const SlackResourceObserver& other)

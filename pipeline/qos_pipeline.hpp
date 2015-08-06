@@ -15,6 +15,8 @@
 #include "serenity/data_utils.hpp"
 #include "serenity/serenity.hpp"
 
+#include "time_series_export/resource_usage_ts_export.hpp"
+
 namespace mesos {
 namespace serenity {
 
@@ -24,8 +26,8 @@ using QoSControllerPipeline = Pipeline<ResourceUsage, QoSCorrections>;
  * Pipeline which includes necessary filters for making  QoS Corrections
  * based on CPU contentions.
  *   {{ PIPELINE SOURCE }}
- *            |
- *      |ResourceUsage|
+ *            |           \
+ *      |ResourceUsage|  |ResourceUsage| - {{ Raw Resource Usage Export }}
  *            |
  *       {{ Valve }} (+http endpoint) // First item.
  *            |
@@ -36,8 +38,8 @@ using QoSControllerPipeline = Pipeline<ResourceUsage, QoSCorrections>;
  *      |ResourceUsage|
  *       /          \
  *       |    {{ IPC EMA Filter }}
- *       |           |
- *       |     |ResourceUsage|
+ *       |           |          \
+ *       |     |ResourceUsage|  |ResourceUsage| - {{EMA Resource Usage Export}}
  *       |           |
  *       |     {{ IPC Drop<ChangePointDetector> }}
  *       |           |
@@ -57,8 +59,12 @@ class CpuQoSPipeline : public QoSControllerPipeline {
                 "Detector must derive from ChangePointDetector");
 
  public:
-  explicit CpuQoSPipeline(ChangePointDetectionState _cpdState) :
+  explicit CpuQoSPipeline(ChangePointDetectionState _cpdState,
+                          bool _visualisation = true) :
       cpdState(_cpdState),
+      // Time series exporters.
+      rawResourcesExporter("raw"),
+      emaFilteredResourcesExporter("ema"),
       // Last item in pipeline.
       qoSCorrectionObserver(this, 1),
       ipcDropFilter(&qoSCorrectionObserver, usage::getEmaIpc, cpdState),
@@ -73,6 +79,12 @@ class CpuQoSPipeline : public QoSControllerPipeline {
 
     // QoSCorrection needs ResourceUsage as well.
     valveFilter.addConsumer(&qoSCorrectionObserver);
+
+    // Setup Time Series export
+    if (_visualisation) {
+      this->addConsumer(&rawResourcesExporter);
+      emaFilter.addConsumer(&emaFilteredResourcesExporter);
+    }
   }
 
  private:
@@ -85,6 +97,10 @@ class CpuQoSPipeline : public QoSControllerPipeline {
 
   // --- Observers ---
   QoSCorrectionObserver qoSCorrectionObserver;
+
+  // --- Time Series Exporters ---
+  ResourceUsageTimeSeriesExporter rawResourcesExporter;
+  ResourceUsageTimeSeriesExporter emaFilteredResourcesExporter;
 };
 
 }  // namespace serenity

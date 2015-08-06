@@ -1,6 +1,8 @@
 build/*
 lib/gmock-1.7.0/*
 lib/pbjson/*
+lib/curlcpp/*
+lib/rapidjson-1.0.2/*
 m4/
 Makefile.in
 aclocal.m4

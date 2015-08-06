@@ -38,7 +38,8 @@ TEST(QoSPipelineTest, FiltersNotProperlyFed) {
         ChangePointDetectionState::createForRollingDetector(
             WINDOWS_SIZE,
             CONTENTION_COOLDOWN,
-            RELATIVE_THRESHOLD));
+            RELATIVE_THRESHOLD),
+        false);
 
   Result<QoSCorrections> corrections = pipeline->run(usage);
   EXPECT_NONE(corrections);
