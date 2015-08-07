@@ -3,7 +3,6 @@
 
 #include <stdio.h>
 #include <mutex>  // NOLINT [build/c++11]
-#include <regex>  // NOLINT [build/c++11]
 #include <string>
 
 #include "curl_easy.h"  // NOLINT [build/include]
@@ -56,6 +55,11 @@ class AgentInfo {
     } else {
       rapidjson::Document doc;
       doc.Parse(result.get().c_str());
+      if (!doc.IsObject()
+          || !doc["hostname"].IsString()
+          || !doc["id"].IsString()) {
+        return Error("Could not parse /state.json endpoint");
+      }
 
       hostname = (doc["hostname"]).GetString();
       agentId = (doc["id"]).GetString();
@@ -66,61 +70,34 @@ class AgentInfo {
 
 
   static Try<std::string> GetStateFromAgent() {
-    Result<std::string> agentUrl = GetLocalMesosAgentAddress();
-    if (agentUrl.isNone()) {
-      return Error("Could not find local mesos agent URL");
-    } else if (agentUrl.isError()) {
-      return agentUrl.error();
+    // TODO(skonefal): Add auto discovery of local mesos agent IP and port
+    Try<std::string> hostname = GetHostname();
+    if (hostname.isError()) {
+      LOG(ERROR) << "Could not get hostname";
+      return Error("Could not get hostname");
     }
+    std::string agentUrl = hostname.get() + ":5051/state.json";
 
     std::ostringstream responseStream;
     curl::curl_writer writer(responseStream);
     curl::curl_easy easy(writer);
 
-    easy.add(curl_pair<CURLoption, std::string>(CURLOPT_URL, agentUrl.get()));
+    easy.add(curl_pair<CURLoption, std::string>(CURLOPT_URL, agentUrl));
     easy.add(curl_pair<CURLoption, int64_t>(CURLOPT_FOLLOWLOCATION, 1L));
     easy.add(curl_pair<CURLoption, int64_t>(CURLOPT_HTTPGET, 1L));
     try {
       easy.perform();
     }
     catch (curl_easy_exception error) {
-      LOG(ERROR) << "Error while executing GET on " << agentUrl.get() << "\n"
+      LOG(ERROR) << "Error while executing GET on " << agentUrl << "\n"
                  << error.what();
-      return Error("Error while executing GET on " + agentUrl.get() + "\n"
+      return Error("Error while executing GET on " + agentUrl + "\n"
                    + error.what());
     }
 
     return responseStream.str();
   }
 
-
-  /**
-  * TODO(skonefal): change default process name when it changes in Mesos 0.24
-  */
-  static Result<std::string> GetLocalMesosAgentAddress(
-      std::string agentProcessName = "mesos-slave") {
-    const std::regex regex(
-        "^.*?(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}:\\d{2,6}).*?\\/"
-        + agentProcessName, std::regex_constants::ECMAScript
-                            | std::regex_constants::icase);
-
-    constexpr uint32_t BUF_SIZE = 1024;
-    char buf[BUF_SIZE];
-    FILE *fd = popen("netstat -ntldp", "r");
-    if (fd == nullptr) {
-      return Error("Cannot popen netstat -ntldp to get local mesos address");
-    }
-
-    while (fgets(buf, BUF_SIZE, fd) != NULL) {
-      std::cmatch cmatch;
-      if (std::regex_search(buf, cmatch, regex)) {
-        pclose(fd);
-        return cmatch.str(1);
-      }
-    }
-    pclose(fd);
-    return None();
-  }
 
   static std::mutex connectionMutex;
 
