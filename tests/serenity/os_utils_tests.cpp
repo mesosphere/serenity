@@ -2,11 +2,11 @@
 #include <string>
 
 #include "gtest/gtest.h"
-#include "mesos/mesos.hpp"
 
-#include "stout/result.hpp"
+#include "stout/try.hpp"
 
 #include "serenity/os_utils.hpp"
+
 
 namespace mesos {
 namespace serenity {
@@ -25,11 +25,18 @@ TEST(EnviromentVariableInitializer, GetEnvVariable) {
   ASSERT_EQ(res.get(), envVal);
 }
 
+
 TEST(EnviromentVariableInitializer, GetUnexistantEnvVariable) {
   const std::string envName = "SERENITY_TEST_ENV_VAR_NON_EXISTENT";
 
   Option<std::string> res = GetEnviromentVariable(envName.c_str());
   ASSERT_TRUE(res.isNone());
+}
+
+
+TEST(GetHostname, GetHostname) {
+  Try<std::string> hostname = GetHostname();
+  ASSERT_TRUE(hostname.isSome());
 }
 
 }  // namespace tests
