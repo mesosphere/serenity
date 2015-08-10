@@ -78,7 +78,6 @@ include_directories(
 )
 
 set(SERENITY_SOURCES
-    bus/bus_socket.cpp
     estimator/serenity_estimator.cpp
     estimator/serenity_estimator_module.cpp
     filters/drop.cpp
