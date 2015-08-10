@@ -116,6 +116,7 @@ Try<Nothing> EMAFilter::consume(const ResourceUsage& in) {
   this->previousSamples = std::move(newSamples);
 
   if (0 != product.executors_size()) {
+    SERENITY_LOG(INFO) << "Producing.";
     // Continue pipeline.
     produce(product);
   }

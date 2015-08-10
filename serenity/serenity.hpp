@@ -49,13 +49,22 @@ class SyncConsumer : public Consumer<T> {
       // class.
       this->_syncConsume(this->products);
 
-      this->products.clear();
+      this->reset();
     }
 
     return Nothing();
   }
 
   virtual Try<Nothing> _syncConsume(const std::vector<T> products) = 0;
+
+  // Currently we don't ensure that for in every iteration we fill consumer,
+  // so we have to reset counter in every iteration.
+  // TODO(bplotka): That would not be needed if we continue pipeline always.
+  virtual Try<Nothing> reset() {
+    this->products.clear();
+
+    return Nothing();
+  }
 
  private:
   uint64_t producentsToWaitFor;

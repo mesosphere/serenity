@@ -69,7 +69,9 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       emaFilteredResourcesExporter("ema"),
       // Last item in pipeline.
       qoSCorrectionObserver(this, 1),
-      ipcDropFilter(&qoSCorrectionObserver, usage::getEmaIpc, cpdState),
+      ipcDropFilter(&qoSCorrectionObserver,
+                    usage::getEmaIpc,
+                    cpdState),
       emaFilter(&ipcDropFilter,
                 usage::getIpc,
                 usage::setEmaIpc,
@@ -93,6 +95,12 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       this->addConsumer(&rawResourcesExporter);
       emaFilter.addConsumer(&emaFilteredResourcesExporter);
     }
+  }
+
+  virtual Try<Nothing> resetSyncConsumers() {
+    this->qoSCorrectionObserver.reset();
+
+    return Nothing();
   }
 
  private:

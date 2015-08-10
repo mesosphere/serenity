@@ -67,13 +67,13 @@ Try<Nothing> DropFilter<T>::consume(const ResourceUsage& in) {
 
   for (ResourceUsage_Executor inExec : in.executors()) {
     if (!inExec.has_executor_info()) {
-      LOG(ERROR) << name << "Executor <unknown>"
+      SERENITY_LOG(ERROR) << "Executor <unknown>"
                  << " does not include executor_info";
       // Filter out these executors.
       continue;
     }
     if (!inExec.has_statistics()) {
-      LOG(ERROR) << name << "Executor "
+      SERENITY_LOG(ERROR) << "Executor "
                  << inExec.executor_info().executor_id().value()
                  << " does not include statistics.";
       // Filter out these executors.
@@ -96,7 +96,7 @@ Try<Nothing> DropFilter<T>::consume(const ResourceUsage& in) {
         // Get proper value.
         Try<double_t> value = this->valueGetFunction((*previousSample), inExec);
         if (value.isError()) {
-          LOG(ERROR) << value.error();
+          SERENITY_LOG(ERROR)  << value.error();
           continue;
         }
 
@@ -104,7 +104,7 @@ Try<Nothing> DropFilter<T>::consume(const ResourceUsage& in) {
         Result<ChangePointDetection> cpDetected =
             (cpDetector->second)->processSample(value.get());
         if (cpDetected.isError()) {
-          LOG(ERROR) << cpDetected.error();
+          SERENITY_LOG(ERROR)  << cpDetected.error();
           continue;
         }
 

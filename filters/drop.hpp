@@ -150,8 +150,10 @@ class DropFilter :
   DropFilter(
       Consumer<Contentions>* _consumer,
       const lambda::function<usage::GetterFunction>& _valueGetFunction,
-      ChangePointDetectionState _changePointDetectionState)
-    : Producer<Contentions>(_consumer),
+      ChangePointDetectionState _changePointDetectionState,
+      const Tag& _tag = Tag(QOS_CONTROLLER, "dropFilter"))
+    : tag(_tag),
+      Producer<Contentions>(_consumer),
       previousSamples(new ExecutorSet),
       cpDetectors(new ExecutorMap<T*>()),
       valueGetFunction(_valueGetFunction),
@@ -161,10 +163,9 @@ class DropFilter :
 
   Try<Nothing> consume(const ResourceUsage& in) override;
 
-  static constexpr const char* name = "[Serenity] DropFilter: ";
-
  protected:
-  const lambda::function<usage::GetterFunction>& valueGetFunction;
+  const Tag tag;
+  const lambda::function<usage::GetterFunction> valueGetFunction;
   std::unique_ptr<ExecutorSet> previousSamples;
   std::unique_ptr<ExecutorMap<T*>> cpDetectors;
   ChangePointDetectionState changePointDetectionState;

@@ -31,6 +31,7 @@ class Pipeline : public Producer<Product>, public Consumer<Consumable> {
 
     // Start pipeline.
     Try<Nothing> ret = this->produce(_product);
+    this->resetSyncConsumers();
     if (ret.isError()) {
       return Error(ret.error());
     }
@@ -42,6 +43,14 @@ class Pipeline : public Producer<Product>, public Consumer<Consumable> {
     // Save consumed product at the end of pipeline as a result.
     this->result = in;
 
+    return Nothing();
+  }
+
+  //! Ensure that in case of error or empty
+  // result we reset sync consumers to be ready for next iteration.
+  // Override if you have sync consumers in you pipeline.
+  // TODO(bplotka): That would not be needed if we continue pipeline always.
+  virtual Try<Nothing> resetSyncConsumers() {
     return Nothing();
   }
 

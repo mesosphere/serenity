@@ -97,6 +97,7 @@ Try<Nothing> UtilizationThresholdFilter::consume(const ResourceUsage& product) {
     // Send only when node utilization is not too high.
     if ((totalCpuUsage / totalSlaveCpus.get()) < this->utilizationThreshold) {
       // Continue pipeline.
+      SERENITY_LOG(INFO) << "Producing.";
       produce(product);
     } else {
       SERENITY_LOG(ERROR) << "Stopping the oversubscription - load "
