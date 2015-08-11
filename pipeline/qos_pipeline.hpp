@@ -79,7 +79,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
                 Tag(QOS_CONTROLLER, "emaFilter")),
       utilizationFilter(&emaFilter,
                         DEFAULT_UTILIZATION_THRESHOLD,
-                        Tag(QOS_CONTROLLER, "utiliationFilter")),
+                        Tag(QOS_CONTROLLER, "utilizationFilter")),
       // First item in pipeline. For now, close the pipeline for QoS.
       valveFilter(&utilizationFilter,
                   _valveOpened,

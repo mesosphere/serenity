@@ -67,7 +67,7 @@ class CpuEstimatorPipeline : public ResourceEstimatorPipeline {
       // 2nd item in pipeline.
       utilizationFilter(&prExecutorPassFilter,
                         DEFAULT_UTILIZATION_THRESHOLD,
-                        Tag(RESOURCE_ESTIMATOR, "utiliationFilter")),
+                        Tag(RESOURCE_ESTIMATOR, "utilizationFilter")),
       // First item in pipeline.
       valveFilter(&utilizationFilter,
                   _valveOpened,
