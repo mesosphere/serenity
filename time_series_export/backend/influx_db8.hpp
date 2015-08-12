@@ -22,7 +22,7 @@ class InfluxDb8Backend : public TimeSeriesBackend {
       influxDbAddress(InitializeField(
           _influxDbAddres,
           "INFLUXDB_ADDRESS",
-          "influxdb.marathon.mesos")),
+          "influxdb-monitoring.marathon.mesos")),
       influxDbPort(std::stoi(InitializeField(
           _influxDbPort,
           "INFLUXDB_PORT",
