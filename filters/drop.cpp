@@ -46,7 +46,6 @@ Result<ChangePointDetection> RollingChangePointDetector::processSample(
     return None();
   }
 
-  LOG(INFO) << "Debug: in = " << in << " base = " << basePoint;
   if (in < (basePoint - this->state.relativeThreshold)) {
     this->contentionCooldownCounter = this->state.contentionCooldown;
     ChangePointDetection cpd;

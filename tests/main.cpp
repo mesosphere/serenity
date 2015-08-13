@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   // Initialize Google's logging library.
   // Comment that for debug log (INFO lvl)
-  //google::InitGoogleLogging(argv[0]);
+  google::InitGoogleLogging(argv[0]);
 
   return RUN_ALL_TESTS();
 }
