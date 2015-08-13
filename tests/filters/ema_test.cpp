@@ -227,19 +227,11 @@ TEST(EMATest, IpcEMATestNoisyConstSample) {
       new SymetricNoiseGenerator(MAX_NOISE),
       LOAD_ITERATIONS);
 
-  uint64_t previousLoad = 0;
   for (; loadGen.end(); loadGen++) {
-    usage.mutable_executors(0)->mutable_statistics()
-      ->mutable_perf()->set_instructions(previousLoad + (uint64_t)(*loadGen)());
-    previousLoad += (uint64_t)(*loadGen)();
-
-    // For IPC test we want to model instructions/cycles, so in that
-    // case we can model instructions and set cycles to 1.
-    usage.mutable_executors(0)->mutable_statistics()
-        ->mutable_perf()->set_cycles((uint64_t)loadGen.iteration);
-
-    usage.mutable_executors(0)->mutable_statistics()
-        ->mutable_perf()->set_timestamp((*loadGen).timestamp);
+    usage.mutable_executors(0)->CopyFrom(
+        generateIPC(usage.executors(0),
+                    (*loadGen)(),
+                    (*loadGen).timestamp));
 
     // Run pipeline iteration
     source.produce(usage);

@@ -46,6 +46,7 @@ Result<ChangePointDetection> RollingChangePointDetector::processSample(
     return None();
   }
 
+  LOG(INFO) << "Debug: in = " << in << " base = " << basePoint;
   if (in < (basePoint - this->state.relativeThreshold)) {
     this->contentionCooldownCounter = this->state.contentionCooldown;
     ChangePointDetection cpd;
@@ -54,6 +55,11 @@ Result<ChangePointDetection> RollingChangePointDetector::processSample(
     // processed value.
     cpd.severity = (basePoint - this->state.relativeThreshold) - in;
     return cpd;
+  }
+
+  if (in < basePoint) {
+    LOG(INFO) << "[SerenityQoS] DropDetector: Found decrease, "
+                 "but not significant: " << (in - basePoint);
   }
 
   return None();

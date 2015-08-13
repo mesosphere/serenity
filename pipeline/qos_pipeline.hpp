@@ -3,6 +3,7 @@
 
 #include "filters/ema.hpp"
 #include "filters/drop.hpp"
+#include "filters/pr_executor_pass.hpp"
 #include "filters/utilization_threshold.hpp"
 #include "filters/valve.hpp"
 
@@ -38,6 +39,10 @@ using QoSControllerPipeline = Pipeline<ResourceUsage, QoSCorrections>;
  *            |
  *      |ResourceUsage|
  *       /          \
+ *       |  {{ OnlyPRTaskFilter }}
+ *       |           |
+ *       |     |ResourceUsage|
+ *       |           |
  *       |    {{ IPC EMA Filter }}
  *       |           |          \
  *       |     |ResourceUsage|  |ResourceUsage| - {{EMA Resource Usage Export}}
@@ -77,8 +82,9 @@ class CpuQoSPipeline : public QoSControllerPipeline {
           usage::setEmaIpc,
           conf.emaAlpha,
           Tag(QOS_CONTROLLER, "emaFilter")),
+      prExecutorPassFilter(&emaFilter),
       utilizationFilter(
-          &emaFilter,
+          &prExecutorPassFilter,
           conf.utilizationThreshold,
           Tag(QOS_CONTROLLER, "utilizationFilter")),
       // First item in pipeline. For now, close the pipeline for QoS.
@@ -110,6 +116,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
   // --- Filters ---
   EMAFilter emaFilter;
   DropFilter<Detector> ipcDropFilter;
+  PrExecutorPassFilter prExecutorPassFilter;
   UtilizationThresholdFilter utilizationFilter;
   ValveFilter valveFilter;
 
