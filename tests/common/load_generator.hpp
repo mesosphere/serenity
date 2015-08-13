@@ -3,7 +3,7 @@
 
 #include <cmath>
 
-#include <mesos/mesos.pb.h>
+#include "mesos/mesos.pb.h"
 
 #include "stout/lambda.hpp"
 

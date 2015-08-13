@@ -150,7 +150,7 @@ TEST(QoSPipelineTest, RollingDetectorOneDropCorrectionsNoEma) {
       LOAD_ITERATIONS);
 
   for (; loadGen.end(); loadGen++) {
-    //Test scenario: After 10 iterations create drop in IPC for executor num 3.
+    // Test scenario: After 10 iterations create drop in IPC for executor num 3.
     double_t ipcFor3Executor = (*loadGen)();
     if (loadGen.iteration >= 11) {
       ipcFor3Executor /= 2.0;
@@ -218,7 +218,7 @@ TEST(QoSPipelineTest, RollingDetectorOneDropCorrectionsWithEma) {
       LOAD_ITERATIONS);
 
   for (; loadGen.end(); loadGen++) {
-    //Test scenario: After 10 iterations create drop in IPC for executor num 3.
+    // Test scenario: After 10 iterations create drop in IPC for executor num 3.
     double_t ipcFor3Executor = (*loadGen)();
     if (loadGen.iteration >= 11) {
       ipcFor3Executor /= 2.0;
