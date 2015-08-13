@@ -11,6 +11,8 @@
 
 #include "pipeline/qos_pipeline.hpp"
 
+#include "serenity/config.hpp"
+
 #include "stout/gtest.hpp"
 
 #include "tests/common/usage_helper.hpp"
@@ -34,11 +36,16 @@ TEST(QoSPipelineTest, FiltersNotProperlyFed) {
   usage.CopyFrom(usages.get().resource_usage(0));
 
   QoSControllerPipeline* pipeline =
-    new CpuQoSPipeline<RollingChangePointDetector>(
-        ChangePointDetectionState::createForRollingDetector(
-            WINDOWS_SIZE,
-            CONTENTION_COOLDOWN,
-            RELATIVE_THRESHOLD), false, true);
+      new CpuQoSPipeline<RollingChangePointDetector>(
+          QoSPipelineConf(
+              ChangePointDetectionState::createForRollingDetector(
+                  WINDOWS_SIZE,
+                  CONTENTION_COOLDOWN,
+                  RELATIVE_THRESHOLD),
+              ema::DEFAULT_ALPHA,
+              utilization::DEFAULT_THRESHOLD,
+              false,
+              true));
 
   Result<QoSCorrections> corrections = pipeline->run(usage);
   EXPECT_NONE(corrections);
@@ -72,10 +79,15 @@ TEST(QoSPipelineTest, NoCorrections) {
 
   QoSControllerPipeline* pipeline =
       new CpuQoSPipeline<RollingChangePointDetector>(
-          ChangePointDetectionState::createForRollingDetector(
-              WINDOWS_SIZE,
-              CONTENTION_COOLDOWN,
-              RELATIVE_THRESHOLD), false, true);
+          QoSPipelineConf(
+              ChangePointDetectionState::createForRollingDetector(
+                  WINDOWS_SIZE,
+                  CONTENTION_COOLDOWN,
+                  RELATIVE_THRESHOLD),
+              ema::DEFAULT_ALPHA,
+              utilization::DEFAULT_THRESHOLD,
+              false,
+              true));
 
   // First iteration.
   Result<QoSCorrections> corrections =
@@ -113,10 +125,15 @@ TEST(QoSPipelineTest, RollingDetectorOneDropCorrections) {
 
   QoSControllerPipeline* pipeline =
       new CpuQoSPipeline<RollingChangePointDetector>(
-          ChangePointDetectionState::createForRollingDetector(
-              WINDOWS_SIZE,
-              CONTENTION_COOLDOWN,
-              RELATIVE_THRESHOLD), false, true);
+          QoSPipelineConf(
+              ChangePointDetectionState::createForRollingDetector(
+                  WINDOWS_SIZE,
+                  CONTENTION_COOLDOWN,
+                  RELATIVE_THRESHOLD),
+              ema::DEFAULT_ALPHA,
+              utilization::DEFAULT_THRESHOLD,
+              false,
+              true));
 
   // First iteration.
   Result<QoSCorrections> corrections =

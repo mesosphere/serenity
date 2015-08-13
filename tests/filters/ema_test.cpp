@@ -22,7 +22,7 @@ TEST(EMATest, SmoothingConstSample) {
   const double_t THRESHOLD = 0.01;
   const int32_t LOAD_ITERATIONS = 100;
   ExponentialMovingAverage ema(
-      EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
+      EMA_REGULAR_SERIES, 0.2);
   LoadGenerator loadGen(
       math::constFunction, new ZeroNoise(), LOAD_ITERATIONS);
 
@@ -39,7 +39,7 @@ TEST(EMATest, SmoothingNoisyConstSample) {
   const double_t MAX_NOISE = 30;
   const int32_t LOAD_ITERATIONS = 100;
   ExponentialMovingAverage ema(
-      EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
+      EMA_REGULAR_SERIES, 0.2);
   LoadGenerator loadGen(
       math::constFunction,
       new SymetricNoiseGenerator(MAX_NOISE),
@@ -58,7 +58,7 @@ TEST(EMATest, SmoothingNoisyLinearSample) {
   const double_t MAX_NOISE = 50;
   const int32_t LOAD_ITERATIONS = 100;
   ExponentialMovingAverage ema(
-      EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
+      EMA_REGULAR_SERIES, 0.2);
   LoadGenerator loadGen(
       math::linearFunction,
       new SymetricNoiseGenerator(MAX_NOISE),
@@ -77,7 +77,7 @@ TEST(EMATest, SmoothingNoisySinSample) {
   const double_t MAX_NOISE = 50;
   const int32_t LOAD_ITERATIONS = 100;
   ExponentialMovingAverage ema(
-      EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
+      EMA_REGULAR_SERIES, 0.2);
   LoadGenerator loadGen(
       math::sinFunction,
       new SymetricNoiseGenerator(MAX_NOISE),
@@ -97,7 +97,7 @@ TEST(EMATest, SmoothingNoisySinSampleDrop) {
   const double_t DROP = 10;
   const int32_t LOAD_ITERATIONS = 200;
   ExponentialMovingAverage ema(
-      EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
+      EMA_REGULAR_SERIES, 0.2);
   LoadGenerator loadGen(
       math::sinFunction,
       new SymetricNoiseGenerator(MAX_NOISE),
@@ -120,7 +120,7 @@ TEST(EMATest, SmoothingNoisySinStableDrop) {
   const double_t DROP_PROGRES = 0.2;
   const int32_t LOAD_ITERATIONS = 200;
   ExponentialMovingAverage ema(
-      EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
+      EMA_REGULAR_SERIES, 0.2);
   LoadGenerator loadGen(
       math::sinFunction,
       new SymetricNoiseGenerator(MAX_NOISE),
@@ -152,7 +152,7 @@ TEST(EMATest, IpcEMATest) {
 
   // Second component in pipeline.
   EMAFilter ipcEMAFilter(
-      &mockSink, usage::getIpc, usage::setEmaIpc, DEFAULT_EMA_FILTER_ALPHA);
+      &mockSink, usage::getIpc, usage::setEmaIpc, 0.2);
 
   // First component in pipeline.
   JsonSource jsonSource(&ipcEMAFilter);
@@ -181,7 +181,7 @@ TEST(EMATest, IpcEMATestNoPerf) {
 
   // Second component in pipeline.
   EMAFilter ipcEMAFilter(
-      &mockSink, usage::getIpc, usage::setEmaIpc, DEFAULT_EMA_FILTER_ALPHA);
+      &mockSink, usage::getIpc, usage::setEmaIpc, 0.2);
 
   // First component in pipeline.
   JsonSource jsonSource(&ipcEMAFilter);
@@ -204,7 +204,7 @@ TEST(EMATest, IpcEMATestNoisyConstSample) {
 
   // Second component in pipeline.
   EMAFilter ipcEMAFilter(
-      &mockSink, usage::getIpc, usage::setEmaIpc, DEFAULT_EMA_FILTER_ALPHA);
+      &mockSink, usage::getIpc, usage::setEmaIpc, 0.2);
 
   // First component in pipeline.
   MockSource<ResourceUsage> source(&ipcEMAFilter);

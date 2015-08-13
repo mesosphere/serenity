@@ -12,6 +12,7 @@
 
 #include "observers/qos_correction.hpp"
 
+#include "serenity/config.hpp"
 #include "serenity/data_utils.hpp"
 #include "serenity/serenity.hpp"
 
@@ -59,31 +60,32 @@ class CpuQoSPipeline : public QoSControllerPipeline {
                 "Detector must derive from ChangePointDetector");
 
  public:
-  explicit CpuQoSPipeline(
-      ChangePointDetectionState _cpdState,
-      bool _visualisation = true,
-      bool _valveOpened = false)
-    : cpdState(_cpdState),
+  explicit CpuQoSPipeline(QoSPipelineConf _conf)
+    : conf(_conf),
       // Time series exporters.
       rawResourcesExporter("raw"),
       emaFilteredResourcesExporter("ema"),
       // Last item in pipeline.
       qoSCorrectionObserver(this, 1),
-      ipcDropFilter(&qoSCorrectionObserver,
-                    usage::getEmaIpc,
-                    cpdState),
-      emaFilter(&ipcDropFilter,
-                usage::getIpc,
-                usage::setEmaIpc,
-                DEFAULT_EMA_FILTER_ALPHA,
-                Tag(QOS_CONTROLLER, "emaFilter")),
-      utilizationFilter(&emaFilter,
-                        DEFAULT_UTILIZATION_THRESHOLD,
-                        Tag(QOS_CONTROLLER, "utilizationFilter")),
+      ipcDropFilter(
+          &qoSCorrectionObserver,
+          usage::getEmaIpc,
+          conf.cpdState),
+      emaFilter(
+          &ipcDropFilter,
+          usage::getIpc,
+          usage::setEmaIpc,
+          conf.emaAlpha,
+          Tag(QOS_CONTROLLER, "emaFilter")),
+      utilizationFilter(
+          &emaFilter,
+          conf.utilizationThreshold,
+          Tag(QOS_CONTROLLER, "utilizationFilter")),
       // First item in pipeline. For now, close the pipeline for QoS.
-      valveFilter(&utilizationFilter,
-                  _valveOpened,
-                  Tag(QOS_CONTROLLER, "valveFilter")) {
+      valveFilter(
+          &utilizationFilter,
+          conf.valveOpened,
+          Tag(QOS_CONTROLLER, "valveFilter")) {
     // Setup starting producer.
     this->addConsumer(&valveFilter);
 
@@ -91,7 +93,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
     valveFilter.addConsumer(&qoSCorrectionObserver);
 
     // Setup Time Series export
-    if (_visualisation) {
+    if (conf.visualisation) {
       this->addConsumer(&rawResourcesExporter);
       emaFilter.addConsumer(&emaFilteredResourcesExporter);
     }
@@ -104,7 +106,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
   }
 
  private:
-  ChangePointDetectionState cpdState;
+  QoSPipelineConf conf;
   // --- Filters ---
   EMAFilter emaFilter;
   DropFilter<Detector> ipcDropFilter;
