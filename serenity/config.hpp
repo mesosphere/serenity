@@ -56,20 +56,16 @@ struct QoSPipelineConf {
   explicit QoSPipelineConf(
       ChangePointDetectionState _cpdState,
       double_t _emaAlpha,
-      double_t _utilizationThreshold,
       bool _visualisation,
       bool _valveOpened)
     : cpdState(_cpdState),
       emaAlpha(_emaAlpha),
-      utilizationThreshold(_utilizationThreshold),
       visualisation(_visualisation),
       valveOpened(_valveOpened) {}
 
   ChangePointDetectionState cpdState;
 
   double_t emaAlpha = ema::DEFAULT_ALPHA;
-
-  double_t utilizationThreshold = utilization::DEFAULT_THRESHOLD;
 
   bool visualisation = true;
 

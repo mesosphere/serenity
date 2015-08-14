@@ -29,31 +29,42 @@ using mesos::serenity::QoSPipelineConf;
 
 using mesos::slave::QoSController;
 
-
-static std::shared_ptr<QoSControllerPipeline>
-  configureControllerPipelineFromParams(
-    const Parameters& parameters) {
-  // TODO(bplotka): Fetch configuration parameters to customize IpcDrop
-  // TODO(bplotka): Obtain the type of pipeline from parameters.
-  QoSPipelineConf conf;
-  conf.cpdState =
-    ChangePointDetectionState::createForRollingDetector(10, 10, 0.5);
-  conf.emaAlpha = 0.2;
-  conf.utilizationThreshold = 0.95;
-  conf.visualisation = true;
-  conf.valveOpened = false;
-
-  std::shared_ptr<QoSControllerPipeline> pipeline(
-      new CpuQoSPipeline<RollingChangePointDetector>(conf));
-
-  return pipeline;
-}
-
 static QoSController* createSerenityController(const Parameters& parameters) {
   LOG(INFO) << "Loading Serenity QoS Controller module";
+  // TODO(bplotka): Fetch configuration from parameters or conf file
+  // to customize IpcDrop
 
-  Try<QoSController*> result = SerenityController::create(
-      configureControllerPipelineFromParams(parameters));
+  // --Hardcoded configuration for Serenity QoS Controller---
+
+  QoSPipelineConf conf;
+  ChangePointDetectionState cpdState;
+  // Detector configuration:
+  // How far we look back in samples.
+  cpdState.windowSize = 10;
+  // How many iterations detector will wait with creating another
+  // contention.
+  cpdState.contentionCooldown = 5;
+  // Defines how much value must drop to trigger contention.
+  // Most detectors will use that.
+  cpdState.relativeThreshold = 0.4;
+
+  conf.cpdState = cpdState;
+  conf.emaAlpha = 0.2;
+  conf.visualisation = true;
+  // Let's start with QoS pipeline disabled.
+  conf.valveOpened = false;
+  // Since slave is configured for 5 second perf interval, it is useless to
+  // check correction more often then 5 sec.
+  double onEmptyCorrectionInterval = 5;
+
+  // --End of hardcoded configuration for Serenity QoS Controller---
+
+  Try<QoSController*> result =
+    SerenityController::create(
+        std::shared_ptr<QoSControllerPipeline>(
+            new CpuQoSPipeline<RollingChangePointDetector>(conf)),
+        onEmptyCorrectionInterval);
+
   if (result.isError()) {
     return NULL;
   }
