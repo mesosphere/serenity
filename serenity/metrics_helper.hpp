@@ -94,7 +94,7 @@ inline Try<double_t> CountIpc(const ResourceUsage_Executor& previous,
   double_t instructionsPerCycle = instructions / cycles;
 
   if (std::isnan(instructionsPerCycle)) {
-    return Error("Cannot count IPC usage: 0 cycles!");
+    return Error("Cannot count IPC usage: 0 cycles.");
   }
 
   return instructionsPerCycle;

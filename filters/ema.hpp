@@ -56,7 +56,7 @@ class ExponentialMovingAverage {
 
  private:
   //! Constant describing how the window weights decrease over time.
-  //! It controls how long is the moving average period.
+  //! It controls how long the moving average period is.
   //! The smaller alpha becomes, the longer your moving average is.
   //! It becomes smoother, but less reactive to new samples.
   double_t alpha;

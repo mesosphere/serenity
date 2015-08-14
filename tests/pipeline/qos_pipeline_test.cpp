@@ -145,7 +145,7 @@ TEST(QoSPipelineTest, RollingDetectorOneDropCorrectionsNoEma) {
   ResourceUsage usage = mockSlaveUsage.usage().get();
   const int32_t LOAD_ITERATIONS = 12;
   LoadGenerator loadGen(
-      math::const1Function,
+      [](double_t iter) { return 1; },
       new ZeroNoise(),
       LOAD_ITERATIONS);
 
@@ -213,7 +213,7 @@ TEST(QoSPipelineTest, RollingDetectorOneDropCorrectionsWithEma) {
   ResourceUsage usage = mockSlaveUsage.usage().get();
   const int32_t LOAD_ITERATIONS = 16;
   LoadGenerator loadGen(
-      math::const1Function,
+      [](double_t iter) { return 1; },
       new ZeroNoise(),
       LOAD_ITERATIONS);
 

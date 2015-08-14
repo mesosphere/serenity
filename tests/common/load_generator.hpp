@@ -18,15 +18,6 @@ constexpr double_t DEFAULT_MAX_NOISE = 50;
 //! Math Functions - used for load model.
 namespace math {
 
-inline double_t constFunction(double_t x) {
-  return 10;
-}
-
-inline double_t const1Function(double_t x) {
-  return 1;
-}
-
-
 inline double_t linearFunction(double_t x) {
   return x;
 }

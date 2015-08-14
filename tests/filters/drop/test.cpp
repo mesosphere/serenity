@@ -60,7 +60,7 @@ TEST(DropFilterRollingDetectorTest, StableLoad) {
   usage.CopyFrom(usages.get().resource_usage(0));
 
   LoadGenerator loadGen(
-      math::constFunction,
+      [](double_t iter) { return 10; },
       new ZeroNoise(),
       LOAD_ITERATIONS);
 
@@ -121,7 +121,7 @@ TEST(DropFilterRollingDetectorTest, StableLoadWithDrop) {
 
   const double_t DROP_PROGRES = 1;
   LoadGenerator loadGen(
-      math::constFunction,
+      [](double_t iter) { return 10; },
       new ZeroNoise(),
       LOAD_ITERATIONS);
 

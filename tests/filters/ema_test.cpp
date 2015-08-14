@@ -24,7 +24,7 @@ TEST(EMATest, SmoothingConstSample) {
   ExponentialMovingAverage ema(
       EMA_REGULAR_SERIES, 0.2);
   LoadGenerator loadGen(
-      math::constFunction, new ZeroNoise(), LOAD_ITERATIONS);
+      [](double_t iter) { return 10; }, new ZeroNoise(), LOAD_ITERATIONS);
 
   for (; loadGen.end() ; loadGen++) {
     double_t result = ema.calculateEMA((*loadGen)(), (*loadGen).timestamp);
@@ -41,7 +41,7 @@ TEST(EMATest, SmoothingNoisyConstSample) {
   ExponentialMovingAverage ema(
       EMA_REGULAR_SERIES, 0.2);
   LoadGenerator loadGen(
-      math::constFunction,
+      [](double_t iter) { return 10; },
       new SymetricNoiseGenerator(MAX_NOISE),
       LOAD_ITERATIONS);
 
@@ -223,7 +223,7 @@ TEST(EMATest, IpcEMATestNoisyConstSample) {
   const double_t MAX_NOISE = 5;
   const int32_t LOAD_ITERATIONS = 100;
   LoadGenerator loadGen(
-      math::constFunction,
+      [](double_t iter) { return 10; },
       new SymetricNoiseGenerator(MAX_NOISE),
       LOAD_ITERATIONS);
 
@@ -331,7 +331,7 @@ TEST(EMATest, CpuUsageEMATestNoisyConstSample) {
   const double_t MAX_NOISE = 5;
   const int32_t LOAD_ITERATIONS = 100;
   LoadGenerator loadGen(
-      math::constFunction,
+      [](double_t iter) { return 10; },
       new SymetricNoiseGenerator(MAX_NOISE),
       LOAD_ITERATIONS);
 

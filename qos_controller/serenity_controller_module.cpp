@@ -36,8 +36,8 @@ static std::shared_ptr<QoSControllerPipeline>
   // TODO(bplotka): Fetch configuration parameters to customize IpcDrop
   // TODO(bplotka): Obtain the type of pipeline from parameters.
   QoSPipelineConf conf;
-  conf.cpdState
-    = ChangePointDetectionState::createForRollingDetector(10, 10, 0.5);
+  conf.cpdState =
+    ChangePointDetectionState::createForRollingDetector(10, 10, 0.5);
   conf.emaAlpha = 0.2;
   conf.utilizationThreshold = 0.95;
   conf.visualisation = true;
