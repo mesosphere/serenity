@@ -1,3 +1,6 @@
+#ifndef SERENITY_IGNORE_NEW_TASKS_FILTER_HPP
+#define SERENITY_IGNORE_NEW_TASKS_FILTER_HPP
+
 #include <ctime>
 #include <memory>
 #include <string>
@@ -6,15 +9,13 @@
 
 #include "messages/serenity.hpp"
 
+#include "serenity/default_vars.hpp"
 #include "serenity/executor_map.hpp"
 #include "serenity/serenity.hpp"
 
 #include "stout/nothing.hpp"
 #include "stout/option.hpp"
 #include "stout/try.hpp"
-
-#ifndef SERENITY_IGNORE_NEW_TASKS_FILTER_HPP
-#define SERENITY_IGNORE_NEW_TASKS_FILTER_HPP
 
 namespace mesos {
 namespace serenity {
@@ -31,7 +32,7 @@ class IgnoreNewExecutorsFilter : public Consumer<ResourceUsage>,
  public:
   explicit IgnoreNewExecutorsFilter(
     Consumer<ResourceUsage>* _consumer = nullptr,
-    uint32_t _thresholdSeconds = DEFAULT_THRESHOLD_SEC) :
+    uint32_t _thresholdSeconds = new_executor::DEFAULT_THRESHOLD_SEC) :
       Producer<ResourceUsage>(_consumer),
       threshold(_thresholdSeconds),
       executorTimestamps(new ExecutorMap<time_t>) {}
@@ -54,12 +55,12 @@ class IgnoreNewExecutorsFilter : public Consumer<ResourceUsage>,
     return time(arg);
   }
 
-  static constexpr uint32_t DEFAULT_THRESHOLD_SEC = 5 * 60;  //!< Five minutes.
   uint32_t threshold;  //!< #seconds when executor is considered too fresh.
 
   std::unique_ptr<ExecutorMap<time_t>> executorTimestamps;
 
-  static constexpr const char* name = "[Serenity] IgnoreNewExecutorsFilter: ";
+  static constexpr const char* name =
+    "[SerenityEstimator] IgnoreNewExecutorsFilter: ";
 };
 
 }  // namespace serenity

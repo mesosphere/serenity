@@ -1,0 +1,1009 @@
+{
+  "resource_usage": [
+    {
+      "total": [
+        {
+          "name": "cpus",
+          "role": "*",
+          "scalar": {
+            "value": 24
+          },
+          "type": "SCALAR"
+        },
+        {
+          "name": "mem",
+          "role": "*",
+          "scalar": {
+            "value": 1024
+          },
+          "type": "SCALAR"
+        }
+      ],
+      "executors": [
+        {
+          "allocated": [
+            {
+              "name": "cpus",
+              "revocable": {},
+              "role": "*",
+              "scalar": {
+                "value": 1
+              },
+              "type": "SCALAR"
+            },
+            {
+              "name": "mem",
+              "role": "*",
+              "scalar": {
+                "value": 160
+              },
+              "type": "SCALAR"
+            }
+          ],
+          "executor_info": {
+            "command": {
+              "shell": true,
+              "value": "/home/mesos/usr/libexec/mesos/mesos-executor"
+            },
+            "executor_id": {
+              "value": "serenityBe2"
+            },
+            "framework_id": {
+              "value": "20150622-161150-16842879-5050-16372-0000"
+            },
+            "name": "Command Executor (Task: serenityBe2) (Command: sh -c 'watch pwd')",
+            "resources": [
+              {
+                "name": "cpus",
+                "role": "*",
+                "scalar": {
+                  "value": 0.1
+                },
+                "type": "SCALAR"
+              },
+              {
+                "name": "mem",
+                "role": "*",
+                "scalar": {
+                  "value": 32
+                },
+                "type": "SCALAR"
+              }
+            ],
+            "source": "serenityBe2"
+          },
+          "statistics": {
+            "cpus_limit": 1.1,
+            "cpus_system_time_secs": 1.17,
+            "cpus_user_time_secs": 3.37,
+            "mem_limit_bytes": 167772160,
+            "mem_rss_bytes": 70983680,
+            "timestamp": 1434982907.7405
+          }
+        },
+        {
+          "allocated": [
+            {
+              "name": "cpus",
+              "revocable": {},
+              "role": "*",
+              "scalar": {
+                "value": 0.5
+              },
+              "type": "SCALAR"
+            },
+            {
+              "name": "mem",
+              "role": "*",
+              "scalar": {
+                "value": 160
+              },
+              "type": "SCALAR"
+            }
+          ],
+          "executor_info": {
+            "command": {
+              "shell": true,
+              "value": "/home/mesos/usr/libexec/mesos/mesos-executor"
+            },
+            "executor_id": {
+              "value": "serenityBe1"
+            },
+            "framework_id": {
+              "value": "20150622-161150-16842879-5050-16372-0001"
+            },
+            "name": "Command Executor (Task: serenityBe1) (Command: sh -c 'watch pwd')",
+            "resources": [
+              {
+                "name": "cpus",
+                "role": "*",
+                "scalar": {
+                  "value": 0.1
+                },
+                "type": "SCALAR"
+              },
+              {
+                "name": "mem",
+                "role": "*",
+                "scalar": {
+                  "value": 32
+                },
+                "type": "SCALAR"
+              }
+            ],
+            "source": "serenityBe1"
+          },
+          "statistics": {
+            "cpus_limit": 1.1,
+            "cpus_system_time_secs": 1.17,
+            "cpus_user_time_secs": 3.37,
+            "mem_limit_bytes": 167772160,
+            "mem_rss_bytes": 70983680,
+            "timestamp": 1434982907.7405
+          }
+        },
+        {
+          "allocated": [
+            {
+              "revocable": {},
+              "name": "cpus",
+              "role": "*",
+              "scalar": {
+                "value": 0.5
+              },
+              "type": "SCALAR"
+            },
+            {
+              "name": "mem",
+              "role": "*",
+              "scalar": {
+                "value": 160
+              },
+              "type": "SCALAR"
+            }
+          ],
+          "executor_info": {
+            "command": {
+              "shell": true,
+              "value": "/home/mesos/usr/libexec/mesos/mesos-executor"
+            },
+            "executor_id": {
+              "value": "serenityBe0"
+            },
+            "framework_id": {
+              "value": "20150622-161150-16842879-5050-16372-0000"
+            },
+            "name": "Command Executor (Task: serenityBe0) (Command: sh -c 'watch pwd')",
+            "resources": [
+              {
+                "name": "cpus",
+                "role": "*",
+                "scalar": {
+                  "value": 0.1
+                },
+                "type": "SCALAR"
+              },
+              {
+                "name": "mem",
+                "role": "*",
+                "scalar": {
+                  "value": 32
+                },
+                "type": "SCALAR"
+              }
+            ],
+            "source": "serenityBe0"
+          },
+          "statistics": {
+            "cpus_limit": 1.1,
+            "cpus_system_time_secs": 1.17,
+            "cpus_user_time_secs": 3.37,
+            "mem_limit_bytes": 167772160,
+            "mem_rss_bytes": 70983680,
+            "timestamp": 1434982907.7405
+          }
+        },
+        {
+          "allocated": [
+            {
+              "name": "cpus",
+              "role": "*",
+              "scalar": {
+                "value": 4
+              },
+              "type": "SCALAR"
+            },
+            {
+              "name": "mem",
+              "role": "*",
+              "scalar": {
+                "value": 160
+              },
+              "type": "SCALAR"
+            }
+          ],
+          "executor_info": {
+            "command": {
+              "shell": true,
+              "value": "/home/mesos/usr/libexec/mesos/mesos-executor"
+            },
+            "executor_id": {
+              "value": "serenityPR"
+            },
+            "framework_id": {
+              "value": "20150622-161150-16842879-5050-16372-0000"
+            },
+            "name": "Command Executor (Task: serenityPR) (Command: sh -c 'watch pwd')",
+            "resources": [
+              {
+                "name": "cpus",
+                "role": "*",
+                "scalar": {
+                  "value": 0.1
+                },
+                "type": "SCALAR"
+              },
+              {
+                "name": "mem",
+                "role": "*",
+                "scalar": {
+                  "value": 32
+                },
+                "type": "SCALAR"
+              }
+            ],
+            "source": "serenityPR"
+          },
+          "statistics": {
+            "cpus_limit": 1.1,
+            "cpus_system_time_secs": 1.17,
+            "cpus_user_time_secs": 3.37,
+            "mem_limit_bytes": 167772160,
+            "mem_rss_bytes": 70983680,
+            "perf": {
+              "cycles": 10,
+              "instructions": 10,
+              "timestamp": 1434982907.7405
+            },
+            "timestamp": 1434982907.7405
+          }
+        },
+        {
+          "allocated": [
+            {
+              "name": "cpus",
+              "role": "*",
+              "scalar": {
+                "value": 2
+              },
+              "type": "SCALAR"
+            },
+            {
+              "name": "mem",
+              "role": "*",
+              "scalar": {
+                "value": 160
+              },
+              "type": "SCALAR"
+            }
+          ],
+          "executor_info": {
+            "command": {
+              "shell": true,
+              "value": "/home/mesos/usr/libexec/mesos/mesos-executor"
+            },
+            "executor_id": {
+              "value": "serenityPR2"
+            },
+            "framework_id": {
+              "value": "20150622-161150-16842879-5050-16372-0000"
+            },
+            "name": "Command Executor (Task: serenityPR2) (Command: sh -c 'watch pwd')",
+            "resources": [
+              {
+                "name": "cpus",
+                "role": "*",
+                "scalar": {
+                  "value": 0.1
+                },
+                "type": "SCALAR"
+              },
+              {
+                "name": "mem",
+                "role": "*",
+                "scalar": {
+                  "value": 32
+                },
+                "type": "SCALAR"
+              }
+            ],
+            "source": "serenityPR2"
+          },
+          "statistics": {
+            "cpus_limit": 1.1,
+            "cpus_system_time_secs": 1.17,
+            "cpus_user_time_secs": 3.37,
+            "mem_limit_bytes": 167772160,
+            "mem_rss_bytes": 70983680,
+            "perf": {
+              "cycles": 20,
+              "instructions": 20,
+              "timestamp": 1434982907.7405
+            },
+            "timestamp": 1434982907.7405
+          }
+        }
+      ]
+    },
+    {
+      "total": [
+        {
+          "name": "cpus",
+          "role": "*",
+          "scalar": {
+            "value": 24
+          },
+          "type": "SCALAR"
+        },
+        {
+          "name": "mem",
+          "role": "*",
+          "scalar": {
+            "value": 1024
+          },
+          "type": "SCALAR"
+        }
+      ],
+      "executors": [
+        {
+          "allocated": [
+            {
+              "name": "cpus",
+              "revocable": {},
+              "role": "*",
+              "scalar": {
+                "value": 1
+              },
+              "type": "SCALAR"
+            },
+            {
+              "name": "mem",
+              "role": "*",
+              "scalar": {
+                "value": 160
+              },
+              "type": "SCALAR"
+            }
+          ],
+          "executor_info": {
+            "command": {
+              "shell": true,
+              "value": "/home/mesos/usr/libexec/mesos/mesos-executor"
+            },
+            "executor_id": {
+              "value": "serenityBe2"
+            },
+            "framework_id": {
+              "value": "20150622-161150-16842879-5050-16372-0000"
+            },
+            "name": "Command Executor (Task: serenityBe2) (Command: sh -c 'watch pwd')",
+            "resources": [
+              {
+                "name": "cpus",
+                "role": "*",
+                "scalar": {
+                  "value": 0.1
+                },
+                "type": "SCALAR"
+              },
+              {
+                "name": "mem",
+                "role": "*",
+                "scalar": {
+                  "value": 32
+                },
+                "type": "SCALAR"
+              }
+            ],
+            "source": "serenityBe2"
+          },
+          "statistics": {
+            "cpus_limit": 1.1,
+            "cpus_system_time_secs": 1.17,
+            "cpus_user_time_secs": 3.37,
+            "mem_limit_bytes": 167772160,
+            "mem_rss_bytes": 70983680,
+            "timestamp": 1434982907.7405
+          }
+        },
+        {
+          "allocated": [
+            {
+              "name": "cpus",
+              "revocable": {},
+              "role": "*",
+              "scalar": {
+                "value": 0.5
+              },
+              "type": "SCALAR"
+            },
+            {
+              "name": "mem",
+              "role": "*",
+              "scalar": {
+                "value": 160
+              },
+              "type": "SCALAR"
+            }
+          ],
+          "executor_info": {
+            "command": {
+              "shell": true,
+              "value": "/home/mesos/usr/libexec/mesos/mesos-executor"
+            },
+            "executor_id": {
+              "value": "serenityBe1"
+            },
+            "framework_id": {
+              "value": "20150622-161150-16842879-5050-16372-0001"
+            },
+            "name": "Command Executor (Task: serenityBe1) (Command: sh -c 'watch pwd')",
+            "resources": [
+              {
+                "name": "cpus",
+                "role": "*",
+                "scalar": {
+                  "value": 0.1
+                },
+                "type": "SCALAR"
+              },
+              {
+                "name": "mem",
+                "role": "*",
+                "scalar": {
+                  "value": 32
+                },
+                "type": "SCALAR"
+              }
+            ],
+            "source": "serenityBe1"
+          },
+          "statistics": {
+            "cpus_limit": 1.1,
+            "cpus_system_time_secs": 1.17,
+            "cpus_user_time_secs": 3.37,
+            "mem_limit_bytes": 167772160,
+            "mem_rss_bytes": 70983680,
+            "timestamp": 1434982907.7405
+          }
+        },
+        {
+          "allocated": [
+            {
+              "revocable": {},
+              "name": "cpus",
+              "role": "*",
+              "scalar": {
+                "value": 0.5
+              },
+              "type": "SCALAR"
+            },
+            {
+              "name": "mem",
+              "role": "*",
+              "scalar": {
+                "value": 160
+              },
+              "type": "SCALAR"
+            }
+          ],
+          "executor_info": {
+            "command": {
+              "shell": true,
+              "value": "/home/mesos/usr/libexec/mesos/mesos-executor"
+            },
+            "executor_id": {
+              "value": "serenityBe0"
+            },
+            "framework_id": {
+              "value": "20150622-161150-16842879-5050-16372-0000"
+            },
+            "name": "Command Executor (Task: serenityBe0) (Command: sh -c 'watch pwd')",
+            "resources": [
+              {
+                "name": "cpus",
+                "role": "*",
+                "scalar": {
+                  "value": 0.1
+                },
+                "type": "SCALAR"
+              },
+              {
+                "name": "mem",
+                "role": "*",
+                "scalar": {
+                  "value": 32
+                },
+                "type": "SCALAR"
+              }
+            ],
+            "source": "serenityBe0"
+          },
+          "statistics": {
+            "cpus_limit": 1.1,
+            "cpus_system_time_secs": 1.17,
+            "cpus_user_time_secs": 3.37,
+            "mem_limit_bytes": 167772160,
+            "mem_rss_bytes": 70983680,
+            "timestamp": 1434982907.7405
+          }
+        },
+        {
+          "allocated": [
+            {
+              "name": "cpus",
+              "role": "*",
+              "scalar": {
+                "value": 4
+              },
+              "type": "SCALAR"
+            },
+            {
+              "name": "mem",
+              "role": "*",
+              "scalar": {
+                "value": 160
+              },
+              "type": "SCALAR"
+            }
+          ],
+          "executor_info": {
+            "command": {
+              "shell": true,
+              "value": "/home/mesos/usr/libexec/mesos/mesos-executor"
+            },
+            "executor_id": {
+              "value": "serenityPR"
+            },
+            "framework_id": {
+              "value": "20150622-161150-16842879-5050-16372-0000"
+            },
+            "name": "Command Executor (Task: serenityPR) (Command: sh -c 'watch pwd')",
+            "resources": [
+              {
+                "name": "cpus",
+                "role": "*",
+                "scalar": {
+                  "value": 0.1
+                },
+                "type": "SCALAR"
+              },
+              {
+                "name": "mem",
+                "role": "*",
+                "scalar": {
+                  "value": 32
+                },
+                "type": "SCALAR"
+              }
+            ],
+            "source": "serenityPR"
+          },
+          "statistics": {
+            "cpus_limit": 1.1,
+            "cpus_system_time_secs": 1.17,
+            "cpus_user_time_secs": 3.37,
+            "mem_limit_bytes": 167772160,
+            "mem_rss_bytes": 70983680,
+            "perf": {
+              "cycles": 11,
+              "instructions": 11,
+              "timestamp": 1434982908.7405
+            },
+            "timestamp": 1434982908.7405
+          }
+        },
+        {
+          "allocated": [
+            {
+              "name": "cpus",
+              "role": "*",
+              "scalar": {
+                "value": 2
+              },
+              "type": "SCALAR"
+            },
+            {
+              "name": "mem",
+              "role": "*",
+              "scalar": {
+                "value": 160
+              },
+              "type": "SCALAR"
+            }
+          ],
+          "executor_info": {
+            "command": {
+              "shell": true,
+              "value": "/home/mesos/usr/libexec/mesos/mesos-executor"
+            },
+            "executor_id": {
+              "value": "serenityPR2"
+            },
+            "framework_id": {
+              "value": "20150622-161150-16842879-5050-16372-0000"
+            },
+            "name": "Command Executor (Task: serenityPR2) (Command: sh -c 'watch pwd')",
+            "resources": [
+              {
+                "name": "cpus",
+                "role": "*",
+                "scalar": {
+                  "value": 0.1
+                },
+                "type": "SCALAR"
+              },
+              {
+                "name": "mem",
+                "role": "*",
+                "scalar": {
+                  "value": 32
+                },
+                "type": "SCALAR"
+              }
+            ],
+            "source": "serenityPR2"
+          },
+          "statistics": {
+            "cpus_limit": 1.1,
+            "cpus_system_time_secs": 1.17,
+            "cpus_user_time_secs": 3.37,
+            "mem_limit_bytes": 167772160,
+            "mem_rss_bytes": 70983680,
+            "perf": {
+              "cycles": 21,
+              "instructions": 21,
+              "timestamp": 1434982908.7405
+            },
+            "timestamp": 1434982908.7405
+          }
+        }
+      ]
+    },
+    {
+      "total": [
+        {
+          "name": "cpus",
+          "role": "*",
+          "scalar": {
+            "value": 24
+          },
+          "type": "SCALAR"
+        },
+        {
+          "name": "mem",
+          "role": "*",
+          "scalar": {
+            "value": 1024
+          },
+          "type": "SCALAR"
+        }
+      ],
+      "executors": [
+        {
+          "allocated": [
+            {
+              "name": "cpus",
+              "revocable": {},
+              "role": "*",
+              "scalar": {
+                "value": 1
+              },
+              "type": "SCALAR"
+            },
+            {
+              "name": "mem",
+              "role": "*",
+              "scalar": {
+                "value": 160
+              },
+              "type": "SCALAR"
+            }
+          ],
+          "executor_info": {
+            "command": {
+              "shell": true,
+              "value": "/home/mesos/usr/libexec/mesos/mesos-executor"
+            },
+            "executor_id": {
+              "value": "serenityBe2"
+            },
+            "framework_id": {
+              "value": "20150622-161150-16842879-5050-16372-0000"
+            },
+            "name": "Command Executor (Task: serenityBe2) (Command: sh -c 'watch pwd')",
+            "resources": [
+              {
+                "name": "cpus",
+                "role": "*",
+                "scalar": {
+                  "value": 0.1
+                },
+                "type": "SCALAR"
+              },
+              {
+                "name": "mem",
+                "role": "*",
+                "scalar": {
+                  "value": 32
+                },
+                "type": "SCALAR"
+              }
+            ],
+            "source": "serenityBe2"
+          },
+          "statistics": {
+            "cpus_limit": 1.1,
+            "cpus_system_time_secs": 1.17,
+            "cpus_user_time_secs": 3.37,
+            "mem_limit_bytes": 167772160,
+            "mem_rss_bytes": 70983680,
+            "timestamp": 1434982907.7405
+          }
+        },
+        {
+          "allocated": [
+            {
+              "name": "cpus",
+              "revocable": {},
+              "role": "*",
+              "scalar": {
+                "value": 0.5
+              },
+              "type": "SCALAR"
+            },
+            {
+              "name": "mem",
+              "role": "*",
+              "scalar": {
+                "value": 160
+              },
+              "type": "SCALAR"
+            }
+          ],
+          "executor_info": {
+            "command": {
+              "shell": true,
+              "value": "/home/mesos/usr/libexec/mesos/mesos-executor"
+            },
+            "executor_id": {
+              "value": "serenityBe1"
+            },
+            "framework_id": {
+              "value": "20150622-161150-16842879-5050-16372-0001"
+            },
+            "name": "Command Executor (Task: serenityBe1) (Command: sh -c 'watch pwd')",
+            "resources": [
+              {
+                "name": "cpus",
+                "role": "*",
+                "scalar": {
+                  "value": 0.1
+                },
+                "type": "SCALAR"
+              },
+              {
+                "name": "mem",
+                "role": "*",
+                "scalar": {
+                  "value": 32
+                },
+                "type": "SCALAR"
+              }
+            ],
+            "source": "serenityBe1"
+          },
+          "statistics": {
+            "cpus_limit": 1.1,
+            "cpus_system_time_secs": 1.17,
+            "cpus_user_time_secs": 3.37,
+            "mem_limit_bytes": 167772160,
+            "mem_rss_bytes": 70983680,
+            "timestamp": 1434982907.7405
+          }
+        },
+        {
+          "allocated": [
+            {
+              "revocable": {},
+              "name": "cpus",
+              "role": "*",
+              "scalar": {
+                "value": 0.5
+              },
+              "type": "SCALAR"
+            },
+            {
+              "name": "mem",
+              "role": "*",
+              "scalar": {
+                "value": 160
+              },
+              "type": "SCALAR"
+            }
+          ],
+          "executor_info": {
+            "command": {
+              "shell": true,
+              "value": "/home/mesos/usr/libexec/mesos/mesos-executor"
+            },
+            "executor_id": {
+              "value": "serenityBe0"
+            },
+            "framework_id": {
+              "value": "20150622-161150-16842879-5050-16372-0000"
+            },
+            "name": "Command Executor (Task: serenityBe0) (Command: sh -c 'watch pwd')",
+            "resources": [
+              {
+                "name": "cpus",
+                "role": "*",
+                "scalar": {
+                  "value": 0.1
+                },
+                "type": "SCALAR"
+              },
+              {
+                "name": "mem",
+                "role": "*",
+                "scalar": {
+                  "value": 32
+                },
+                "type": "SCALAR"
+              }
+            ],
+            "source": "serenityBe0"
+          },
+          "statistics": {
+            "cpus_limit": 1.1,
+            "cpus_system_time_secs": 1.17,
+            "cpus_user_time_secs": 3.37,
+            "mem_limit_bytes": 167772160,
+            "mem_rss_bytes": 70983680,
+            "timestamp": 1434982907.7405
+          }
+        },
+        {
+          "allocated": [
+            {
+              "name": "cpus",
+              "role": "*",
+              "scalar": {
+                "value": 4
+              },
+              "type": "SCALAR"
+            },
+            {
+              "name": "mem",
+              "role": "*",
+              "scalar": {
+                "value": 160
+              },
+              "type": "SCALAR"
+            }
+          ],
+          "executor_info": {
+            "command": {
+              "shell": true,
+              "value": "/home/mesos/usr/libexec/mesos/mesos-executor"
+            },
+            "executor_id": {
+              "value": "serenityPR"
+            },
+            "framework_id": {
+              "value": "20150622-161150-16842879-5050-16372-0000"
+            },
+            "name": "Command Executor (Task: serenityPR) (Command: sh -c 'watch pwd')",
+            "resources": [
+              {
+                "name": "cpus",
+                "role": "*",
+                "scalar": {
+                  "value": 0.1
+                },
+                "type": "SCALAR"
+              },
+              {
+                "name": "mem",
+                "role": "*",
+                "scalar": {
+                  "value": 32
+                },
+                "type": "SCALAR"
+              }
+            ],
+            "source": "serenityPR"
+          },
+          "statistics": {
+            "cpus_limit": 1.1,
+            "cpus_system_time_secs": 1.17,
+            "cpus_user_time_secs": 3.37,
+            "mem_limit_bytes": 167772160,
+            "mem_rss_bytes": 70983680,
+            "perf": {
+              "cycles": 12,
+              "instructions": 11,
+              "timestamp": 1434982909.7405
+            },
+            "timestamp": 1434982909.7405
+          }
+        },
+        {
+          "allocated": [
+            {
+              "name": "cpus",
+              "role": "*",
+              "scalar": {
+                "value": 2
+              },
+              "type": "SCALAR"
+            },
+            {
+              "name": "mem",
+              "role": "*",
+              "scalar": {
+                "value": 160
+              },
+              "type": "SCALAR"
+            }
+          ],
+          "executor_info": {
+            "command": {
+              "shell": true,
+              "value": "/home/mesos/usr/libexec/mesos/mesos-executor"
+            },
+            "executor_id": {
+              "value": "serenityPR2"
+            },
+            "framework_id": {
+              "value": "20150622-161150-16842879-5050-16372-0000"
+            },
+            "name": "Command Executor (Task: serenityPR2) (Command: sh -c 'watch pwd')",
+            "resources": [
+              {
+                "name": "cpus",
+                "role": "*",
+                "scalar": {
+                  "value": 0.1
+                },
+                "type": "SCALAR"
+              },
+              {
+                "name": "mem",
+                "role": "*",
+                "scalar": {
+                  "value": 32
+                },
+                "type": "SCALAR"
+              }
+            ],
+            "source": "serenityPR2"
+          },
+          "statistics": {
+            "cpus_limit": 1.1,
+            "cpus_system_time_secs": 1.17,
+            "cpus_user_time_secs": 3.37,
+            "mem_limit_bytes": 167772160,
+            "mem_rss_bytes": 70983680,
+            "perf": {
+              "cycles": 22,
+              "instructions": 22,
+              "timestamp": 1434982909.7405
+            },
+            "timestamp": 1434982909.7405
+          }
+        }
+      ]
+    }
+  ]
+}

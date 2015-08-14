@@ -3,6 +3,8 @@
 
 #include <cmath>
 
+#include "mesos/mesos.pb.h"
+
 #include "stout/lambda.hpp"
 
 namespace mesos {
@@ -15,11 +17,6 @@ constexpr double_t DEFAULT_MAX_NOISE = 50;
 
 //! Math Functions - used for load model.
 namespace math {
-
-inline double_t constFunction(double_t x) {
-  return 10;
-}
-
 
 inline double_t linearFunction(double_t x) {
   return x;
@@ -196,6 +193,38 @@ class LoadGenerator {
 
   double_t timeWindow = DEFAULT_TIME_WINDOW;
 };
+
+
+/**
+ * This function fills instructions and cycles perf events to match given
+ * IPC value.
+ */
+inline ResourceUsage_Executor generateIPC(
+    const ResourceUsage_Executor _executorUsage,
+    double_t _IpcValue,
+    double_t _timestamp) {
+  const int ACCURACY_MODIFIER = 10;
+  // This function generates IPC with 1/ACCURACY_MODIFIER accuracy.
+  _IpcValue *= ACCURACY_MODIFIER;
+  ResourceUsage_Executor executorUsage;
+  executorUsage.CopyFrom(_executorUsage);
+
+  double_t previousInstructions =
+    executorUsage.statistics().perf().instructions();
+  double_t previousCycles =
+    executorUsage.statistics().perf().cycles();
+
+  executorUsage.mutable_statistics()
+      ->mutable_perf()->set_instructions(previousInstructions + _IpcValue);
+
+  executorUsage.mutable_statistics()
+      ->mutable_perf()->set_cycles(previousCycles + ACCURACY_MODIFIER);
+
+  executorUsage.mutable_statistics()
+      ->mutable_perf()->set_timestamp(_timestamp);
+
+  return executorUsage;
+}
 
 }  // namespace tests
 }  // namespace serenity

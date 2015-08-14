@@ -32,7 +32,7 @@ TEST(RollingChangePointDetectionTest, StableLoadNoChangePoint) {
           WINDOWS_SIZE, CONTENTION_COOLDOWN, RELATIVE_THRESHOLD));
 
   LoadGenerator loadGen(
-      math::constFunction, new ZeroNoise(), LOAD_ITERATIONS);
+      [](double_t iter) { return 10; }, new ZeroNoise(), LOAD_ITERATIONS);
 
   for (; loadGen.end() ; loadGen++) {
     Result<ChangePointDetection> result =
@@ -58,7 +58,7 @@ TEST(RollingChangePointDetectionTest, StableLoadOneChangePoint) {
           WINDOWS_SIZE, CONTENTION_COOLDOWN, RELATIVE_THRESHOLD));
 
   LoadGenerator loadGen(
-      math::constFunction, new ZeroNoise(), LOAD_ITERATIONS);
+      [](double_t iter) { return 10; }, new ZeroNoise(), LOAD_ITERATIONS);
 
   // Starting iterations.
   for (; loadGen.end() ; loadGen++) {

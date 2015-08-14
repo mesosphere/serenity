@@ -56,6 +56,11 @@ Result<ChangePointDetection> RollingChangePointDetector::processSample(
     return cpd;
   }
 
+  if (in < basePoint) {
+    LOG(INFO) << "[SerenityQoS] DropDetector: Found decrease, "
+                 "but not significant: " << (in - basePoint);
+  }
+
   return None();
 }
 

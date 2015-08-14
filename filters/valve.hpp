@@ -29,6 +29,8 @@ static const std::string getValveProcessBaseName(const ModuleType type) {
       return RESOURCE_ESTIMATOR_VALVE_PROCESS_BASE;
     case QOS_CONTROLLER:
       return QOS_CONTROLLER_VALVE_PROCESS_BASE;
+    default:
+      return "serenity_valve";
   }
 }
 

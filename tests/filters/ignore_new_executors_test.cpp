@@ -20,7 +20,7 @@ class MockIgnoreNewExecutorsFilter : public IgnoreNewExecutorsFilter {
  public:
   MockIgnoreNewExecutorsFilter(
       Consumer<ResourceUsage>* _consumer,
-      uint32_t _threshold = DEFAULT_THRESHOLD_SEC) :
+      uint32_t _threshold = 5 * 60) :
         IgnoreNewExecutorsFilter(_consumer, _threshold) {}
 
   MOCK_METHOD1(GetTime, time_t(time_t* arg));

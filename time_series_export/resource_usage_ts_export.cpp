@@ -46,7 +46,7 @@ Try<Nothing> ResourceUsageTimeSeriesExporter::consume(
     locals.push_back(TimeSeriesRecord(Series::CPU_USAGE_USR,
                                          stats.cpus_user_time_secs()));
 
-    //TODO (skonefal): Make this also send CPU_USAGE_SUM without EMA
+    // TODO(skonefal): Make this also send CPU_USAGE_SUM without EMA
     Try<double_t> emaCpuUsage = usage::getEmaCpuUsage(executor, executor);
     if (emaCpuUsage.isSome()) {
       locals.push_back(TimeSeriesRecord(Series::CPU_USAGE_SUM,
@@ -69,8 +69,8 @@ Try<Nothing> ResourceUsageTimeSeriesExporter::consume(
       }
 
       if (perf.has_cycles() && perf.has_instructions()) {
-        //TODO (skonefal): When filters will be fixed, send also raw-ema
-        Try<double_t> emaIpc = usage::getEmaIpc(executor,executor);
+        // TODO(skonefal): When filters will be fixed, send also raw-ema
+        Try<double_t> emaIpc = usage::getEmaIpc(executor, executor);
         if (emaIpc.isSome()) {
           locals.push_back(TimeSeriesRecord(Series::CPI, emaIpc.get()));
         }

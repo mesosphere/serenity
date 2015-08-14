@@ -71,6 +71,13 @@ class MockSlaveUsage {
     return results.resource_usage(iteration++);
   }
 
+  process::Future<ResourceUsage> usageIter(int _iteration) {
+    if (_iteration >= results.resource_usage_size())
+      return ResourceUsage();
+    std::cout<< _iteration << std::endl;
+    return results.resource_usage(_iteration);
+  }
+
  private:
   mesos::FixtureResourceUsage results;
   int iteration = 0;

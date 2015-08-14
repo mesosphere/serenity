@@ -10,6 +10,7 @@
 #include "messages/serenity.hpp"
 
 #include "serenity/data_utils.hpp"
+#include "serenity/default_vars.hpp"
 #include "serenity/executor_map.hpp"
 #include "serenity/executor_set.hpp"
 #include "serenity/serenity.hpp"
@@ -19,14 +20,6 @@
 
 namespace mesos {
 namespace serenity {
-
-/**
- * Alpha controls how long is the moving average period.
- * The smaller alpha becomes, the longer your moving average is.
- * It becomes smoother, but less reactive to new samples.
- */
-constexpr double_t DEFAULT_EMA_FILTER_ALPHA = 0.2;
-
 
 /**
  * EMA calculation can be more sophisticated for irregular
@@ -43,7 +36,7 @@ class ExponentialMovingAverage {
  public:
   ExponentialMovingAverage(
       EMASeriesType _seriesType = EMA_REGULAR_SERIES,
-      double_t _alpha = DEFAULT_EMA_FILTER_ALPHA)
+      double_t _alpha = ema::DEFAULT_ALPHA)
       : alpha(_alpha),
         seriesType(_seriesType),
         uninitialized(true) {}
@@ -63,6 +56,9 @@ class ExponentialMovingAverage {
 
  private:
   //! Constant describing how the window weights decrease over time.
+  //! It controls how long the moving average period is.
+  //! The smaller alpha becomes, the longer your moving average is.
+  //! It becomes smoother, but less reactive to new samples.
   double_t alpha;
   //! Previous exponential moving average value.
   double_t prevEma;
@@ -107,7 +103,7 @@ class EMAFilter :
       Consumer<ResourceUsage>* _consumer,
       const lambda::function<usage::GetterFunction>& _valueGetFunction,
       const lambda::function<usage::SetterFunction>& _valueSetFunction,
-      double_t _alpha = DEFAULT_EMA_FILTER_ALPHA,
+      double_t _alpha = ema::DEFAULT_ALPHA,
       const Tag& _tag = Tag(UNDEFINED, "emaFilter"))
     : tag(_tag), Producer<ResourceUsage>(_consumer),
       previousSamples(new ExecutorSet),
