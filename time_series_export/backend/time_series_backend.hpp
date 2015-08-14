@@ -21,21 +21,28 @@ enum class Series : uint8_t {
   SLACK_RESOURCES,
   CPU_USAGE_SYS,
   CPU_USAGE_USR,
+  CPU_USAGE_SUM,
+
   CPU_ALLOC,
   CYCLES,
   INSTRUCTIONS,
+  CPI,
+  IPC,
   CACHE_MISSES
 };
 
 static std::string SeriesString(Series series) {
   switch (series) {
-    case Series::SLACK_RESOURCES: return "SlackResources";
-    case Series::CPU_USAGE_SYS:   return "CpuUsageSys";
-    case Series::CPU_USAGE_USR:   return "CpuUsageUsr";
-    case Series::CPU_ALLOC:       return "CpuAllocation";
-    case Series::CYCLES:          return "Cycles";
-    case Series::INSTRUCTIONS:    return "Instructions";
-    case Series::CACHE_MISSES:    return "CacheMisses";
+    case Series::SLACK_RESOURCES: return "slack_resources";
+    case Series::CPU_USAGE_SYS:   return "cpu_usage_sys";
+    case Series::CPU_USAGE_USR:   return "cpu_usage_usr";
+    case Series::CPU_USAGE_SUM:   return "cpu_usage_sum";
+    case Series::CPU_ALLOC:       return "cpu_allocation";
+    case Series::CYCLES:          return "cycles";
+    case Series::INSTRUCTIONS:    return "instructions";
+    case Series::CPI:             return "cpi";
+    case Series::IPC:             return "ipc";
+    case Series::CACHE_MISSES:    return "cache_misses";
   }
 }
 
@@ -54,12 +61,12 @@ enum class TsTag : uint8_t {
 
 static std::string TagString(TsTag tag) {
   switch (tag) {
-    case TsTag::EXECUTOR_ID:  return "ExecutorId";
-    case TsTag::FRAMEWORK_ID: return "FrameworkId";
-    case TsTag::HOSTNAME:     return "Node";
-    case TsTag::AGENT_ID:     return "AgentId";
-    case TsTag::TAG:          return "Tag";
-    case TsTag::VALUE:        return "Value";
+    case TsTag::EXECUTOR_ID:  return "executorId";
+    case TsTag::FRAMEWORK_ID: return "frameworkId";
+    case TsTag::HOSTNAME:     return "node";
+    case TsTag::AGENT_ID:     return "agentId";
+    case TsTag::TAG:          return "tag";
+    case TsTag::VALUE:        return "value";
   }
 }
 

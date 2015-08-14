@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#include "serenity/data_utils.hpp"
+
 #include "glog/logging.h"
 
 #include "serenity/agent_utils.hpp"
@@ -43,8 +45,16 @@ Try<Nothing> ResourceUsageTimeSeriesExporter::consume(
                                          stats.cpus_system_time_secs()));
     locals.push_back(TimeSeriesRecord(Series::CPU_USAGE_USR,
                                          stats.cpus_user_time_secs()));
+
+    //TODO (skonefal): Make this also send CPU_USAGE_SUM without EMA
+    Try<double_t> emaCpuUsage = usage::getEmaCpuUsage(executor, executor);
+    if (emaCpuUsage.isSome()) {
+      locals.push_back(TimeSeriesRecord(Series::CPU_USAGE_SUM,
+                                        emaCpuUsage.get()));
+    }
+
     locals.push_back(TimeSeriesRecord(Series::CPU_ALLOC,
-                                         stats.cpus_limit()));
+                                      stats.cpus_limit()));
 
     // perf stats if exists
     if (stats.has_perf()) {
@@ -57,6 +67,15 @@ Try<Nothing> ResourceUsageTimeSeriesExporter::consume(
         locals.push_back(TimeSeriesRecord(Series::INSTRUCTIONS,
                                           perf.instructions()));
       }
+
+      if (perf.has_cycles() && perf.has_instructions()) {
+        //TODO (skonefal): When filters will be fixed, send also raw-ema
+        Try<double_t> emaIpc = usage::getEmaIpc(executor,executor);
+        if (emaIpc.isSome()) {
+          locals.push_back(TimeSeriesRecord(Series::CPI, emaIpc.get()));
+        }
+      }
+
       if (perf.has_cache_misses()) {
         locals.push_back(TimeSeriesRecord(Series::CACHE_MISSES,
                                           perf.cache_misses()));
