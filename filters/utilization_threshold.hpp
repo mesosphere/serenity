@@ -4,6 +4,7 @@
 #include <string>
 #include <memory>
 
+#include "serenity/default_vars.hpp"
 #include "serenity/executor_set.hpp"
 #include "serenity/serenity.hpp"
 
@@ -12,8 +13,6 @@
 
 namespace mesos {
 namespace serenity {
-
-const double_t DEFAULT_UTILIZATION_THRESHOLD = 0.95;
 
 /**
  * UtilizationThresholdFilter disables oversubscription when node
@@ -29,7 +28,7 @@ class UtilizationThresholdFilter :
  public:
   UtilizationThresholdFilter(
       Consumer<ResourceUsage>* _consumer,
-      double_t _utilizationThreshold = DEFAULT_UTILIZATION_THRESHOLD,
+      double_t _utilizationThreshold = utilization::DEFAULT_THRESHOLD,
       const Tag& _tag = Tag(UNDEFINED, "utilizationFilter"))
       : tag(_tag), Producer<ResourceUsage>(_consumer),
         utilizationThreshold(_utilizationThreshold),

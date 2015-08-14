@@ -130,7 +130,7 @@ class Tag {
         this->aim = "Slack estimation";
         break;
       case QOS_CONTROLLER:
-        this->prefix = "[SerenityQoSController] ";
+        this->prefix = "[SerenityQoS] ";
         this->aim = "QoS assurance";
         break;
       default:

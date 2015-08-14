@@ -11,6 +11,8 @@
 
 #include "pipeline/qos_pipeline.hpp"
 
+#include "serenity/config.hpp"
+
 #include "stout/try.hpp"
 
 #include "qos_controller/serenity_controller.hpp"
@@ -23,6 +25,7 @@ using mesos::serenity::CpuQoSPipeline;
 using mesos::serenity::RollingChangePointDetector;
 using mesos::serenity::SerenityController;
 using mesos::serenity::QoSControllerPipeline;
+using mesos::serenity::QoSPipelineConf;
 
 using mesos::slave::QoSController;
 
@@ -32,10 +35,17 @@ static std::shared_ptr<QoSControllerPipeline>
     const Parameters& parameters) {
   // TODO(bplotka): Fetch configuration parameters to customize IpcDrop
   // TODO(bplotka): Obtain the type of pipeline from parameters.
+  QoSPipelineConf conf;
+  conf.cpdState =
+    ChangePointDetectionState::createForRollingDetector(10, 10, 0.5);
+  conf.emaAlpha = 0.2;
+  conf.utilizationThreshold = 0.95;
+  conf.visualisation = true;
+  conf.valveOpened = false;
+
   std::shared_ptr<QoSControllerPipeline> pipeline(
-      new CpuQoSPipeline<RollingChangePointDetector>(
-          ChangePointDetectionState::createForRollingDetector(10, 10, 0.5),
-          true, false));
+      new CpuQoSPipeline<RollingChangePointDetector>(conf));
+
   return pipeline;
 }
 

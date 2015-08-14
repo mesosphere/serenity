@@ -22,9 +22,9 @@ TEST(EMATest, SmoothingConstSample) {
   const double_t THRESHOLD = 0.01;
   const int32_t LOAD_ITERATIONS = 100;
   ExponentialMovingAverage ema(
-      EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
+      EMA_REGULAR_SERIES, 0.2);
   LoadGenerator loadGen(
-      math::constFunction, new ZeroNoise(), LOAD_ITERATIONS);
+      [](double_t iter) { return 10; }, new ZeroNoise(), LOAD_ITERATIONS);
 
   for (; loadGen.end() ; loadGen++) {
     double_t result = ema.calculateEMA((*loadGen)(), (*loadGen).timestamp);
@@ -39,9 +39,9 @@ TEST(EMATest, SmoothingNoisyConstSample) {
   const double_t MAX_NOISE = 30;
   const int32_t LOAD_ITERATIONS = 100;
   ExponentialMovingAverage ema(
-      EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
+      EMA_REGULAR_SERIES, 0.2);
   LoadGenerator loadGen(
-      math::constFunction,
+      [](double_t iter) { return 10; },
       new SymetricNoiseGenerator(MAX_NOISE),
       LOAD_ITERATIONS);
 
@@ -58,7 +58,7 @@ TEST(EMATest, SmoothingNoisyLinearSample) {
   const double_t MAX_NOISE = 50;
   const int32_t LOAD_ITERATIONS = 100;
   ExponentialMovingAverage ema(
-      EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
+      EMA_REGULAR_SERIES, 0.2);
   LoadGenerator loadGen(
       math::linearFunction,
       new SymetricNoiseGenerator(MAX_NOISE),
@@ -77,7 +77,7 @@ TEST(EMATest, SmoothingNoisySinSample) {
   const double_t MAX_NOISE = 50;
   const int32_t LOAD_ITERATIONS = 100;
   ExponentialMovingAverage ema(
-      EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
+      EMA_REGULAR_SERIES, 0.2);
   LoadGenerator loadGen(
       math::sinFunction,
       new SymetricNoiseGenerator(MAX_NOISE),
@@ -97,7 +97,7 @@ TEST(EMATest, SmoothingNoisySinSampleDrop) {
   const double_t DROP = 10;
   const int32_t LOAD_ITERATIONS = 200;
   ExponentialMovingAverage ema(
-      EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
+      EMA_REGULAR_SERIES, 0.2);
   LoadGenerator loadGen(
       math::sinFunction,
       new SymetricNoiseGenerator(MAX_NOISE),
@@ -120,7 +120,7 @@ TEST(EMATest, SmoothingNoisySinStableDrop) {
   const double_t DROP_PROGRES = 0.2;
   const int32_t LOAD_ITERATIONS = 200;
   ExponentialMovingAverage ema(
-      EMA_REGULAR_SERIES, DEFAULT_EMA_FILTER_ALPHA);
+      EMA_REGULAR_SERIES, 0.2);
   LoadGenerator loadGen(
       math::sinFunction,
       new SymetricNoiseGenerator(MAX_NOISE),
@@ -152,7 +152,7 @@ TEST(EMATest, IpcEMATest) {
 
   // Second component in pipeline.
   EMAFilter ipcEMAFilter(
-      &mockSink, usage::getIpc, usage::setEmaIpc, DEFAULT_EMA_FILTER_ALPHA);
+      &mockSink, usage::getIpc, usage::setEmaIpc, 0.2);
 
   // First component in pipeline.
   JsonSource jsonSource(&ipcEMAFilter);
@@ -181,7 +181,7 @@ TEST(EMATest, IpcEMATestNoPerf) {
 
   // Second component in pipeline.
   EMAFilter ipcEMAFilter(
-      &mockSink, usage::getIpc, usage::setEmaIpc, DEFAULT_EMA_FILTER_ALPHA);
+      &mockSink, usage::getIpc, usage::setEmaIpc, 0.2);
 
   // First component in pipeline.
   JsonSource jsonSource(&ipcEMAFilter);
@@ -204,7 +204,7 @@ TEST(EMATest, IpcEMATestNoisyConstSample) {
 
   // Second component in pipeline.
   EMAFilter ipcEMAFilter(
-      &mockSink, usage::getIpc, usage::setEmaIpc, DEFAULT_EMA_FILTER_ALPHA);
+      &mockSink, usage::getIpc, usage::setEmaIpc, 0.2);
 
   // First component in pipeline.
   MockSource<ResourceUsage> source(&ipcEMAFilter);
@@ -223,23 +223,15 @@ TEST(EMATest, IpcEMATestNoisyConstSample) {
   const double_t MAX_NOISE = 5;
   const int32_t LOAD_ITERATIONS = 100;
   LoadGenerator loadGen(
-      math::constFunction,
+      [](double_t iter) { return 10; },
       new SymetricNoiseGenerator(MAX_NOISE),
       LOAD_ITERATIONS);
 
-  uint64_t previousLoad = 0;
   for (; loadGen.end(); loadGen++) {
-    usage.mutable_executors(0)->mutable_statistics()
-      ->mutable_perf()->set_instructions(previousLoad + (uint64_t)(*loadGen)());
-    previousLoad += (uint64_t)(*loadGen)();
-
-    // For IPC test we want to model instructions/cycles, so in that
-    // case we can model instructions and set cycles to 1.
-    usage.mutable_executors(0)->mutable_statistics()
-        ->mutable_perf()->set_cycles((uint64_t)loadGen.iteration);
-
-    usage.mutable_executors(0)->mutable_statistics()
-        ->mutable_perf()->set_timestamp((*loadGen).timestamp);
+    usage.mutable_executors(0)->CopyFrom(
+        generateIPC(usage.executors(0),
+                    (*loadGen)(),
+                    (*loadGen).timestamp));
 
     // Run pipeline iteration
     source.produce(usage);
@@ -339,7 +331,7 @@ TEST(EMATest, CpuUsageEMATestNoisyConstSample) {
   const double_t MAX_NOISE = 5;
   const int32_t LOAD_ITERATIONS = 100;
   LoadGenerator loadGen(
-      math::constFunction,
+      [](double_t iter) { return 10; },
       new SymetricNoiseGenerator(MAX_NOISE),
       LOAD_ITERATIONS);
 

@@ -101,7 +101,7 @@ class QoSCorrectionObserver : public SyncConsumer<Contentions>,
     return (firstAllocation.cpus().get() > secondAllocation.cpus().get());
   }
 
-  static constexpr const char* name = "[Serenity] QoSCorrectionObserver: ";
+  static constexpr const char* name = "[SerenityQoS] CorrectionObserver: ";
 
  protected:
   Option<Contentions> currentContentions;

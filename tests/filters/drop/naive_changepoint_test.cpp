@@ -31,7 +31,7 @@ TEST(NaiveChangePointDetectionTest, StableLoadNoChangePoint) {
           CONTENTION_COOLDOWN, ABS_THRESHOLD));
 
   LoadGenerator loadGen(
-      math::constFunction, new ZeroNoise(), LOAD_ITERATIONS);
+      [](double_t iter) { return 10; }, new ZeroNoise(), LOAD_ITERATIONS);
 
   for (; loadGen.end() ; loadGen++) {
     Result<ChangePointDetection> result =
@@ -57,7 +57,7 @@ TEST(NaiveChangePointDetectionTest, NoisyLoadNoChangePoint) {
           CONTENTION_COOLDOWN, ABS_THRESHOLD));
 
   LoadGenerator loadGen(
-      math::constFunction,
+      [](double_t iter) { return 10; },
       new SymetricNoiseGenerator(MAX_NOISE),
       LOAD_ITERATIONS);
 
@@ -85,7 +85,7 @@ TEST(NaiveChangePointDetectionTest, StableLoadOneChangePoint) {
           CONTENTION_COOLDOWN, ABS_THRESHOLD));
 
   LoadGenerator loadGen(
-      math::constFunction, new ZeroNoise(), LOAD_ITERATIONS);
+      [](double_t iter) { return 10; }, new ZeroNoise(), LOAD_ITERATIONS);
 
   int64_t cooldown = -1;
   // Starting iterations.
