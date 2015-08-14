@@ -209,16 +209,11 @@ inline ResourceUsage_Executor generateIPC(
   ResourceUsage_Executor executorUsage;
   executorUsage.CopyFrom(_executorUsage);
 
-  double_t previousInstructions =
-    executorUsage.statistics().perf().instructions();
-  double_t previousCycles =
-    executorUsage.statistics().perf().cycles();
+  executorUsage.mutable_statistics()
+      ->mutable_perf()->set_instructions(_IpcValue);
 
   executorUsage.mutable_statistics()
-      ->mutable_perf()->set_instructions(previousInstructions + _IpcValue);
-
-  executorUsage.mutable_statistics()
-      ->mutable_perf()->set_cycles(previousCycles + ACCURACY_MODIFIER);
+      ->mutable_perf()->set_cycles(ACCURACY_MODIFIER);
 
   executorUsage.mutable_statistics()
       ->mutable_perf()->set_timestamp(_timestamp);

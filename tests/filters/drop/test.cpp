@@ -64,21 +64,13 @@ TEST(DropFilterRollingDetectorTest, StableLoad) {
       new ZeroNoise(),
       LOAD_ITERATIONS);
 
-  uint64_t previousLoad = 0;
   for (; loadGen.end(); loadGen++) {
-    usage.mutable_executors(0)->mutable_statistics()->
-        mutable_perf()->set_instructions(previousLoad + (uint64_t)(*loadGen)());
-    previousLoad += (uint64_t)(*loadGen)();
+    usage.mutable_executors(0)->CopyFrom(
+        generateIPC(usage.executors(0),
+                    (*loadGen)(),
+                    (*loadGen).timestamp));
 
-    // For IPC test we want to model instructions/cycles, so in that
-    // case we can model instructions and set cycles to 1.
-    usage.mutable_executors(0)->mutable_statistics()->
-        mutable_perf()->set_cycles((uint64_t)loadGen.iteration);
-
-    usage.mutable_executors(0)->mutable_statistics()->
-        mutable_perf()->set_timestamp((*loadGen).timestamp);
-
-    // Run pipeline iteration
+    // Run pipeline iteration.
     usageSource.produce(usage);
 
     if (loadGen.iteration > 0)
@@ -125,26 +117,17 @@ TEST(DropFilterRollingDetectorTest, StableLoadWithDrop) {
       new ZeroNoise(),
       LOAD_ITERATIONS);
 
-  uint64_t previousLoad = 0;
   bool dropped = false;
   for (; loadGen.end(); loadGen++) {
-    usage.mutable_executors(0)->mutable_statistics()->
-        mutable_perf()->set_instructions(previousLoad + (uint64_t)(*loadGen)());
-    previousLoad += (uint64_t)(*loadGen)();
+    usage.mutable_executors(0)->CopyFrom(
+        generateIPC(usage.executors(0),
+                    (*loadGen)(),
+                    (*loadGen).timestamp));
 
-    // For IPC test we want to model instructions/cycles, so in that
-    // case we can model instructions and set cycles to 1.
-    usage.mutable_executors(0)->mutable_statistics()->
-        mutable_perf()->set_cycles((uint64_t)loadGen.iteration);
-
-    usage.mutable_executors(0)->mutable_statistics()->
-        mutable_perf()->set_timestamp((*loadGen).timestamp);
-
-    // Run pipeline iteration
+    // Run pipeline iteration.
     usageSource.produce(usage);
 
     if (dropped) {
-      std::cout << loadGen.iteration << std::endl;
       dropped = false;
       mockSink.expectContentionWithVictim("serenity2");
     } else {

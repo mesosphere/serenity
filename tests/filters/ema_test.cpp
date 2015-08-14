@@ -127,7 +127,7 @@ TEST(EMATest, SmoothingNoisySinStableDrop) {
       LOAD_ITERATIONS);
 
   for (; loadGen.end() ; loadGen++) {
-    // Introduce stable drop in the middle of the test..
+    // Introduce stable drop in the middle of the test.
     if (loadGen.iteration > 100 &&
         loadGen.iteration < 150) loadGen.modifier -= DROP_PROGRES;
 
@@ -233,7 +233,7 @@ TEST(EMATest, IpcEMATestNoisyConstSample) {
                     (*loadGen)(),
                     (*loadGen).timestamp));
 
-    // Run pipeline iteration
+    // Run pipeline iteration.
     source.produce(usage);
 
     if (loadGen.iteration > 0)
