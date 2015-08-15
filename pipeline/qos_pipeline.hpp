@@ -34,10 +34,6 @@ using QoSControllerPipeline = Pipeline<ResourceUsage, QoSCorrections>;
  *       {{ Valve }} (+http endpoint) // First item.
  *            |
  *      |ResourceUsage|
- *            |
- * {{ Utilization Observer }}
- *            |
- *      |ResourceUsage|
  *       /          \
  *       |  {{ OnlyPRTaskFilter }}
  *       |           |
@@ -83,13 +79,9 @@ class CpuQoSPipeline : public QoSControllerPipeline {
           conf.emaAlpha,
           Tag(QOS_CONTROLLER, "emaFilter")),
       prExecutorPassFilter(&emaFilter),
-      utilizationFilter(
-          &prExecutorPassFilter,
-          conf.utilizationThreshold,
-          Tag(QOS_CONTROLLER, "utilizationFilter")),
       // First item in pipeline. For now, close the pipeline for QoS.
       valveFilter(
-          &utilizationFilter,
+          &prExecutorPassFilter,
           conf.valveOpened,
           Tag(QOS_CONTROLLER, "valveFilter")) {
     // Setup starting producer.
@@ -117,7 +109,6 @@ class CpuQoSPipeline : public QoSControllerPipeline {
   EMAFilter emaFilter;
   DropFilter<Detector> ipcDropFilter;
   PrExecutorPassFilter prExecutorPassFilter;
-  UtilizationThresholdFilter utilizationFilter;
   ValveFilter valveFilter;
 
   // --- Observers ---

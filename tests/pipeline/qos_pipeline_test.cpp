@@ -45,7 +45,6 @@ TEST(QoSPipelineTest, FiltersNotProperlyFed) {
                   CONTENTION_COOLDOWN,
                   RELATIVE_THRESHOLD),
               ema::DEFAULT_ALPHA,
-              utilization::DEFAULT_THRESHOLD,
               false,
               true));
 
@@ -87,7 +86,6 @@ TEST(QoSPipelineTest, NoCorrections) {
                   CONTENTION_COOLDOWN,
                   RELATIVE_THRESHOLD),
               ema::DEFAULT_ALPHA,
-              utilization::DEFAULT_THRESHOLD,
               false,
               true));
 
@@ -133,7 +131,6 @@ TEST(QoSPipelineTest, RollingDetectorOneDropCorrectionsNoEma) {
                   CONTENTION_COOLDOWN,
                   RELATIVE_THRESHOLD),
               1,  // Alpha = 1 means no smoothing.
-              utilization::DEFAULT_THRESHOLD,
               false,
               true));
 
@@ -201,7 +198,6 @@ TEST(QoSPipelineTest, RollingDetectorOneDropCorrectionsWithEma) {
                   CONTENTION_COOLDOWN,
                   RELATIVE_THRESHOLD),
               0.2,  // Alpha = 1 means no smoothing. 0.2 means high smoothing.
-              utilization::DEFAULT_THRESHOLD,
               false,
               true));
 

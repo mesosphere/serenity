@@ -31,8 +31,11 @@ class SerenityControllerProcess :
  public:
   SerenityControllerProcess(
       const lambda::function<Future<ResourceUsage>()>& _usage,
-      std::shared_ptr<QoSControllerPipeline> _pipeline)
-    : usage(_usage), pipeline(_pipeline) {}
+      std::shared_ptr<QoSControllerPipeline> _pipeline,
+      double _onEmptyCorrectionInterval)
+    : usage(_usage),
+      pipeline(_pipeline),
+      onEmptyCorrectionInterval(_onEmptyCorrectionInterval) {}
 
   Future<QoSCorrections> corrections() {
     return this->usage()
@@ -51,7 +54,7 @@ class SerenityControllerProcess :
     // TODO(bplotka): Filter out the same corrections as in previous message
     while (corrections.empty() && this->iterations < 20) {
       // TODO(bplotka): For tests we need ability to mock sleep.
-      os::sleep(Duration::create(60).get());
+      os::sleep(Duration::create(onEmptyCorrectionInterval).get());
 
       ResourceUsage usage = this->usage().get();
       corrections = this->__corrections(usage);
@@ -77,6 +80,10 @@ class SerenityControllerProcess :
  private:
   const lambda::function<Future<ResourceUsage>()> usage;
   std::shared_ptr<QoSControllerPipeline> pipeline;
+  //! How much time we wait in case of empty correction.
+  //! This value should be near the perf interval since it is useless
+  //! to rerun QoS pipeline on the same perf's counter collection.
+  double onEmptyCorrectionInterval;
   //! Safeguard against infinite loop.
   uint64_t iterations = 0;
 };
@@ -96,7 +103,8 @@ Try<Nothing> SerenityController::initialize(
     return Error("Serenity QoS Controller has already been initialized");
   }
 
-  process.reset(new SerenityControllerProcess(usage, this->pipeline));
+  process.reset(new SerenityControllerProcess(
+      usage, this->pipeline, this->onEmptyCorrectionInterval));
   spawn(process.get());
 
   return Nothing();

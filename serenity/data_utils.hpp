@@ -17,7 +17,7 @@ using GetterFunction = Try<double_t>(
 inline Try<double_t> getIpc(
     const ResourceUsage_Executor& previousExec,
     const ResourceUsage_Executor& currentExec) {
-  Try<double_t> ipc = CountIpc(previousExec, currentExec);
+  Try<double_t> ipc = CountIpc(currentExec);
   if (ipc.isError()) return Error(ipc.error());
 
   return ipc;

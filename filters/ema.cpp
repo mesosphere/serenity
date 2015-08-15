@@ -75,7 +75,7 @@ Try<Nothing> EMAFilter::consume(const ResourceUsage& in) {
     if (emaSample == this->emaSamples->end()) {
       SERENITY_LOG(ERROR) << "First EMA iteration for: "
                           << WID(inExec.executor_info()).toString();
-      // If not insert new one.
+      // If not - insert new one.
       ExponentialMovingAverage ema(EMA_REGULAR_SERIES, this->alpha);
       emaSamples->insert(std::pair<ExecutorInfo, ExponentialMovingAverage>(
           inExec.executor_info(), ema));

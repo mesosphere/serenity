@@ -70,34 +70,52 @@ inline Try<double_t> CountCpuUsage(const ResourceUsage_Executor& previous,
   return cpuTimeUsage / samplingDuration;
 }
 
-inline Try<double_t> CountIpc(const ResourceUsage_Executor& previous,
-                       const ResourceUsage_Executor& current) {
-  if (!current.has_statistics() || !previous.has_statistics())
+
+inline Try<double_t> CountIpc(const ResourceUsage_Executor& current) {
+  if (!current.has_statistics())
     return Error("Cannot count IPC, Parameter does not have required "
                      "statistics");
   if (!current.statistics().has_perf() ||
-      !previous.statistics().has_perf() ||
       !current.statistics().perf().has_timestamp() ||
-      !previous.statistics().perf().has_timestamp() ||
       !current.statistics().perf().has_cycles() ||
-      !previous.statistics().perf().has_cycles() ||
-      !current.statistics().perf().has_instructions() ||
-      !previous.statistics().perf().has_instructions()) {
+      !current.statistics().perf().has_instructions()) {
     return Error("Cannot count IPC usage, Parameter does not have required "
                      "perf statistics");
   }
 
-  double_t instructions = current.statistics().perf().instructions() -
-                          previous.statistics().perf().instructions();
-  double_t cycles = current.statistics().perf().cycles() -
-                    previous.statistics().perf().cycles();
-  double_t instructionsPerCycle = instructions / cycles;
+  double_t instructions = current.statistics().perf().instructions();
+  double_t cycles = current.statistics().perf().cycles();
 
+  double_t instructionsPerCycle = instructions / cycles;
   if (std::isnan(instructionsPerCycle)) {
     return Error("Cannot count IPC usage: 0 cycles.");
   }
 
   return instructionsPerCycle;
+}
+
+
+inline Try<double_t> CountIps(const ResourceUsage_Executor& current) {
+  if (!current.has_statistics())
+    return Error("Cannot count IPS, Parameter does not have required "
+                     "statistics");
+  if (!current.statistics().has_perf() ||
+      !current.statistics().perf().has_timestamp() ||
+      !current.statistics().perf().has_cycles() ||
+      !current.statistics().perf().has_instructions()) {
+    return Error("Cannot count IPS, Parameter does not have required "
+                     "perf statistics");
+  }
+
+  double_t instructions = current.statistics().perf().instructions();
+
+  double_t instructionsPerSecond =
+    instructions / current.statistics().perf().duration();
+  if (std::isnan(instructionsPerSecond)) {
+    return Error("Cannot count IPS: duration 0.");
+  }
+
+  return instructionsPerSecond;
 }
 
 }  // namespace serenity
