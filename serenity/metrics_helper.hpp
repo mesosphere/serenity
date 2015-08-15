@@ -3,6 +3,7 @@
 
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <ratio> // NOLINT [build/c++11]
 
