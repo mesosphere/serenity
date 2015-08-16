@@ -77,11 +77,31 @@ class NaiveChangePointDetector : public ChangePointDetector {
  * - fetch base point value from (currentIteration - "windowsSize").
  * - Check if new value drops below the (base point - relativeThreshold).
  *
- *  We should use EMA value as input for better results.
+ *  We can use EMA value as input for better results.
  */
 class RollingChangePointDetector : public ChangePointDetector {
  public:
   RollingChangePointDetector() {}
+
+  virtual Result<ChangePointDetection> processSample(double_t in);
+
+ protected:
+  std::list<double_t> window;
+};
+
+
+/**
+ * Dynamic implementation of sequential change point detection.
+ * Algorithm steps:
+ * - Warm up phase: wait "windowsSize" iterations.
+ * - fetch base point value from (currentIteration - "windowsSize").
+ * - Check if new value drops below the (relativeFractionThreshold*base point).
+ *
+ *  We can use EMA value as input for better results.
+ */
+class RollingFractionalChangePointDetector : public ChangePointDetector {
+ public:
+  RollingFractionalChangePointDetector() {}
 
   virtual Result<ChangePointDetection> processSample(double_t in);
 

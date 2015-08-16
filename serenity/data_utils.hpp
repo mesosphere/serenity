@@ -38,6 +38,30 @@ inline Try<double_t> getEmaIpc(
 }
 
 
+inline Try<double_t> getIps(
+    const ResourceUsage_Executor& previousExec,
+    const ResourceUsage_Executor& currentExec) {
+  Try<double_t> ips = CountIps(currentExec);
+  if (ips.isError()) return Error(ips.error());
+
+  return ips;
+}
+
+// TODO(bplotka): Move it to other double field.
+/**
+ * Currently we are saving EMA IPS in net_tcp_active_connections field
+ * in ResourceUsage.
+ */
+inline Try<double_t> getEmaIps(
+    const ResourceUsage_Executor& previousExec,
+    const ResourceUsage_Executor& currentExec) {
+  if (!currentExec.statistics().has_net_tcp_active_connections())
+    return Error("Ema IPS is not filled");
+
+  return currentExec.statistics().net_tcp_active_connections();
+}
+
+
 inline Try<double_t> getCpuUsage(
     const ResourceUsage_Executor& previousExec,
     const ResourceUsage_Executor& currentExec) {
@@ -74,6 +98,20 @@ using SetterFunction = Try<Nothing>(
  * in ResourceUsage.
  */
 inline Try<Nothing> setEmaIpc(
+    const double_t value,
+    ResourceUsage_Executor* outExec) {
+
+  outExec->mutable_statistics()->set_net_tcp_active_connections(value);
+
+  return Nothing();
+}
+
+// TODO(bplotka): Move it to other double field.
+/**
+ * Currently we are saving EMA IPS in net_tcp_active_connections field
+ * in ResourceUsage.
+ */
+inline Try<Nothing> setEmaIps(
     const double_t value,
     ResourceUsage_Executor* outExec) {
 

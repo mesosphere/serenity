@@ -47,6 +47,12 @@ struct ChangePointDetectionState {
   //! Defines how much value must drop to trigger contention.
   //! Most detectors will use that.
   double_t relativeThreshold = changepoint::DEFAULT_RELATIVE_THRESHOLD;
+
+  //! Defines how much (relatively to base point) value must drop to trigger
+  //! contention.
+  //! Most detectors will use that.
+  double_t fractionalThreshold =
+    changepoint::DEFAULT_FRACTIONAL_THRESHOLD;
 };
 
 

@@ -22,6 +22,7 @@ constexpr uint64_t DEFAULT_WINDOW_SIZE = 10;
 constexpr uint64_t DEFAULT_CONTENTION_COOLDOWN = 10;
 constexpr double DEFAULT_ABS_THRESHOLD = 0;
 constexpr double DEFAULT_RELATIVE_THRESHOLD = 20;
+constexpr double DEFAULT_FRACTIONAL_THRESHOLD = 0.5;
 
 }  // namespace changepoint
 

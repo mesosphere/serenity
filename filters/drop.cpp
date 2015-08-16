@@ -65,6 +65,41 @@ Result<ChangePointDetection> RollingChangePointDetector::processSample(
 }
 
 
+Result<ChangePointDetection>
+RollingFractionalChangePointDetector::processSample(
+    double_t in) {
+  this->window.push_back(in);
+
+  if (this->window.size() < this->state.windowSize) {
+    return None();  // Only warm up.
+  }
+
+  double_t basePoint = this->window.front();
+  this->window.pop_front();
+
+  if (this->contentionCooldownCounter > 0) {
+    this->contentionCooldownCounter--;
+    return None();
+  }
+
+  if (in < (this->state.fractionalThreshold * basePoint)) {
+    this->contentionCooldownCounter = this->state.contentionCooldown;
+    ChangePointDetection cpd;
+
+    // We calculate severity as difference between threshold and actual
+    // processed value.
+    cpd.severity = (basePoint - this->state.relativeThreshold) - in;
+    return cpd;
+  }
+
+  if (in < basePoint) {
+    LOG(INFO) << "[SerenityQoS] DropDetector: Found decrease, "
+        "but not significant: " << (in - basePoint);
+  }
+
+  return None();
+}
+
 template <typename T>
 Try<Nothing> DropFilter<T>::consume(const ResourceUsage& in) {
   std::unique_ptr<ExecutorSet> newSamples(new ExecutorSet());
@@ -139,6 +174,7 @@ Try<Nothing> DropFilter<T>::consume(const ResourceUsage& in) {
 //    https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
 template class DropFilter<NaiveChangePointDetector>;
 template class DropFilter<RollingChangePointDetector>;
+template class DropFilter<RollingFractionalChangePointDetector>;
 
 }  // namespace serenity
 }  // namespace mesos
