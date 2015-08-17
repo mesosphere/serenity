@@ -54,7 +54,7 @@ static QoSController* createSerenityController(const Parameters& parameters) {
   cpdState.differenceToCPU = 1000000000;  // 1 Billion.
 
   conf.cpdState = cpdState;
-  conf.emaAlpha = 0.3;
+  conf.emaAlpha = 0.8;
   conf.visualisation = true;
   // Let's start with QoS pipeline disabled.
   conf.valveOpened = false;
