@@ -250,6 +250,84 @@ TEST(QoSIpcPipelineTest, RollingDetectorOneDropCorrectionsWithEma) {
 }
 
 
+TEST(QoSIpcPipelineTest, RollingFractionalDetectorOneDropCorrectionsWithEma) {
+  QoSPipelineConf conf;
+  ChangePointDetectionState cpdState;
+  // Detector configuration:
+  // How far we look back in samples.
+  cpdState.windowSize = 10;
+  // How many iterations detector will wait with creating another
+  // contention.
+  cpdState.contentionCooldown = 10;
+  // Defines how much (relatively to base point) value must drop to trigger
+  // contention.
+  // Most detectors will use that.
+  cpdState.fractionalThreshold = 0.5;
+  // Defines how to convert difference in values to CPU.
+  // This option helps RollingFractionalDetector to estimate severity of
+  // drop.
+  cpdState.differenceToCPU = 0.4;  // 0.4 IPC drop means ~ 1 CPU to kill.
+
+  conf.cpdState = cpdState;
+  conf.emaAlpha = 0.4;
+  conf.visualisation = false;
+  // Let's start with QoS pipeline disabled.
+  conf.valveOpened = true;
+
+  MockSlaveUsage mockSlaveUsage(QOS_PIPELINE_FIXTURE2);
+
+  QoSControllerPipeline* pipeline =
+      new CpuQoSPipeline<RollingFractionalDetector>(conf);
+
+  // First iteration.
+  Result<QoSCorrections> corrections =
+      pipeline->run(mockSlaveUsage.usage().get());
+  EXPECT_NONE(corrections);
+
+  ResourceUsage usage = mockSlaveUsage.usage().get();
+  const int32_t LOAD_ITERATIONS = 15;
+  LoadGenerator loadGen(
+      [](double_t iter) { return 1; },
+      new ZeroNoise(),
+      LOAD_ITERATIONS);
+
+  for (; loadGen.end(); loadGen++) {
+    // Test scenario: After 10 iterations create drop in IPC for executor num 3.
+    double_t ipcFor3Executor = (*loadGen)();
+    if (loadGen.iteration >= 11) {
+      ipcFor3Executor /= 2.2;
+    }
+
+    usage.mutable_executors(PR_4CPUS)->CopyFrom(
+        generateIPC(usage.executors(PR_4CPUS),
+                    ipcFor3Executor,
+                    (*loadGen).timestamp));
+
+    usage.mutable_executors(PR_2CPUS)->CopyFrom(
+        generateIPC(usage.executors(PR_2CPUS),
+                    (*loadGen)(),
+                    (*loadGen).timestamp));
+    // Third iteration (repeated).
+    corrections = pipeline->run(usage);
+    if (loadGen.iteration >= 14) {
+      EXPECT_SOME(corrections);
+      ASSERT_EQ(slave::QoSCorrection_Type_KILL,
+                corrections.get().front().type());
+      // Make sure that we do not kill PR tasks!
+      EXPECT_NE("serenityPR",
+                corrections.get().front().kill().executor_id().value());
+      EXPECT_NE("serenityPR2",
+                corrections.get().front().kill().executor_id().value());
+    } else {
+      EXPECT_SOME(corrections);
+      EXPECT_TRUE(corrections.get().empty());
+    }
+  }
+
+  delete pipeline;
+}
+
+
 // This fixture includes 5 executors:
 // - 1 BE <1 CPUS> id 0
 // - 2 BE <0.5 CPUS> id 1,2
@@ -277,7 +355,7 @@ TEST(QoSIpsPipelineTest, RollingFractionalDetectorOneDropCorrectionsWithEma) {
   // Defines how many instructions can be done per one CPU in one second.
   // This option helps RollingFractionalDetector to estimate severity of
   // drop.
-  cpdState.instructionPerCpu = 1000000000;  // 1 Billion.
+  cpdState.differenceToCPU = 1000000000;  // 1 Billion.
 
   conf.cpdState = cpdState;
   conf.emaAlpha = 0.4;

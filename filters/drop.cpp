@@ -57,7 +57,7 @@ Result<ChangePointDetection> RollingChangePointDetector::processSample(
   }
 
   if (in < basePoint) {
-    LOG(INFO) << "[SerenityQoS] DropDetector: Found decrease, "
+    LOG(INFO) << tag.NAME() << " Found decrease, "
                  "but not significant: " << (in - basePoint);
   }
 
@@ -80,7 +80,7 @@ Result<ChangePointDetection> RollingFractionalDetector::processSample(
     this->contentionCooldownCounter--;
     return None();
   }
-  LOG(INFO) << " Base= " << basePoint << "; in= " << in;
+
   // Current drop fraction indicates how much value has drop in relation to
   // base point
   double_t currentDropFraction = 1.0 - (in / basePoint);
@@ -90,15 +90,16 @@ Result<ChangePointDetection> RollingFractionalDetector::processSample(
     this->contentionCooldownCounter = this->state.contentionCooldown;
     ChangePointDetection cpd;
 
-    // We calculate severity as difference between instructions and convert
+    // We calculate severity as difference between values and convert
     // it to CPUs units.
-    cpd.severity = (basePoint - in) / this->state.instructionPerCpu;
-    LOG(INFO) << "Severity: " << cpd.severity;
+    cpd.severity = (basePoint - in) / this->state.differenceToCPU;
+    LOG(INFO) << tag.NAME() << " Contention severiy = "
+              << cpd.severity;
     return cpd;
   }
 
   if (in < basePoint) {
-    LOG(INFO) << "[SerenityQoS] DropDetector: Found decrease, "
+    LOG(INFO) << tag.NAME() << " Found decrease, "
         "but not significant: " << (currentDropFraction * 100) << "%";
   }
 
@@ -130,7 +131,8 @@ Try<Nothing> DropFilter<T>::consume(const ResourceUsage& in) {
     auto cpDetector = this->cpDetectors->find(inExec.executor_info());
     if (cpDetector == this->cpDetectors->end()) {
       // If not insert new one.
-      auto pair = std::pair<ExecutorInfo, T*>(inExec.executor_info(), new T());
+      auto pair = std::pair<ExecutorInfo, T*>(inExec.executor_info(),
+                                              new T(tag));
       pair.second->configure(this->changePointDetectionState);
       this->cpDetectors->insert(pair);
 

@@ -51,7 +51,7 @@ static QoSController* createSerenityController(const Parameters& parameters) {
   // Defines how many instructions can be done per one CPU in one second.
   // This option helps RollingFractionalDetector to estimate severity of
   // drop.
-  cpdState.instructionPerCpu = 1000000000;  // 1 Billion.
+  cpdState.differenceToCPU = 1000000000;  // 1 Billion.
 
   conf.cpdState = cpdState;
   conf.emaAlpha = 0.3;
