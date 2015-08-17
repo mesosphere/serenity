@@ -37,7 +37,7 @@ struct ChangePointDetection {
  */
 class ChangePointDetector {
  public:
-  ChangePointDetector(const Tag& _tag): tag(_tag) {}
+  explicit ChangePointDetector(const Tag& _tag): tag(_tag) {}
 
   virtual Try<Nothing> configure(ChangePointDetectionState cpdState) {
     this->state = cpdState;
@@ -65,7 +65,8 @@ class ChangePointDetector {
  */
 class NaiveChangePointDetector : public ChangePointDetector {
  public:
-  NaiveChangePointDetector(const Tag& _tag): ChangePointDetector(_tag) {}
+  explicit NaiveChangePointDetector(const Tag& _tag)
+    : ChangePointDetector(_tag) {}
 
   virtual Result<ChangePointDetection> processSample(double_t in);
 };
@@ -82,7 +83,8 @@ class NaiveChangePointDetector : public ChangePointDetector {
  */
 class RollingChangePointDetector : public ChangePointDetector {
  public:
-  RollingChangePointDetector(const Tag& _tag): ChangePointDetector(_tag) {}
+  explicit RollingChangePointDetector(const Tag& _tag)
+    : ChangePointDetector(_tag) {}
 
   virtual Result<ChangePointDetection> processSample(double_t in);
 
@@ -103,7 +105,8 @@ class RollingChangePointDetector : public ChangePointDetector {
  */
 class RollingFractionalDetector : public ChangePointDetector {
  public:
-  RollingFractionalDetector(const Tag& _tag): ChangePointDetector(_tag) {}
+  explicit RollingFractionalDetector(const Tag& _tag)
+    : ChangePointDetector(_tag) {}
 
   virtual Result<ChangePointDetection> processSample(double_t in);
 

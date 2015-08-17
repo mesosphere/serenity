@@ -119,7 +119,7 @@ enum ModuleType {
 #define SERENITY_LOG(severity) LOG(severity) << this->tag.NAME()
 
 class Tag {
-public:
+ public:
   Tag(const ModuleType& _type, const std::string& _name)
       : type(_type), name(_name) {
     this->fullName = this->init();
@@ -156,7 +156,7 @@ public:
     return aim;
   }
 
-protected:
+ protected:
   const std::string name;
   const ModuleType type;
   std::string fullName;
