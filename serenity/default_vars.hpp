@@ -23,6 +23,7 @@ constexpr uint64_t DEFAULT_CONTENTION_COOLDOWN = 10;
 constexpr double DEFAULT_ABS_THRESHOLD = 0;
 constexpr double DEFAULT_RELATIVE_THRESHOLD = 20;
 constexpr double DEFAULT_FRACTIONAL_THRESHOLD = 0.5;
+constexpr double DEFAULT_INSTRUCTIONS_PER_CPU = 1000000000;
 
 }  // namespace changepoint
 

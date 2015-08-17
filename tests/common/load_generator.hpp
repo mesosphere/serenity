@@ -221,6 +221,33 @@ inline ResourceUsage_Executor generateIPC(
   return executorUsage;
 }
 
+
+/**
+* This function fills instructions perf events to match given
+* IPC value.
+*/
+inline ResourceUsage_Executor generateIPS(
+    const ResourceUsage_Executor _executorUsage,
+    double_t _IpsValue,
+    double_t _timestamp) {
+  const int ACCURACY_MODIFIER = 10;
+  // This function generates IPS with 1/ACCURACY_MODIFIER accuracy.
+  _IpsValue *= ACCURACY_MODIFIER;
+  ResourceUsage_Executor executorUsage;
+  executorUsage.CopyFrom(_executorUsage);
+
+  executorUsage.mutable_statistics()
+      ->mutable_perf()->set_instructions(_IpsValue);
+
+  executorUsage.mutable_statistics()
+      ->mutable_perf()->set_duration(ACCURACY_MODIFIER);
+
+  executorUsage.mutable_statistics()
+      ->mutable_perf()->set_timestamp(_timestamp);
+
+  return executorUsage;
+}
+
 }  // namespace tests
 }  // namespace serenity
 }  // namespace mesos

@@ -116,7 +116,7 @@ TEST(QoSPipelineTest, NoCorrections) {
 const char QOS_PIPELINE_FIXTURE2[] =
     "tests/fixtures/pipeline/qos_one_drop_correction.json";
 
-TEST(QoSPipelineTest, RollingDetectorOneDropCorrectionsNoEma) {
+TEST(QoSIpcPipelineTest, RollingDetectorOneDropCorrectionsNoEma) {
   uint64_t WINDOWS_SIZE = 10;
   uint64_t CONTENTION_COOLDOWN = 10;
   double_t RELATIVE_THRESHOLD = 0.4;
@@ -183,7 +183,7 @@ TEST(QoSPipelineTest, RollingDetectorOneDropCorrectionsNoEma) {
 }
 
 
-TEST(QoSPipelineTest, RollingDetectorOneDropCorrectionsWithEma) {
+TEST(QoSIpcPipelineTest, RollingDetectorOneDropCorrectionsWithEma) {
   uint64_t WINDOWS_SIZE = 10;
   uint64_t CONTENTION_COOLDOWN = 10;
   double_t RELATIVE_THRESHOLD = 0.3;
@@ -232,6 +232,96 @@ TEST(QoSPipelineTest, RollingDetectorOneDropCorrectionsWithEma) {
     // Third iteration (repeated).
     corrections = pipeline->run(usage);
     if (loadGen.iteration >= 15) {
+      EXPECT_SOME(corrections);
+      ASSERT_EQ(slave::QoSCorrection_Type_KILL,
+                corrections.get().front().type());
+      // Make sure that we do not kill PR tasks!
+      EXPECT_NE("serenityPR",
+                corrections.get().front().kill().executor_id().value());
+      EXPECT_NE("serenityPR2",
+                corrections.get().front().kill().executor_id().value());
+    } else {
+      EXPECT_SOME(corrections);
+      EXPECT_TRUE(corrections.get().empty());
+    }
+  }
+
+  delete pipeline;
+}
+
+
+// This fixture includes 5 executors:
+// - 1 BE <1 CPUS> id 0
+// - 2 BE <0.5 CPUS> id 1,2
+// - 1 PR <4 CPUS> id 3
+// - 1 PR <2 CPUS> id 4
+// Iterations:
+// 0) 3 IPS=3Bil, 4 IPS=4Bil
+// 1) 3 IPS=3Bil, 4 IPS=4Bil for stable reference.
+// 2) 3 IPS=1Bil (Drop > 50%), 4 IPS=4Bil
+const char QOS_PIPELINE_FIXTURE3[] =
+    "tests/fixtures/pipeline/ips_qos_one_drop_correction.json";
+TEST(QoSIpsPipelineTest, RollingFractionalDetectorOneDropCorrectionsWithEma) {
+  QoSPipelineConf conf;
+  ChangePointDetectionState cpdState;
+  // Detector configuration:
+  // How far we look back in samples.
+  cpdState.windowSize = 10;
+  // How many iterations detector will wait with creating another
+  // contention.
+  cpdState.contentionCooldown = 10;
+  // Defines how much (relatively to base point) value must drop to trigger
+  // contention.
+  // Most detectors will use that.
+  cpdState.fractionalThreshold = 0.5;
+  // Defines how many instructions can be done per one CPU in one second.
+  // This option helps RollingFractionalDetector to estimate severity of
+  // drop.
+  cpdState.instructionPerCpu = 1000000000;  // 1 Billion.
+
+  conf.cpdState = cpdState;
+  conf.emaAlpha = 0.4;
+  conf.visualisation = false;
+  // Let's start with QoS pipeline disabled.
+  conf.valveOpened = true;
+
+  MockSlaveUsage mockSlaveUsage(QOS_PIPELINE_FIXTURE3);
+
+  QoSControllerPipeline* pipeline =
+    new IpsQoSPipeline<RollingFractionalDetector>(conf);
+
+  // First iteration.
+  Result<QoSCorrections> corrections =
+      pipeline->run(mockSlaveUsage.usage().get());
+  EXPECT_NONE(corrections);
+
+  // Second iteration is used for manually configured load.
+  ResourceUsage usage = mockSlaveUsage.usage().get();
+  const int32_t LOAD_ITERATIONS = 14;
+  LoadGenerator loadGen(
+      [](double_t iter) { return 3000000000; },
+      new ZeroNoise(),
+      LOAD_ITERATIONS);
+
+  for (; loadGen.end(); loadGen++) {
+    // Test scenario: After 10 iterations create drop in IPS for executor num 3.
+    double ipsFor3Executor = (*loadGen)();
+    if (loadGen.iteration >= 11) {
+      ipsFor3Executor /= 3.0;
+    }
+
+    usage.mutable_executors(PR_4CPUS)->CopyFrom(
+        generateIPS(usage.executors(PR_4CPUS),
+                    ipsFor3Executor,
+                    (*loadGen).timestamp));
+
+    usage.mutable_executors(PR_2CPUS)->CopyFrom(
+        generateIPS(usage.executors(PR_2CPUS),
+                    (*loadGen)(),
+                    (*loadGen).timestamp));
+    // Third iteration (repeated).
+    corrections = pipeline->run(usage);
+    if (loadGen.iteration >= 13) {
       EXPECT_SOME(corrections);
       ASSERT_EQ(slave::QoSCorrection_Type_KILL,
                 corrections.get().front().type());

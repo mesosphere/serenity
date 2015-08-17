@@ -115,8 +115,9 @@ Try<QoSCorrections> SeverityBasedCpuDecider::decide(
 
       if (severity > 0) {
         // In such case even if we kill all BE executors contention is not
-        // solved.
-        LOG(ERROR) << QoSCorrectionObserver::name <<
+        // solved. That could mean we badly estimated severity or
+        // aggressors are not the cause of CPU contention.
+        LOG(INFO) << QoSCorrectionObserver::name <<
                       "Aggressors are not the cause of CPU contention"
                       " or lack of info about some aggressors.";
         break;

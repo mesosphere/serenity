@@ -65,8 +65,7 @@ Result<ChangePointDetection> RollingChangePointDetector::processSample(
 }
 
 
-Result<ChangePointDetection>
-RollingFractionalChangePointDetector::processSample(
+Result<ChangePointDetection> RollingFractionalDetector::processSample(
     double_t in) {
   this->window.push_back(in);
 
@@ -81,20 +80,26 @@ RollingFractionalChangePointDetector::processSample(
     this->contentionCooldownCounter--;
     return None();
   }
+  LOG(INFO) << " Base= " << basePoint << "; in= " << in;
+  // Current drop fraction indicates how much value has drop in relation to
+  // base point
+  double_t currentDropFraction = 1.0 - (in / basePoint);
 
-  if (in < (this->state.fractionalThreshold * basePoint)) {
+  // If drop fraction is higher than threshold, then trigger contention.
+  if (currentDropFraction > this->state.fractionalThreshold) {
     this->contentionCooldownCounter = this->state.contentionCooldown;
     ChangePointDetection cpd;
 
-    // We calculate severity as difference between threshold and actual
-    // processed value.
-    cpd.severity = (basePoint - this->state.relativeThreshold) - in;
+    // We calculate severity as difference between instructions and convert
+    // it to CPUs units.
+    cpd.severity = (basePoint - in) / this->state.instructionPerCpu;
+    LOG(INFO) << "Severity: " << cpd.severity;
     return cpd;
   }
 
   if (in < basePoint) {
     LOG(INFO) << "[SerenityQoS] DropDetector: Found decrease, "
-        "but not significant: " << (in - basePoint);
+        "but not significant: " << (currentDropFraction * 100) << "%";
   }
 
   return None();
@@ -174,7 +179,7 @@ Try<Nothing> DropFilter<T>::consume(const ResourceUsage& in) {
 //    https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
 template class DropFilter<NaiveChangePointDetector>;
 template class DropFilter<RollingChangePointDetector>;
-template class DropFilter<RollingFractionalChangePointDetector>;
+template class DropFilter<RollingFractionalDetector>;
 
 }  // namespace serenity
 }  // namespace mesos

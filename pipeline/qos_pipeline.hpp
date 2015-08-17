@@ -71,7 +71,8 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       ipcDropFilter(
           &qoSCorrectionObserver,
           usage::getEmaIpc,
-          conf.cpdState),
+          conf.cpdState,
+          Tag(QOS_CONTROLLER, "IPC dropFilter")),
       emaFilter(
           &ipcDropFilter,
           usage::getIpc,
@@ -167,7 +168,8 @@ class IpsQoSPipeline : public QoSControllerPipeline {
         ipsDropFilter(
             &qoSCorrectionObserver,
             usage::getEmaIps,
-            conf.cpdState),
+            conf.cpdState,
+            Tag(QOS_CONTROLLER, "IPS dropFilter")),
         emaFilter(
             &ipsDropFilter,
             usage::getIps,

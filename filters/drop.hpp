@@ -95,13 +95,14 @@ class RollingChangePointDetector : public ChangePointDetector {
  * Algorithm steps:
  * - Warm up phase: wait "windowsSize" iterations.
  * - fetch base point value from (currentIteration - "windowsSize").
- * - Check if new value drops below the (relativeFractionThreshold*base point).
+ * - Check if new value drops more than fraction of basePoint specified
+ *   in fractionalThreshold option.
  *
  *  We can use EMA value as input for better results.
  */
-class RollingFractionalChangePointDetector : public ChangePointDetector {
+class RollingFractionalDetector : public ChangePointDetector {
  public:
-  RollingFractionalChangePointDetector() {}
+  RollingFractionalDetector() {}
 
   virtual Result<ChangePointDetection> processSample(double_t in);
 

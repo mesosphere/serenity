@@ -22,7 +22,7 @@ using namespace mesos;  // NOLINT(build/namespaces)
 
 using mesos::serenity::ChangePointDetectionState;
 using mesos::serenity::IpsQoSPipeline;
-using mesos::serenity::RollingFractionalChangePointDetector;
+using mesos::serenity::RollingFractionalDetector;
 using mesos::serenity::SerenityController;
 using mesos::serenity::QoSControllerPipeline;
 using mesos::serenity::QoSPipelineConf;
@@ -48,9 +48,13 @@ static QoSController* createSerenityController(const Parameters& parameters) {
   // contention.
   // Most detectors will use that.
   cpdState.fractionalThreshold = 0.5;
+  // Defines how many instructions can be done per one CPU in one second.
+  // This option helps RollingFractionalDetector to estimate severity of
+  // drop.
+  cpdState.instructionPerCpu = 1000000000;  // 1 Billion.
 
   conf.cpdState = cpdState;
-  conf.emaAlpha = 0.2;
+  conf.emaAlpha = 0.3;
   conf.visualisation = true;
   // Let's start with QoS pipeline disabled.
   conf.valveOpened = false;
@@ -64,7 +68,7 @@ static QoSController* createSerenityController(const Parameters& parameters) {
   Try<QoSController*> result =
     SerenityController::create(
         std::shared_ptr<QoSControllerPipeline>(
-            new IpsQoSPipeline<RollingFractionalChangePointDetector>(conf)),
+            new IpsQoSPipeline<RollingFractionalDetector>(conf)),
         onEmptyCorrectionInterval);
 
   if (result.isError()) {

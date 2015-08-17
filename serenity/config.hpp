@@ -53,6 +53,12 @@ struct ChangePointDetectionState {
   //! Most detectors will use that.
   double_t fractionalThreshold =
     changepoint::DEFAULT_FRACTIONAL_THRESHOLD;
+
+  //! Defines how many instructions can be done per one CPU in one second.
+  //! This option helps RollingFractionalDetector to estimate severity of
+  //! drop.
+  double_t instructionPerCpu =
+      changepoint::DEFAULT_INSTRUCTIONS_PER_CPU;
 };
 
 
