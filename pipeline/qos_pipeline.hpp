@@ -79,14 +79,14 @@ class CpuQoSPipeline : public QoSControllerPipeline {
           usage::setEmaIpc,
           conf.emaAlpha,
           Tag(QOS_CONTROLLER, "emaFilter")),
-      prExecutorPassFilter(&emaFilter) {
-      // First item in pipeline. For now, close the pipeline for QoS.
-//      valveFilter(
-//          &prExecutorPassFilter,
-//          conf.valveOpened,
-//          Tag(QOS_CONTROLLER, "valveFilter")) {
+      prExecutorPassFilter(&emaFilter),
+      // First item in pipeline.
+      valveFilter(
+          &prExecutorPassFilter,
+          conf.valveOpened,
+          Tag(QOS_CONTROLLER, "valveFilter")) {
     // Setup starting producer.
-    this->addConsumer(&prExecutorPassFilter);
+    this->addConsumer(&valveFilter);
 
     // QoSCorrection needs ResourceUsage as well.
     this->addConsumer(&qoSCorrectionObserver);
@@ -110,7 +110,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
   EMAFilter emaFilter;
   DropFilter<Detector> ipcDropFilter;
   PrExecutorPassFilter prExecutorPassFilter;
-//  ValveFilter valveFilter;
+  ValveFilter valveFilter;
 
   // --- Observers ---
   QoSCorrectionObserver qoSCorrectionObserver;
@@ -152,70 +152,70 @@ class CpuQoSPipeline : public QoSControllerPipeline {
  *
  * For detailed schema please see: docs/pipeline.md
  */
-// template<class Detector>
-// class IpsQoSPipeline : public QoSControllerPipeline {
-//  static_assert(std::is_base_of<ChangePointDetector, Detector>::value,
-//                "Detector must derive from ChangePointDetector");
-//
-// public:
-//  explicit IpsQoSPipeline(QoSPipelineConf _conf)
-//      : conf(_conf),
-//      // Time series exporters.
-//        rawResourcesExporter("raw"),
-//        emaFilteredResourcesExporter("ema"),
-//      // Last item in pipeline.
-//        qoSCorrectionObserver(this, 1),
-//        ipsDropFilter(
-//            &qoSCorrectionObserver,
-//            usage::getEmaIps,
-//            conf.cpdState,
-//            Tag(QOS_CONTROLLER, "IPS dropFilter")),
-//        emaFilter(
-//            &ipsDropFilter,
-//            usage::getIps,
-//            usage::setEmaIps,
-//            conf.emaAlpha,
-//            Tag(QOS_CONTROLLER, "emaFilter")),
-//        prExecutorPassFilter(&emaFilter),
-//      // First item in pipeline. For now, close the pipeline for QoS.
-//        valveFilter(
-//            &prExecutorPassFilter,
-//            conf.valveOpened,
-//            Tag(QOS_CONTROLLER, "valveFilter")) {
-//    // Setup starting producer.
-//    this->addConsumer(&valveFilter);
-//
-//    // QoSCorrection needs ResourceUsage as well.
-//    valveFilter.addConsumer(&qoSCorrectionObserver);
-//
-//    // Setup Time Series export
-//    if (conf.visualisation) {
-//      this->addConsumer(&rawResourcesExporter);
-//      emaFilter.addConsumer(&emaFilteredResourcesExporter);
-//    }
-//  }
-//
-//  virtual Try<Nothing> resetSyncConsumers() {
-//    this->qoSCorrectionObserver.reset();
-//
-//    return Nothing();
-//  }
-//
-// private:
-//  QoSPipelineConf conf;
-//  // --- Filters ---
-//  EMAFilter emaFilter;
-//  DropFilter<Detector> ipsDropFilter;
-//  PrExecutorPassFilter prExecutorPassFilter;
-//  ValveFilter valveFilter;
-//
-//  // --- Observers ---
-//  QoSCorrectionObserver qoSCorrectionObserver;
-//
-//  // --- Time Series Exporters ---
-//  ResourceUsageTimeSeriesExporter rawResourcesExporter;
-//  ResourceUsageTimeSeriesExporter emaFilteredResourcesExporter;
-//};
+template<class Detector>
+class IpsQoSPipeline : public QoSControllerPipeline {
+  static_assert(std::is_base_of<ChangePointDetector, Detector>::value,
+                "Detector must derive from ChangePointDetector");
+
+ public:
+  explicit IpsQoSPipeline(QoSPipelineConf _conf)
+      : conf(_conf),
+      // Time series exporters.
+        rawResourcesExporter("raw"),
+        emaFilteredResourcesExporter("ema"),
+      // Last item in pipeline.
+        qoSCorrectionObserver(this, 1),
+        ipsDropFilter(
+            &qoSCorrectionObserver,
+            usage::getEmaIps,
+            conf.cpdState,
+            Tag(QOS_CONTROLLER, "IPS dropFilter")),
+        emaFilter(
+            &ipsDropFilter,
+            usage::getIps,
+            usage::setEmaIps,
+            conf.emaAlpha,
+            Tag(QOS_CONTROLLER, "emaFilter")),
+        prExecutorPassFilter(&emaFilter),
+      // First item in pipeline. For now, close the pipeline for QoS.
+        valveFilter(
+            &prExecutorPassFilter,
+            conf.valveOpened,
+            Tag(QOS_CONTROLLER, "valveFilter")) {
+    // Setup starting producer.
+    this->addConsumer(&valveFilter);
+
+    // QoSCorrection needs ResourceUsage as well.
+    valveFilter.addConsumer(&qoSCorrectionObserver);
+
+    // Setup Time Series export
+    if (conf.visualisation) {
+      this->addConsumer(&rawResourcesExporter);
+      emaFilter.addConsumer(&emaFilteredResourcesExporter);
+    }
+  }
+
+  virtual Try<Nothing> resetSyncConsumers() {
+    this->qoSCorrectionObserver.reset();
+
+    return Nothing();
+  }
+
+ private:
+  QoSPipelineConf conf;
+  // --- Filters ---
+  EMAFilter emaFilter;
+  DropFilter<Detector> ipsDropFilter;
+  PrExecutorPassFilter prExecutorPassFilter;
+  ValveFilter valveFilter;
+
+  // --- Observers ---
+  QoSCorrectionObserver qoSCorrectionObserver;
+
+  // --- Time Series Exporters ---
+  ResourceUsageTimeSeriesExporter rawResourcesExporter;
+  ResourceUsageTimeSeriesExporter emaFilteredResourcesExporter;
+};
 
 }  // namespace serenity
 }  // namespace mesos
