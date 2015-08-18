@@ -102,7 +102,7 @@ inline Try<double_t> CountIps(const ResourceUsage_Executor& current) {
                      "statistics");
   if (!current.statistics().has_perf() ||
       !current.statistics().perf().has_timestamp() ||
-      !current.statistics().perf().has_cycles() ||
+      !current.statistics().perf().has_duration() ||
       !current.statistics().perf().has_instructions()) {
     return Error("Cannot count IPS, Parameter does not have required "
                      "perf statistics");

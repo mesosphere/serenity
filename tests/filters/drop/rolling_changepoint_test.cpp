@@ -26,7 +26,8 @@ TEST(RollingChangePointDetectionTest, StableLoadNoChangePoint) {
   const uint64_t CONTENTION_COOLDOWN = 10;
   const double_t RELATIVE_THRESHOLD = 10;
   const uint64_t LOAD_ITERATIONS = 100;
-  RollingChangePointDetector rollingChangePointDetector;
+  RollingChangePointDetector rollingChangePointDetector(
+      Tag(QOS_CONTROLLER, "Rolling Detector"));
   rollingChangePointDetector.configure(
       ChangePointDetectionState::createForRollingDetector(
           WINDOWS_SIZE, CONTENTION_COOLDOWN, RELATIVE_THRESHOLD));
@@ -52,7 +53,8 @@ TEST(RollingChangePointDetectionTest, StableLoadOneChangePoint) {
   const double_t RELATIVE_THRESHOLD = 10;
   const double_t DROP_PROGRES = 2;
   const uint64_t LOAD_ITERATIONS = 200;
-  RollingChangePointDetector rollingChangePointDetector;
+  RollingChangePointDetector rollingChangePointDetector(
+      Tag(QOS_CONTROLLER, "Rolling Detector"));
   rollingChangePointDetector.configure(
       ChangePointDetectionState::createForRollingDetector(
           WINDOWS_SIZE, CONTENTION_COOLDOWN, RELATIVE_THRESHOLD));
