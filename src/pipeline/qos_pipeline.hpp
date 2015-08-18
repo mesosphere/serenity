@@ -6,6 +6,7 @@
 #include "filters/pr_executor_pass.hpp"
 #include "filters/utilization_threshold.hpp"
 #include "filters/valve.hpp"
+#include "filters/executor_age.hpp"
 
 #include "messages/serenity.hpp"
 
@@ -30,6 +31,8 @@ using QoSControllerPipeline = Pipeline<ResourceUsage, QoSCorrections>;
  *   {{ PIPELINE SOURCE }}
  *            |           \
  *      |ResourceUsage|  |ResourceUsage| - {{ Raw Resource Usage Export }}
+ *            |
+ *       {{ Record Executor Age }} 
  *            |
  *       {{ Valve }} (+http endpoint) // First item.
  *            |
@@ -66,8 +69,12 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       // Time series exporters.
       rawResourcesExporter("raw"),
       emaFilteredResourcesExporter("ema"),
+      // NOTE(bplotka): age Filter should initialized first before passing
+      // to the qosCorrectionObserver.
+      ageFilter(),
       // Last item in pipeline.
-      qoSCorrectionObserver(this, 1),
+      qoSCorrectionObserver(this, 1, &ageFilter,
+                            new SeverityBasedSeniorityDecider),
       ipcDropFilter(
           &qoSCorrectionObserver,
           usage::getEmaIpc,
@@ -85,8 +92,9 @@ class CpuQoSPipeline : public QoSControllerPipeline {
           &prExecutorPassFilter,
           conf.valveOpened,
           Tag(QOS_CONTROLLER, "valveFilter")) {
+    this->ageFilter.addConsumer(&valveFilter);
     // Setup starting producer.
-    this->addConsumer(&valveFilter);
+    this->addConsumer(&ageFilter);
 
     // QoSCorrection needs ResourceUsage as well.
     valveFilter.addConsumer(&qoSCorrectionObserver);
@@ -107,6 +115,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
  private:
   QoSPipelineConf conf;
   // --- Filters ---
+  ExecutorAgeFilter ageFilter;
   EMAFilter emaFilter;
   DropFilter<Detector> ipcDropFilter;
   PrExecutorPassFilter prExecutorPassFilter;
@@ -127,6 +136,8 @@ class CpuQoSPipeline : public QoSControllerPipeline {
  *   {{ PIPELINE SOURCE }}
  *            |           \
  *      |ResourceUsage|  |ResourceUsage| - {{ Raw Resource Usage Export }}
+ *            |
+ *       {{ Record Executor Age }} 
  *            |
  *       {{ Valve }} (+http endpoint) // First item.
  *            |
@@ -160,11 +171,15 @@ class IpsQoSPipeline : public QoSControllerPipeline {
  public:
   explicit IpsQoSPipeline(QoSPipelineConf _conf)
       : conf(_conf),
-      // Time series exporters.
+        // Time series exporters.
         rawResourcesExporter("raw"),
         emaFilteredResourcesExporter("ema"),
-      // Last item in pipeline.
-        qoSCorrectionObserver(this, 1),
+        // NOTE(bplotka): age Filter should initialized first before passing
+        // to the qosCorrectionObserver.
+        ageFilter(),
+        // Last item in pipeline.
+        qoSCorrectionObserver(this, 1, &ageFilter,
+                              new SeverityBasedSeniorityDecider),
         ipsDropFilter(
             &qoSCorrectionObserver,
             usage::getEmaIps,
@@ -182,8 +197,9 @@ class IpsQoSPipeline : public QoSControllerPipeline {
             &prExecutorPassFilter,
             conf.valveOpened,
             Tag(QOS_CONTROLLER, "valveFilter")) {
+    this->ageFilter.addConsumer(&valveFilter);
     // Setup starting producer.
-    this->addConsumer(&valveFilter);
+    this->addConsumer(&ageFilter);
 
     // QoSCorrection needs ResourceUsage as well.
     valveFilter.addConsumer(&qoSCorrectionObserver);
@@ -208,6 +224,7 @@ class IpsQoSPipeline : public QoSControllerPipeline {
   DropFilter<Detector> ipsDropFilter;
   PrExecutorPassFilter prExecutorPassFilter;
   ValveFilter valveFilter;
+  ExecutorAgeFilter ageFilter;
 
   // --- Observers ---
   QoSCorrectionObserver qoSCorrectionObserver;
