@@ -25,7 +25,8 @@ TEST(NaiveChangePointDetectionTest, StableLoadNoChangePoint) {
   const uint64_t CONTENTION_COOLDOWN = 10;
   const double_t ABS_THRESHOLD = 0;
   const uint64_t LOAD_ITERATIONS = 100;
-  NaiveChangePointDetector naiveChangePointDetector;
+  NaiveChangePointDetector naiveChangePointDetector(
+      Tag(QOS_CONTROLLER, "Naive Detector"));
   naiveChangePointDetector.configure(
       ChangePointDetectionState::createForNaiveDetector(
           CONTENTION_COOLDOWN, ABS_THRESHOLD));
@@ -51,7 +52,8 @@ TEST(NaiveChangePointDetectionTest, NoisyLoadNoChangePoint) {
   const double_t ABS_THRESHOLD = 0;
   const double_t MAX_NOISE = 9;
   const uint64_t LOAD_ITERATIONS = 100;
-  NaiveChangePointDetector naiveChangePointDetector;
+  NaiveChangePointDetector naiveChangePointDetector(
+      Tag(QOS_CONTROLLER, "Naive Detector"));
   naiveChangePointDetector.configure(
       ChangePointDetectionState::createForNaiveDetector(
           CONTENTION_COOLDOWN, ABS_THRESHOLD));
@@ -79,7 +81,8 @@ TEST(NaiveChangePointDetectionTest, StableLoadOneChangePoint) {
   const double_t ABS_THRESHOLD = 0;
   const uint64_t LOAD_ITERATIONS = 200;
   const double_t DROP_PROGRES = 1;
-  NaiveChangePointDetector naiveChangePointDetector;
+  NaiveChangePointDetector naiveChangePointDetector(
+      Tag(QOS_CONTROLLER, "Naive Detector"));
   naiveChangePointDetector.configure(
       ChangePointDetectionState::createForNaiveDetector(
           CONTENTION_COOLDOWN, ABS_THRESHOLD));

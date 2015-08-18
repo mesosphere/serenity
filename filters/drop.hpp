@@ -37,7 +37,7 @@ struct ChangePointDetection {
  */
 class ChangePointDetector {
  public:
-  ChangePointDetector() {}
+  explicit ChangePointDetector(const Tag& _tag): tag(_tag) {}
 
   virtual Try<Nothing> configure(ChangePointDetectionState cpdState) {
     this->state = cpdState;
@@ -48,6 +48,7 @@ class ChangePointDetector {
   virtual Result<ChangePointDetection> processSample(double_t in) = 0;
 
  protected:
+  const Tag tag;
   ChangePointDetectionState state;
   uint64_t contentionCooldownCounter = 0;
 };
@@ -64,7 +65,8 @@ class ChangePointDetector {
  */
 class NaiveChangePointDetector : public ChangePointDetector {
  public:
-  NaiveChangePointDetector() {}
+  explicit NaiveChangePointDetector(const Tag& _tag)
+    : ChangePointDetector(_tag) {}
 
   virtual Result<ChangePointDetection> processSample(double_t in);
 };
@@ -77,11 +79,34 @@ class NaiveChangePointDetector : public ChangePointDetector {
  * - fetch base point value from (currentIteration - "windowsSize").
  * - Check if new value drops below the (base point - relativeThreshold).
  *
- *  We should use EMA value as input for better results.
+ *  We can use EMA value as input for better results.
  */
 class RollingChangePointDetector : public ChangePointDetector {
  public:
-  RollingChangePointDetector() {}
+  explicit RollingChangePointDetector(const Tag& _tag)
+    : ChangePointDetector(_tag) {}
+
+  virtual Result<ChangePointDetection> processSample(double_t in);
+
+ protected:
+  std::list<double_t> window;
+};
+
+
+/**
+ * Dynamic implementation of sequential change point detection.
+ * Algorithm steps:
+ * - Warm up phase: wait "windowsSize" iterations.
+ * - fetch base point value from (currentIteration - "windowsSize").
+ * - Check if new value drops more than fraction of basePoint specified
+ *   in fractionalThreshold option.
+ *
+ *  We can use EMA value as input for better results.
+ */
+class RollingFractionalDetector : public ChangePointDetector {
+ public:
+  explicit RollingFractionalDetector(const Tag& _tag)
+    : ChangePointDetector(_tag) {}
 
   virtual Result<ChangePointDetection> processSample(double_t in);
 

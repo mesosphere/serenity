@@ -116,10 +116,12 @@ enum ModuleType {
 };
 
 
+#define SERENITY_LOG(severity) LOG(severity) << this->tag.NAME()
+
 class Tag {
  public:
   Tag(const ModuleType& _type, const std::string& _name)
-    : type(_type), name(_name) {
+      : type(_type), name(_name) {
     this->fullName = this->init();
   }
 
@@ -161,8 +163,6 @@ class Tag {
   std::string prefix;
   std::string aim;
 };
-
-#define SERENITY_LOG(severity) LOG(severity) << this->tag.NAME()
 
 }  // namespace serenity
 }  // namespace mesos

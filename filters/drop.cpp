@@ -57,13 +57,54 @@ Result<ChangePointDetection> RollingChangePointDetector::processSample(
   }
 
   if (in < basePoint) {
-    LOG(INFO) << "[SerenityQoS] DropDetector: Found decrease, "
+    LOG(INFO) << tag.NAME() << " Found decrease, "
                  "but not significant: " << (in - basePoint);
   }
 
   return None();
 }
 
+
+Result<ChangePointDetection> RollingFractionalDetector::processSample(
+    double_t in) {
+  this->window.push_back(in);
+
+  if (this->window.size() < this->state.windowSize) {
+    return None();  // Only warm up.
+  }
+
+  double_t basePoint = this->window.front();
+  this->window.pop_front();
+
+  if (this->contentionCooldownCounter > 0) {
+    this->contentionCooldownCounter--;
+    return None();
+  }
+
+  // Current drop fraction indicates how much value has drop in relation to
+  // base point
+  double_t currentDropFraction = 1.0 - (in / basePoint);
+
+  // If drop fraction is higher than threshold, then trigger contention.
+  if (currentDropFraction > this->state.fractionalThreshold) {
+    this->contentionCooldownCounter = this->state.contentionCooldown;
+    ChangePointDetection cpd;
+
+    // We calculate severity as difference between values and convert
+    // it to CPUs units.
+    cpd.severity = (basePoint - in) / this->state.differenceToCPU;
+    LOG(INFO) << tag.NAME() << " Contention severiy = "
+              << cpd.severity;
+    return cpd;
+  }
+
+  if (in < basePoint) {
+    LOG(INFO) << tag.NAME() << " Found decrease, "
+        "but not significant: " << (currentDropFraction * 100) << "%";
+  }
+
+  return None();
+}
 
 template <typename T>
 Try<Nothing> DropFilter<T>::consume(const ResourceUsage& in) {
@@ -90,7 +131,8 @@ Try<Nothing> DropFilter<T>::consume(const ResourceUsage& in) {
     auto cpDetector = this->cpDetectors->find(inExec.executor_info());
     if (cpDetector == this->cpDetectors->end()) {
       // If not insert new one.
-      auto pair = std::pair<ExecutorInfo, T*>(inExec.executor_info(), new T());
+      auto pair = std::pair<ExecutorInfo, T*>(inExec.executor_info(),
+                                              new T(tag));
       pair.second->configure(this->changePointDetectionState);
       this->cpDetectors->insert(pair);
 
@@ -139,6 +181,7 @@ Try<Nothing> DropFilter<T>::consume(const ResourceUsage& in) {
 //    https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
 template class DropFilter<NaiveChangePointDetector>;
 template class DropFilter<RollingChangePointDetector>;
+template class DropFilter<RollingFractionalDetector>;
 
 }  // namespace serenity
 }  // namespace mesos
