@@ -30,6 +30,7 @@ using mesos::serenity::QoSPipelineConf;
 
 using mesos::slave::QoSController;
 
+// IPC pipeline
 static QoSController* createIpcSerenityController(
     const Parameters& parameters) {
   LOG(INFO) << "Loading Serenity QoS Controller module";
@@ -79,7 +80,7 @@ static QoSController* createIpcSerenityController(
   return result.get();
 }
 
-
+// IPS pipeline
 static QoSController* createIpsSerenityController(
     const Parameters& parameters) {
   LOG(INFO) << "Loading Serenity QoS Controller module";
