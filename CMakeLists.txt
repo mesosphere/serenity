@@ -47,17 +47,19 @@ INCLUDE_DIRECTORIES(${CURLCPP_SOURCE_DIR}/include)
 ADD_SUBDIRECTORY(lib/rapidjson-1.0.2)
 INCLUDE_DIRECTORIES(lib/rapidjson-1.0.2/include)
 
+INCLUDE_DIRECTORIES(src)
+
 # Protobuf stuff.
 find_package(Protobuf REQUIRED)
 set(PROTOBUF_IMPORT_DIRS ${MESOS_INSTALLATION_DIR}/include/)
 
 # Add message proto files.
-file(GLOB ProtoFiles "messages/serenity.proto")
+file(GLOB ProtoFiles "src/messages/serenity.proto")
 PROTOBUF_GENERATE_CPP(ProtoSources ProtoHeaders ${ProtoFiles})
 add_library(messages STATIC ${ProtoSources} ${ProtoHeaders})
 
 # Add message-test proto files.
-file(GLOB TestProtoFiles "tests/common/sources/json_source.proto")
+file(GLOB TestProtoFiles "src/tests/common/sources/json_source.proto")
 PROTOBUF_GENERATE_CPP(TestProtoSources TestProtoHeaders ${TestProtoFiles})
 add_library(messages-test STATIC ${TestProtoSources} ${TestProtoHeaders})
 
@@ -78,54 +80,54 @@ include_directories(
 )
 
 set(SERENITY_SOURCES
-    estimator/serenity_estimator.cpp
-    estimator/serenity_estimator_module.cpp
-    filters/drop.cpp
-    filters/ema.cpp
-    filters/ignore_new_executors.cpp
-    filters/pr_executor_pass.cpp
-    filters/utilization_threshold.cpp
-    filters/valve.cpp
-    observers/qos_correction.cpp
-    observers/slack_resource.cpp
-    qos_controller/serenity_controller.cpp
-    qos_controller/serenity_controller_module.cpp
-    serenity/agent_utils.cpp
-    serenity/wid.cpp
-    time_series_export/resource_usage_ts_export.cpp
-    time_series_export/slack_ts_export.cpp
-    time_series_export/backend/influx_db8.cpp
+    src/estimator/serenity_estimator.cpp
+    src/estimator/serenity_estimator_module.cpp
+    src/filters/drop.cpp
+    src/filters/ema.cpp
+    src/filters/ignore_new_executors.cpp
+    src/filters/pr_executor_pass.cpp
+    src/filters/utilization_threshold.cpp
+    src/filters/valve.cpp
+    src/observers/qos_correction.cpp
+    src/observers/slack_resource.cpp
+    src/qos_controller/serenity_controller.cpp
+    src/qos_controller/serenity_controller_module.cpp
+    src/serenity/agent_utils.cpp
+    src/serenity/wid.cpp
+    src/time_series_export/resource_usage_ts_export.cpp
+    src/time_series_export/slack_ts_export.cpp
+    src/time_series_export/backend/influx_db8.cpp
 )
 
 set(SERENITY_TEST_SOURCES
-    tests/main.cpp
-    tests/common/sources/json_source.cpp
-    tests/controllers/qos_controller_test.cpp
-    tests/estimators/estimator_test.cpp
-    tests/filters/drop/test.cpp
-    tests/filters/drop/naive_changepoint_test.cpp
-    tests/filters/drop/rolling_changepoint_test.cpp
-    tests/filters/ema_test.cpp
-    tests/filters/ignore_new_executors_test.cpp
-    tests/filters/pr_executor_pass_test.cpp
-    tests/filters/utilization_threshold_test.cpp
-    tests/filters/valve_test.cpp
-    tests/pipeline/estimator_pipeline_test.cpp
-    tests/pipeline/qos_pipeline_test.cpp
-    tests/observers/slack_resource_test.cpp
-    tests/observers/qos_correction_test.cpp
-    tests/serenity/os_utils_tests.cpp
-    tests/sources/json_source_test.cpp
+    src/tests/main.cpp
+    src/tests/common/sources/json_source.cpp
+    src/tests/controllers/qos_controller_test.cpp
+    src/tests/estimators/estimator_test.cpp
+    src/tests/filters/drop/test.cpp
+    src/tests/filters/drop/naive_changepoint_test.cpp
+    src/tests/filters/drop/rolling_changepoint_test.cpp
+    src/tests/filters/ema_test.cpp
+    src/tests/filters/ignore_new_executors_test.cpp
+    src/tests/filters/pr_executor_pass_test.cpp
+    src/tests/filters/utilization_threshold_test.cpp
+    src/tests/filters/valve_test.cpp
+    src/tests/pipeline/estimator_pipeline_test.cpp
+    src/tests/pipeline/qos_pipeline_test.cpp
+    src/tests/observers/slack_resource_test.cpp
+    src/tests/observers/qos_correction_test.cpp
+    src/tests/serenity/os_utils_tests.cpp
+    src/tests/sources/json_source_test.cpp
 )
 
 if (INTEGRATION_TESTS)
     SET(INTEGRATION_TEST_SOURCES
         # Needs Mesos Agent working on http://localhost:5051.
-        tests/serenity/agent_utils_tests.cpp
+        src/tests/serenity/agent_utils_tests.cpp
 
         # Needs InfluxDB 0.8.8
-        tests/time_series_export/resource_usage_ts_export_test.cpp
-        tests/time_series_export/slack_ts_export_test.cpp
+        src/tests/time_series_export/resource_usage_ts_export_test.cpp
+        src/tests/time_series_export/slack_ts_export_test.cpp
     )
 endif(INTEGRATION_TESTS)
 
@@ -170,7 +172,7 @@ if (MESOS_SOURCE_DIR)
     )
     # Serenity test framework exe.
     add_executable(test-framework
-        framework/smoke_test_framework.cpp)
+        src/framework/smoke_test_framework.cpp)
     target_link_libraries(test-framework mesos protobuf glog)
 
 else(MESOS_SOURCE_DIR)
