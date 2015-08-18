@@ -49,7 +49,7 @@ static QoSController* createIpcSerenityController(
   // Defines how much (relatively to base point) value must drop to trigger
   // contention.
   // Most detectors will use that.
-  cpdState.fractionalThreshold = 0.7;
+  cpdState.fractionalThreshold = 0.3;
   // Defines how to convert difference in values to CPU.
   // This option helps RollingFractionalDetector to estimate severity of
   // drop.
