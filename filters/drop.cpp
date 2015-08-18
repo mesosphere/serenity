@@ -70,6 +70,9 @@ Result<ChangePointDetection> RollingFractionalDetector::processSample(
   this->window.push_back(in);
 
   if (this->window.size() < this->state.windowSize) {
+    LOG(INFO) << tag.NAME() << "Warming up "
+        << this->window.size() << "/"
+        << this->state.windowSize;
     return None();  // Only warm up.
   }
 
@@ -84,6 +87,12 @@ Result<ChangePointDetection> RollingFractionalDetector::processSample(
   // Current drop fraction indicates how much value has drop in relation to
   // base point
   double_t currentDropFraction = 1.0 - (in / basePoint);
+
+  LOG(INFO) << tag.NAME()
+            << " in: " << in
+            << " | currDF = " << currentDropFraction
+            << " | basepoint: " << basePoint
+            << " | DF: " << this->state.fractionalThreshold;
 
   // If drop fraction is higher than threshold, then trigger contention.
   if (currentDropFraction > this->state.fractionalThreshold) {
