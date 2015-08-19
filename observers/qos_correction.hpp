@@ -53,7 +53,7 @@ class SeverityBasedCpuDecider : public ContentionDecider {
  * Kills all BE executors given in usage.
  */
 class KillAllDecider : public ContentionDecider {
-public:
+ public:
   ContentionDeciderFunction decide;
 };
 

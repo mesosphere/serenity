@@ -152,7 +152,8 @@ Try<QoSCorrections> KillAllDecider::decide(
 
   // Create QoSCorrection from aggressors list.
   for (auto aggressorToKill : aggressors) {
-    corrections.push_back(createKillQoSCorrection(aggressorToKill));
+    corrections.push_back(
+        createKillQoSCorrection(createKill(aggressorToKill.executor_info())));
   }
 
   return corrections;

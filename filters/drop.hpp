@@ -128,7 +128,7 @@ class RollingFractionalDetector : public ChangePointDetector {
  *  We can use EMA value as input for better results.
  */
 class AssuranceFractionalDetector : public ChangePointDetector {
-public:
+ public:
   explicit AssuranceFractionalDetector(const Tag& _tag)
       : ChangePointDetector(_tag),
         referencePoint(None()),
@@ -136,7 +136,7 @@ public:
 
   virtual Result<ChangePointDetection> processSample(double_t in);
 
-protected:
+ protected:
   std::list<double_t> window;
   Option<double_t> referencePoint;
   uint64_t referencePointCounter;

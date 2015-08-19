@@ -364,7 +364,7 @@ TEST(QoSIpcPipelineTest, AssuranceFractionalDetectorOneDropCorrectionWithEma) {
   EXPECT_NONE(corrections);
 
   ResourceUsage usage = mockSlaveUsage.usage().get();
-  const int32_t LOAD_ITERATIONS = 17;
+  const int32_t LOAD_ITERATIONS = 25;
   LoadGenerator loadGen(
       [](double_t iter) { return 1; },
       new ZeroNoise(),
@@ -446,7 +446,7 @@ TEST(QoSIpcPipelineTest, AssuranceFractionalDetectorTwoDropCorrectionsWithEma) {
   EXPECT_NONE(corrections);
 
   ResourceUsage usage = mockSlaveUsage.usage().get();
-  const int32_t LOAD_ITERATIONS = 17;
+  const int32_t LOAD_ITERATIONS = 22;
   LoadGenerator loadGen(
       [](double_t iter) { return 1; },
       new ZeroNoise(),
@@ -473,7 +473,7 @@ TEST(QoSIpcPipelineTest, AssuranceFractionalDetectorTwoDropCorrectionsWithEma) {
 
     // Assurance Detector will wait for signal to be returned to the
     // established state.
-    if (loadGen.iteration == 11 || loadGen.iteration == 16 ) {
+    if (loadGen.iteration == 11 || loadGen.iteration == 17) {
       EXPECT_SOME(corrections);
       ASSERT_EQ(slave::QoSCorrection_Type_KILL,
                 corrections.get().front().type());
