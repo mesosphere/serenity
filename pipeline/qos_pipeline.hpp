@@ -80,7 +80,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
           conf.emaAlpha,
           Tag(QOS_CONTROLLER, "emaFilter")),
       prExecutorPassFilter(&emaFilter),
-      // First item in pipeline. For now, close the pipeline for QoS.
+      // First item in pipeline.
       valveFilter(
           &prExecutorPassFilter,
           conf.valveOpened,
@@ -89,7 +89,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
     this->addConsumer(&valveFilter);
 
     // QoSCorrection needs ResourceUsage as well.
-    valveFilter.addConsumer(&qoSCorrectionObserver);
+    this->addConsumer(&qoSCorrectionObserver);
 
     // Setup Time Series export
     if (conf.visualisation) {

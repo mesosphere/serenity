@@ -57,7 +57,7 @@ Result<ChangePointDetection> RollingChangePointDetector::processSample(
   }
 
   if (in < basePoint) {
-    LOG(INFO) << tag.NAME() << " Found decrease, "
+    SERENITY_LOG(INFO) << " Found decrease, "
                  "but not significant: " << (in - basePoint);
   }
 
@@ -70,6 +70,9 @@ Result<ChangePointDetection> RollingFractionalDetector::processSample(
   this->window.push_back(in);
 
   if (this->window.size() < this->state.windowSize) {
+    LOG(INFO) << tag.NAME() << "Warming up "
+        << this->window.size() << "/"
+        << this->state.windowSize;
     return None();  // Only warm up.
   }
 
@@ -85,6 +88,12 @@ Result<ChangePointDetection> RollingFractionalDetector::processSample(
   // base point
   double_t currentDropFraction = 1.0 - (in / basePoint);
 
+  SERENITY_LOG(INFO)
+            << " inputValue: " << in
+            << " | baseValue = " << basePoint
+            << " | current drop %: " << currentDropFraction * 100
+            << " | threshold %: " << this->state.fractionalThreshold * 100;
+
   // If drop fraction is higher than threshold, then trigger contention.
   if (currentDropFraction > this->state.fractionalThreshold) {
     this->contentionCooldownCounter = this->state.contentionCooldown;
@@ -99,12 +108,77 @@ Result<ChangePointDetection> RollingFractionalDetector::processSample(
   }
 
   if (in < basePoint) {
-    LOG(INFO) << tag.NAME() << " Found decrease, "
+    SERENITY_LOG(INFO) << " Found decrease, "
         "but not significant: " << (currentDropFraction * 100) << "%";
   }
 
   return None();
 }
+
+Result<ChangePointDetection> AssuranceFractionalDetector::processSample(
+    double_t in) {
+  this->window.push_back(in);
+
+  if (this->window.size() < this->state.windowSize) {
+    SERENITY_LOG(INFO) << "Warming up "
+                       << this->window.size() << "/"
+                       << this->state.windowSize;
+    return None();  // Only warm up.
+  }
+
+  double_t basePoint = this->window.front();
+  this->window.pop_front();
+
+  if (this->referencePoint.isSome()) {
+    // Check if the signal returned to normal state. (!)
+    SERENITY_LOG(INFO) << "Waiting for signal to return to base state after "
+                          "corrections. Waiting iteration: "
+                       <<  referencePointCounter;
+    double_t nearValue = this->state.nearFraction * this->referencePoint.get();
+    if (in + nearValue > this->referencePoint.get()) {
+      this->referencePoint = None();
+      SERENITY_LOG(INFO) << "Signal returned to established state.";
+    }
+  }
+
+  if (this->contentionCooldownCounter > 0) {
+    this->contentionCooldownCounter--;
+    return None();
+  }
+
+  // Current drop fraction indicates how much value has drop in relation to
+  // base point
+  double_t currentDropFraction = 1.0 - (in / basePoint);
+
+  SERENITY_LOG(INFO)
+      << " inputValue: " << in
+      << " | baseValue = " << basePoint
+      << " | current drop %: " << currentDropFraction * 100
+      << " | threshold %: " << this->state.fractionalThreshold * 100;
+
+  // If drop fraction is higher than threshold, then trigger contention.
+  if (currentDropFraction > this->state.fractionalThreshold ||
+      (this->referencePoint.isSome())) {
+    this->contentionCooldownCounter = this->state.contentionCooldown;
+    this->referencePoint = basePoint;
+    this->referencePointCounter = 0;
+    ChangePointDetection cpd;
+    // We calculate severity as difference between values and convert
+    // it to CPUs units.
+    cpd.severity = (basePoint - in) / this->state.differenceToCPU;
+    LOG(INFO) << tag.NAME() << " Created contention with severiy = "
+    << cpd.severity;
+    return cpd;
+  }
+
+  if (in < basePoint) {
+    SERENITY_LOG(INFO) << " Found decrease, "
+        "but not significant: " << (currentDropFraction * 100) << "%";
+  }
+
+  return None();
+}
+
 
 template <typename T>
 Try<Nothing> DropFilter<T>::consume(const ResourceUsage& in) {
@@ -182,6 +256,7 @@ Try<Nothing> DropFilter<T>::consume(const ResourceUsage& in) {
 template class DropFilter<NaiveChangePointDetector>;
 template class DropFilter<RollingChangePointDetector>;
 template class DropFilter<RollingFractionalDetector>;
+template class DropFilter<AssuranceFractionalDetector>;
 
 }  // namespace serenity
 }  // namespace mesos
