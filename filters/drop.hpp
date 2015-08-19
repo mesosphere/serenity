@@ -116,6 +116,34 @@ class RollingFractionalDetector : public ChangePointDetector {
 
 
 /**
+ * Dynamic implementation of sequential change point detection.
+ * Algorithm steps:
+ * - Warm up phase: wait "windowsSize" iterations.
+ * - fetch base point value from (currentIteration - "windowsSize").
+ * - Check if new value drops more than fraction of basePoint specified
+ *   in fractionalThreshold option.
+ * - When drop appears, check if the value will return after corrections.
+ *  If not, trigger more contentions.
+ *
+ *  We can use EMA value as input for better results.
+ */
+class AssuranceFractionalDetector : public ChangePointDetector {
+public:
+  explicit AssuranceFractionalDetector(const Tag& _tag)
+      : ChangePointDetector(_tag),
+        referencePoint(None()),
+        referencePointCounter(0) {}
+
+  virtual Result<ChangePointDetection> processSample(double_t in);
+
+protected:
+  std::list<double_t> window;
+  Option<double_t> referencePoint;
+  uint64_t referencePointCounter;
+};
+
+
+/**
  * DropFilter is able to check defined value and trigger some contentions
  * on given thresholds.
  */

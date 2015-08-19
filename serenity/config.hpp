@@ -58,6 +58,10 @@ struct ChangePointDetectionState {
   //! This option helps RollingFractionalDetector to estimate severity of
   //! drop.
   double_t differenceToCPU = changepoint::DEFAULT_DIFFERENCE_TO_CPU;
+
+  //! Tolerance fraction of threshold if signal is accepted as returned to
+  //! previous state after drop.
+  double_t nearFraction = changepoint::DEFAULT_NEAR_FRACTION;
 };
 
 
