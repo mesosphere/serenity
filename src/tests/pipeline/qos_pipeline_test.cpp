@@ -263,7 +263,7 @@ TEST(QoSIpcPipelineTest, RollingFractionalDetectorOneDropCorrectionsWithEma) {
   // contention.
   // Most detectors will use that.
   cpdState.fractionalThreshold = 0.5;
-  cpdState.severityLevel = 1;.
+  cpdState.severityLevel = 1;
 
   conf.cpdState = cpdState;
   conf.emaAlpha = 0.4;
