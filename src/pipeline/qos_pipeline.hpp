@@ -91,7 +91,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
           &prExecutorPassFilter,
           conf.valveOpened,
           Tag(QOS_CONTROLLER, "valveFilter")) {
-    this->ageFilter->addConsumer(&valveFilter);
+    this->ageFilter.addConsumer(&valveFilter);
     // Setup starting producer.
     this->addConsumer(&ageFilter);
 
@@ -195,7 +195,7 @@ class IpsQoSPipeline : public QoSControllerPipeline {
             &prExecutorPassFilter,
             conf.valveOpened,
             Tag(QOS_CONTROLLER, "valveFilter")) {
-    this->ageFilter->addConsumer(&valveFilter);
+    this->ageFilter.addConsumer(&valveFilter);
     // Setup starting producer.
     this->addConsumer(&ageFilter);
 
