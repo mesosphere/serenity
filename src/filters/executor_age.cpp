@@ -5,6 +5,8 @@
 
 #include "mesos/mesos.hpp"
 
+#include "serenity/executor_map.hpp"
+
 #include "executor_age.hpp"
 
 namespace mesos {
@@ -51,7 +53,7 @@ Try<double_t> ExecutorAgeFilter::age(ExecutorInfo executorInfo)
   LOG(INFO) << "Before core dump";
   auto startedTime = started->find(executorInfo);
   LOG(INFO) << "Log not visible";
-  
+
   if (startedTime == started->end()) {
     return Error(
         "Could not find started time for executor '" +

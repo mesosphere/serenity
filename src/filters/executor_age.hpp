@@ -33,7 +33,6 @@ class ExecutorAgeFilter :
 
   Try<Nothing> ageOrder(std::list<ResourceUsage_Executor>& executors);
 
- private:
   std::unique_ptr<ExecutorMap<double_t>> started;
 };
 
