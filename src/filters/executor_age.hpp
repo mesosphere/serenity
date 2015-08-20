@@ -1,9 +1,9 @@
 #ifndef SERENITY_EXECUTOR_AGE_FILTER_HPP
 #define SERENITY_EXECUTOR_AGE_FILTER_HPP
 
-#include <time.h>
-
+#include <memory>
 #include <string>
+#include <time.h>
 
 #include "mesos/mesos.hpp"
 
