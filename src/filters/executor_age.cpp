@@ -44,7 +44,7 @@ Try<Nothing> ExecutorAgeFilter::consume(const ResourceUsage& in)
 }
 
 
-Try<double> ExecutorAgeFilter::age(const ExecutorInfo executorInfo)
+Try<double> ExecutorAgeFilter::age(ExecutorInfo executorInfo)
 {
   // Make core dump;
   LOG(INFO) << "Before core dump";
