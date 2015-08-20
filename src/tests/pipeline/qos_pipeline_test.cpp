@@ -263,10 +263,7 @@ TEST(QoSIpcPipelineTest, RollingFractionalDetectorOneDropCorrectionsWithEma) {
   // contention.
   // Most detectors will use that.
   cpdState.fractionalThreshold = 0.5;
-  // Defines how to convert difference in values to CPU.
-  // This option helps RollingFractionalDetector to estimate severity of
-  // drop.
-  cpdState.severityLevel = 0.4;  // 0.4 IPC drop means ~ 1 CPU to kill.
+  cpdState.severityLevel = 1;.
 
   conf.cpdState = cpdState;
   conf.emaAlpha = 0.4;
