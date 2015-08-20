@@ -24,12 +24,16 @@ message WorkID {
 * If possible, it also points the probably aggressor executor or tasks.
 */
 message Contention{
+  // TODO(nnielsen): We are mostly exercising LLC and mem bw contention at the
+  // moment (based on different signals). Let's figure out ways to represent
+  // that.
   enum Type {
     CACHE = 1;
     CPU = 2;
     IO = 3;
     NETWORK = 4;
   }
+
   optional WorkID victim = 1;
   optional WorkID aggressor = 2;
   optional Type type = 3;
@@ -37,6 +41,7 @@ message Contention{
 
   // It should reflect how many resources is needed for PR
   // job to not starve.
+  // TODO(nnielsen): Which values does severity take?
   optional double severity = 5;
 }
 

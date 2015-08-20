@@ -88,6 +88,7 @@ set(SERENITY_SOURCES
     src/filters/pr_executor_pass.cpp
     src/filters/utilization_threshold.cpp
     src/filters/valve.cpp
+    src/filters/executor_age.cpp
     src/observers/qos_correction.cpp
     src/observers/slack_resource.cpp
     src/qos_controller/serenity_controller.cpp
