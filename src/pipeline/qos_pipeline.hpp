@@ -69,6 +69,9 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       // Time series exporters.
       rawResourcesExporter("raw"),
       emaFilteredResourcesExporter("ema"),
+      // NOTE(bplotka): age Filter should initialized first before passing
+      // to the qosCorrectionObserver.
+      ageFilter(),
       // Last item in pipeline.
       qoSCorrectionObserver(this, 1, &ageFilter, new SeverityBasedSeniorityDecider),
       ipcDropFilter(
@@ -87,8 +90,8 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       valveFilter(
           &prExecutorPassFilter,
           conf.valveOpened,
-          Tag(QOS_CONTROLLER, "valveFilter")),
-      ageFilter(&valveFilter) {
+          Tag(QOS_CONTROLLER, "valveFilter")) {
+    this->ageFilter->addConsumer(&valveFilter);
     // Setup starting producer.
     this->addConsumer(&ageFilter);
 
@@ -167,10 +170,13 @@ class IpsQoSPipeline : public QoSControllerPipeline {
  public:
   explicit IpsQoSPipeline(QoSPipelineConf _conf)
       : conf(_conf),
-      // Time series exporters.
+        // Time series exporters.
         rawResourcesExporter("raw"),
         emaFilteredResourcesExporter("ema"),
-      // Last item in pipeline.
+        // NOTE(bplotka): age Filter should initialized first before passing
+        // to the qosCorrectionObserver.
+        ageFilter(),
+        // Last item in pipeline.
         qoSCorrectionObserver(this, 1, &ageFilter, new SeverityBasedSeniorityDecider),
         ipsDropFilter(
             &qoSCorrectionObserver,
@@ -188,9 +194,8 @@ class IpsQoSPipeline : public QoSControllerPipeline {
         valveFilter(
             &prExecutorPassFilter,
             conf.valveOpened,
-            Tag(QOS_CONTROLLER, "valveFilter")),
-      ageFilter(&valveFilter) {
-
+            Tag(QOS_CONTROLLER, "valveFilter")) {
+    this->ageFilter->addConsumer(&valveFilter);
     // Setup starting producer.
     this->addConsumer(&ageFilter);
 
