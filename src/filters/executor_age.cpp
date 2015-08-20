@@ -71,18 +71,20 @@ Try<double> ExecutorAgeFilter::age(
     started.find(frameworkId.value());
 
   if (frameworkIterator == started.end()) {
-    return Error(
-      "Could not find started time for executor '" + frameworkId.value() +
-      "' of framework '" + executorId.value() + "': framework not present");
+    return 0;
+//    return Error(
+//      "Could not find started time for executor '" + frameworkId.value() +
+//      "' of framework '" + executorId.value() + "': framework not present");
   }
 
   ExecutorMap& executors = frameworkIterator->second;
   ExecutorMap::iterator executorIterator = executors.find(executorId.value());
 
   if (executorIterator == executors.end()) {
-    return Error(
-      "Could not find started time for executor '" + frameworkId.value() +
-      "' of framework '" + executorId.value() + "': executor not present");
+    return 0;
+//    return Error(
+//      "Could not find started time for executor '" + frameworkId.value() +
+//      "' of framework '" + executorId.value() + "': executor not present");
   }
 
   return difftime(time(NULL), executorIterator->second);
