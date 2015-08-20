@@ -50,7 +50,7 @@ static QoSController* createIpcSerenityController(
   // Defines how much (relatively to base point) value must drop to trigger
   // contention.
   // Most detectors will use that.
-  cpdState.fractionalThreshold = 0.3;
+  cpdState.fractionalThreshold = 0.25;
   cpdState.severityLevel = 2.1;
 
   conf.cpdState = cpdState;

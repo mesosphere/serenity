@@ -96,7 +96,7 @@ Result<ChangePointDetection> RollingFractionalDetector::processSample(
     this->contentionCooldownCounter = this->state.contentionCooldown;
     ChangePointDetection cpd;
 
-    cpd.severity =0.7; // currentDropFraction * this->state.severityLevel;
+    cpd.severity = currentDropFraction * this->state.severityLevel;
     LOG(INFO) << tag.NAME() << " Contention severiy = "
               << cpd.severity;
     return cpd;
