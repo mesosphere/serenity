@@ -133,7 +133,7 @@ if (INTEGRATION_TESTS)
 endif(INTEGRATION_TESTS)
 
 # Copy fixtures.
-file(GLOB TestFixtures "tests/fixtures")
+file(GLOB TestFixtures "src/tests/fixtures")
 file(COPY ${TestFixtures} DESTINATION tests/)
 
 # Serenity library.
