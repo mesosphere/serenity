@@ -194,7 +194,7 @@ Try<QoSCorrections> SeverityBasedSeniorityDecider::decide(
   // not have the desired effect). Keep correcting until we have 0 BE tasks.
   size_t killCount = possibleAggressors.size() * meanSeverity;
   if (killCount == 0 ) killCount++;
-  killCount = 30; // Let's try 30 for demo.
+
   LOG(INFO) << "Decided to kill " << killCount << "/"
             << possibleAggressors.size() << "executors";
   // Get ages for executors.
