@@ -266,7 +266,7 @@ TEST(QoSIpcPipelineTest, RollingFractionalDetectorOneDropCorrectionsWithEma) {
   // Defines how to convert difference in values to CPU.
   // This option helps RollingFractionalDetector to estimate severity of
   // drop.
-  cpdState.differenceToCPU = 0.4;  // 0.4 IPC drop means ~ 1 CPU to kill.
+  cpdState.severityLevel = 0.4;  // 0.4 IPC drop means ~ 1 CPU to kill.
 
   conf.cpdState = cpdState;
   conf.emaAlpha = 0.4;
@@ -344,7 +344,7 @@ TEST(QoSIpcPipelineTest, AssuranceFractionalDetectorOneDropCorrectionWithEma) {
   // Defines how to convert difference in values to CPU.
   // This option helps RollingFractionalDetector to estimate severity of
   // drop.
-  cpdState.differenceToCPU = 0.1;
+  cpdState.severityLevel = 0.1;
   cpdState.nearFraction = 0.1;
 
   conf.cpdState = cpdState;
@@ -426,7 +426,7 @@ TEST(QoSIpcPipelineTest, AssuranceFractionalDetectorTwoDropCorrectionsWithEma) {
   // Defines how to convert difference in values to CPU.
   // This option helps RollingFractionalDetector to estimate severity of
   // drop.
-  cpdState.differenceToCPU = 0.1;
+  cpdState.severityLevel = 0.1;
   cpdState.nearFraction = 0.1;
 
   conf.cpdState = cpdState;
@@ -519,7 +519,7 @@ TEST(QoSIpsPipelineTest, RollingFractionalDetectorOneDropCorrectionsWithEma) {
   // Defines how many instructions can be done per one CPU in one second.
   // This option helps RollingFractionalDetector to estimate severity of
   // drop.
-  cpdState.differenceToCPU = 1000000000;  // 1 Billion.
+  cpdState.severityLevel = 1000000000;  // 1 Billion.
 
   conf.cpdState = cpdState;
   conf.emaAlpha = 0.4;

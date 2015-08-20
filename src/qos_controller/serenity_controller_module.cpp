@@ -54,7 +54,7 @@ static QoSController* createIpcSerenityController(
   // Defines how to convert difference in values to CPU.
   // This option helps RollingFractionalDetector to estimate severity of
   // drop.
-  cpdState.differenceToCPU = 0.4;  // 0.4 IPC drop means ~ 1 CPU to kill.
+  cpdState.severityLevel = 0.4;  // 0.4 IPC drop means ~ 1 CPU to kill.
 
   conf.cpdState = cpdState;
   conf.emaAlpha = 0.9;
@@ -104,7 +104,7 @@ static QoSController* createIpsSerenityController(
   // Defines how many instructions can be done per one CPU in one second.
   // This option helps RollingFractionalDetector to estimate severity of
   // drop.
-  cpdState.differenceToCPU = 1000000000;  // 1 Billion.
+  cpdState.severityLevel = 1000000000;  // 1 Billion.
 
   conf.cpdState = cpdState;
   conf.emaAlpha = 0.8;

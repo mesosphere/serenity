@@ -54,10 +54,8 @@ struct ChangePointDetectionState {
   double_t fractionalThreshold =
     changepoint::DEFAULT_FRACTIONAL_THRESHOLD;
 
-  //! Defines how to convert difference in values to CPU.
-  //! This option helps RollingFractionalDetector to estimate severity of
-  //! drop.
-  double_t differenceToCPU = changepoint::DEFAULT_DIFFERENCE_TO_CPU;
+  //! You can adjust how big severity is created for  a defined drop.
+  double_t severityLevel = changepoint::DEFAULT_SEVERITY_FRACTION;
 
   //! Tolerance fraction of threshold if signal is accepted as returned to
   //! previous state after drop.

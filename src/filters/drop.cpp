@@ -96,9 +96,7 @@ Result<ChangePointDetection> RollingFractionalDetector::processSample(
     this->contentionCooldownCounter = this->state.contentionCooldown;
     ChangePointDetection cpd;
 
-    // We calculate severity as difference between values and convert
-    // it to CPUs units.
-    cpd.severity = (basePoint - in) / this->state.differenceToCPU;
+    cpd.severity = currentDropFraction * this->state.severityLevel;
     LOG(INFO) << tag.NAME() << " Contention severiy = "
               << cpd.severity;
     return cpd;
@@ -162,7 +160,7 @@ Result<ChangePointDetection> AssuranceFractionalDetector::processSample(
     ChangePointDetection cpd;
     // We calculate severity as difference between values and convert
     // it to CPUs units.
-    cpd.severity = (basePoint - in) / this->state.differenceToCPU;
+    cpd.severity = (basePoint - in) / this->state.severityLevel;
     LOG(INFO) << tag.NAME() << " Created contention with severiy = "
     << cpd.severity;
     return cpd;
