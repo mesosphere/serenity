@@ -197,9 +197,9 @@ Try<QoSCorrections> SeverityBasedSeniorityDecider::decide(
   // Get ages for executors.
   list<pair<double, ResourceUsage_Executor>> executors;
   for (const ResourceUsage_Executor& executor : possibleAggressors) {
-
+    LOG(INFO) << "Before getting age";
     Try<double> age = ageFilter->age(executor.executor_info());
-
+    LOG(INFO) << "After getting age";
     if (age.isError()) {
       LOG(WARNING) << age.error();
       continue;
