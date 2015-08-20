@@ -197,10 +197,8 @@ Try<QoSCorrections> SeverityBasedSeniorityDecider::decide(
   // Get ages for executors.
   list<pair<double, ResourceUsage_Executor>> executors;
   for (const ResourceUsage_Executor& executor : possibleAggressors) {
-    const ExecutorID& executorId = executor.executor_info().executor_id();
-    const FrameworkID& frameworkId = executor.executor_info().framework_id();
 
-    Try<double> age = ageFilter->age(frameworkId, executorId);
+    Try<double> age = ageFilter->age(executor.executor_info());
 
     if (age.isError()) {
       LOG(WARNING) << "Could not get executor age for '" << executorId.value()

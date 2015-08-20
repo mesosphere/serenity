@@ -7,6 +7,7 @@
 
 #include "mesos/mesos.hpp"
 
+#include "serenity/executor_map.hpp"
 #include "serenity/serenity.hpp"
 
 namespace mesos {
@@ -26,13 +27,10 @@ class ExecutorAgeFilter :
   /**
    * Returns the age of an executor in seconds.
    */
-  Try<double> age(const FrameworkID& frameworkId, const ExecutorID& id);
+  Try<double> age(const ExecutorInfo& exec_id);
 
  private:
-  typedef std::map<const std::string, time_t> ExecutorMap;
-  typedef std::map<const std::string, ExecutorMap> FrameworkMap;
-
-  FrameworkMap started;
+  std::unique_ptr<ExecutorMap<time_t>> started;
 };
 
 }  // namespace serenity

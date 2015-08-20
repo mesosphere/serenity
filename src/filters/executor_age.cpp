@@ -14,11 +14,11 @@ using std::map;
 using std::pair;
 using std::string;
 
-ExecutorAgeFilter::ExecutorAgeFilter() {}
+ExecutorAgeFilter::ExecutorAgeFilter() : started(new ExecutorMap<time_t>()) {}
 
 
 ExecutorAgeFilter::ExecutorAgeFilter(Consumer<ResourceUsage>* _consumer)
-  : Producer<ResourceUsage>(_consumer) {}
+  : Producer<ResourceUsage>(_consumer), started(new ExecutorMap<time_t>()) {}
 
 
 ExecutorAgeFilter::~ExecutorAgeFilter() {}
@@ -29,30 +29,11 @@ Try<Nothing> ExecutorAgeFilter::consume(const ResourceUsage& in)
   time_t now = time(NULL);
   
   for (ResourceUsage_Executor executor : in.executors()) {
-    const FrameworkID& frameworkId = executor.executor_info().framework_id();
-    const ExecutorID& executorId = executor.executor_info().executor_id();
-
-    FrameworkMap::iterator frameworkIterator =
-      started.find(frameworkId.value());
-
-    if (frameworkIterator == started.end()) {
-      // If executor map for framework is absent, create and initialize the
-      // entry.
-      map<const string, time_t> executors;
-      executors.insert(pair<const string, time_t>(executorId.value(), now));
-
-      started.insert(pair<const string, map<const string, time_t>>(
-        frameworkId.value(), executors));
-    } else {
-      ExecutorMap& executors = frameworkIterator->second;
-        
-      ExecutorMap::iterator executorIterator =
-        executors.find(executorId.value());
-
-      if (executorIterator == executors.end()) {
+    auto startedTime = this->started->find(executor.executor_info());
+    if (startedTime == this->started->end()) {
         // If executor is missing, create start entry for executor.
-        executors.insert(pair<const string, time_t>(executorId.value(), now));
-      }
+      startedTime.insert(pair<ExecutorInfo, time_t>(
+          executor.executor_info(), now));
     }
   }
 
@@ -64,32 +45,19 @@ Try<Nothing> ExecutorAgeFilter::consume(const ResourceUsage& in)
 
 
 Try<double> ExecutorAgeFilter::age(
-  const FrameworkID& frameworkId,
-  const ExecutorID& executorId)
+  const ExecutorInfo& executorInfo)
 {
-  FrameworkMap::iterator frameworkIterator =
-    started.find(frameworkId.value());
-
-  if (frameworkIterator == started.end()) {
-    return 0;
-//    return Error(
-//      "Could not find started time for executor '" + frameworkId.value() +
-//      "' of framework '" + executorId.value() + "': framework not present");
+  auto startedTime = this->started->find(executorInfo);
+  if (startedTime == this->started->end()) {
+    return Error(
+        "Could not find started time for executor '" +
+        executorInfo.framework_id().value() + "' of framework '" +
+        executorInfo.executor_id().value() + "': framework not present");
+  } else {
+    return difftime(time(NULL), startedTime->second);
   }
 
-  ExecutorMap& executors = frameworkIterator->second;
-  ExecutorMap::iterator executorIterator = executors.find(executorId.value());
-
-  if (executorIterator == executors.end()) {
-    return 0;
-//    return Error(
-//      "Could not find started time for executor '" + frameworkId.value() +
-//      "' of framework '" + executorId.value() + "': executor not present");
-  }
-
-  return difftime(time(NULL), executorIterator->second);
 }
-
 
 }  // namespace serenity
 }  // namespace mesos
