@@ -32,7 +32,7 @@ Try<Nothing> ExecutorAgeFilter::consume(const ResourceUsage& in)
     auto startedTime = this->started->find(executor.executor_info());
     if (startedTime == this->started->end()) {
         // If executor is missing, create start entry for executor.
-      startedTime.insert(pair<ExecutorInfo, time_t>(
+      this->started->insert(pair<ExecutorInfo, time_t>(
           executor.executor_info(), now));
     }
   }
