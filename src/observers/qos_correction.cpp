@@ -201,8 +201,7 @@ Try<QoSCorrections> SeverityBasedSeniorityDecider::decide(
     Try<double> age = ageFilter->age(executor.executor_info());
 
     if (age.isError()) {
-      LOG(WARNING) << "Could not get executor age for '" << executorId.value()
-                   << "' of framework '" << frameworkId.value() << "'";
+      LOG(WARNING) << age.error();
       continue;
     }
 
