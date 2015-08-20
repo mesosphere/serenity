@@ -142,6 +142,25 @@ Try<QoSCorrections> SeverityBasedCpuDecider::decide(
 }
 
 
+Try<QoSCorrections> KillAllDecider::decide(
+    const Contentions& currentContentions,
+    const ResourceUsage& currentUsage) {
+  // Product.
+  QoSCorrections corrections;
+
+  // List of BE executors.
+  list<ResourceUsage_Executor> aggressors =
+      filterPrExecutors(currentUsage);
+
+  // Create QoSCorrection from aggressors list.
+  for (auto aggressorToKill : aggressors) {
+    corrections.push_back(createKillQoSCorrection(aggressorToKill));
+  }
+
+  return corrections;
+}
+
+// Using age filter.
 Try<QoSCorrections> SeverityBasedSeniorityDecider::decide(
     ExecutorAgeFilter* ageFilter,
     const Contentions& currentContentions,
@@ -286,8 +305,8 @@ Try<QoSCorrections> SeverityBasedSeniorityDecider::decide(
                 severity -= aggressorsAllocation.cpus().get();
 
                 LOG(INFO) << QoSCorrectionObserver::name
-                          <<"Decided to kill ""Executor: "
-                          <<possibleAggressor.executor_info().executor_id();
+                          << "Decided to kill ""Executor: "
+                          << possibleAggressor.executor_info().executor_id();
 
                 aggressorsToKill.push_back(
                     createKill(possibleAggressor.executor_info()));

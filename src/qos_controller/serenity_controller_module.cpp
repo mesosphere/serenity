@@ -30,11 +30,12 @@ using mesos::serenity::QoSPipelineConf;
 
 using mesos::slave::QoSController;
 
+// IPC pipeline.
 static QoSController* createIpcSerenityController(
     const Parameters& parameters) {
   LOG(INFO) << "Loading Serenity QoS Controller module";
   // TODO(bplotka): Fetch configuration from parameters or conf file
-  // to customize IpsDrop
+  // to customize IpcDrop
 
   // --Hardcoded configuration for Serenity QoS Controller---
 
@@ -49,17 +50,16 @@ static QoSController* createIpcSerenityController(
   // Defines how much (relatively to base point) value must drop to trigger
   // contention.
   // Most detectors will use that.
-  cpdState.fractionalThreshold = 0.5;
+  cpdState.fractionalThreshold = 0.3;
   // Defines how to convert difference in values to CPU.
   // This option helps RollingFractionalDetector to estimate severity of
   // drop.
   cpdState.differenceToCPU = 0.4;  // 0.4 IPC drop means ~ 1 CPU to kill.
 
   conf.cpdState = cpdState;
-  conf.emaAlpha = 0.8;
+  conf.emaAlpha = 0.9;
   conf.visualisation = true;
-  // Let's start with QoS pipeline disabled.
-  conf.valveOpened = false;
+  conf.valveOpened = true;
 
   // Since slave is configured for 5 second perf interval, it is useless to
   // check correction more often then 5 sec.
@@ -79,6 +79,8 @@ static QoSController* createIpcSerenityController(
   return result.get();
 }
 
+
+// IPS pipeline
 static QoSController* createIpsSerenityController(
     const Parameters& parameters) {
   LOG(INFO) << "Loading Serenity QoS Controller module";

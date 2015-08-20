@@ -24,6 +24,7 @@ constexpr double DEFAULT_ABS_THRESHOLD = 0;
 constexpr double DEFAULT_RELATIVE_THRESHOLD = 20;
 constexpr double DEFAULT_FRACTIONAL_THRESHOLD = 0.5;
 constexpr double DEFAULT_DIFFERENCE_TO_CPU = 1000000000;
+constexpr double DEFAULT_NEAR_FRACTION = 0.1;
 
 }  // namespace changepoint
 
