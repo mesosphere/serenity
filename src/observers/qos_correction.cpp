@@ -188,12 +188,14 @@ Try<QoSCorrections> SeverityBasedSeniorityDecider::decide(
   if (!currentContentions.empty()) {
     meanSeverity /= currentContentions.size();
   }
-  LOG(INFO) << meanSeverity;
+  LOG(INFO) << "MeanSeverity" << meanSeverity;
   // TODO(nnielsen): Made gross assumption about homogenous best-effort tasks.
   // TODO(nnielsen): Instead of severity, we need taget values (corrections may
   // not have the desired effect). Keep correcting until we have 0 BE tasks.
   size_t killCount = possibleAggressors.size() * meanSeverity;
   if (killCount == 0 ) killCount++;
+  LOG(INFO) << "Decided to kill " << killCount << "/"
+            << possibleAggressors.size() << "executors";
   // Get ages for executors.
   list<pair<double_t, ResourceUsage_Executor>> executors;
   for (const ResourceUsage_Executor& executor : possibleAggressors) {
