@@ -44,10 +44,12 @@ Try<Nothing> ExecutorAgeFilter::consume(const ResourceUsage& in)
 }
 
 
-Try<double> ExecutorAgeFilter::age(
-  const ExecutorInfo& executorInfo)
+Try<double> ExecutorAgeFilter::age(const ExecutorInfo executorInfo)
 {
+  // Make core dump;
+  LOG(INFO) << "Before core dump";
   auto startedTime = this->started->find(executorInfo);
+  LOG(INFO) << "Log not visible";
   if (startedTime == this->started->end()) {
     return Error(
         "Could not find started time for executor '" +
@@ -56,8 +58,10 @@ Try<double> ExecutorAgeFilter::age(
   } else {
     return difftime(time(NULL), startedTime->second);
   }
-
 }
+
+Try<Nothing> ExecutorAgeFilter::ageOrder(
+    std::list<ResourceUsage_Executor>& executors) { return Nothing(); };
 
 }  // namespace serenity
 }  // namespace mesos

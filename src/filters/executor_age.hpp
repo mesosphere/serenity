@@ -1,9 +1,11 @@
 #ifndef SERENITY_EXECUTOR_AGE_FILTER_HPP
 #define SERENITY_EXECUTOR_AGE_FILTER_HPP
 
+#include <list>
 #include <memory>
 #include <string>
 #include <time.h>
+
 
 #include "mesos/mesos.hpp"
 
@@ -28,6 +30,8 @@ class ExecutorAgeFilter :
    * Returns the age of an executor in seconds.
    */
   Try<double> age(const ExecutorInfo& exec_id);
+
+  Try<Nothing> ageOrder(std::list<ResourceUsage_Executor>& executors);
 
  private:
   std::unique_ptr<ExecutorMap<time_t>> started;
