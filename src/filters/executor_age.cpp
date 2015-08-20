@@ -46,7 +46,7 @@ Try<Nothing> ExecutorAgeFilter::consume(const ResourceUsage& in)
 
 Try<double_t> ExecutorAgeFilter::age(ExecutorInfo executorInfo)
 {
-  if (!this->started) LOG(ERROR) << " null ptr!";
+  if (this->started == nullptr) LOG(ERROR) << " null ptr!";
   // Make core dump;
   LOG(INFO) << "Before core dump";
   auto startedTime = this->started->find(executorInfo);
