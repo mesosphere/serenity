@@ -51,7 +51,7 @@ static QoSController* createIpcSerenityController(
   // contention.
   // Most detectors will use that.
   cpdState.fractionalThreshold = 0.3;
-  cpdState.severityLevel = 2.3;
+  cpdState.severityLevel = 2.2;
 
   conf.cpdState = cpdState;
   conf.emaAlpha = 0.9;
@@ -60,7 +60,7 @@ static QoSController* createIpcSerenityController(
 
   // Since slave is configured for 5 second perf interval, it is useless to
   // check correction more often then 5 sec.
-  double onEmptyCorrectionInterval = 5;
+  double onEmptyCorrectionInterval = 2;
 
   // --End of hardcoded configuration for Serenity QoS Controller---
 
