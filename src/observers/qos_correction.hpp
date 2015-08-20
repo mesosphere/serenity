@@ -86,7 +86,8 @@ class QoSCorrectionObserver : public SyncConsumer<Contentions>,
       Producer<QoSCorrections>(_consumer),
       currentContentions(None()),
       currentUsage(None()),
-      contentionDecider(_contentionDecider) {}
+      contentionDecider(_contentionDecider),
+      ageFilter(_ageFilter){}
 
   ~QoSCorrectionObserver();
 

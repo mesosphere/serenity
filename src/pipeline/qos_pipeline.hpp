@@ -73,8 +73,8 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       // to the qosCorrectionObserver.
       ageFilter(),
       // Last item in pipeline.
-      qoSCorrectionObserver(this, 1, new ExecutorAgeFilter(), new
-          SeverityBasedSeniorityDecider),
+      qoSCorrectionObserver(this, 1, &ageFilter,
+                            new SeverityBasedSeniorityDecider),
       ipcDropFilter(
           &qoSCorrectionObserver,
           usage::getEmaIpc,
