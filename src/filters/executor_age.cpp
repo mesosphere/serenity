@@ -34,9 +34,9 @@ Try<Nothing> ExecutorAgeFilter::consume(const ResourceUsage& in)
         // If executor is missing, create start entry for executor.
       this->started->insert(pair<ExecutorInfo, double_t>(
           executor.executor_info(), now));
+      this->age( executor.executor_info()); //For test!
     }
   }
-
   // TODO(nnielsen): Clean up finished frameworks and executors.
 
   this->produce(in);
