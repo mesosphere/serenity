@@ -193,7 +193,7 @@ Try<QoSCorrections> SeverityBasedSeniorityDecider::decide(
   // TODO(nnielsen): Instead of severity, we need taget values (corrections may
   // not have the desired effect). Keep correcting until we have 0 BE tasks.
   size_t killCount = possibleAggressors.size() * meanSeverity;
-
+  if (killCount == 0 ) killCount++;
   // Get ages for executors.
   list<pair<double_t, ResourceUsage_Executor>> executors;
   for (const ResourceUsage_Executor& executor : possibleAggressors) {
