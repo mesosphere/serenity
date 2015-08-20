@@ -46,9 +46,8 @@ Try<Nothing> ExecutorAgeFilter::consume(const ResourceUsage& in)
 }
 
 
-Try<double_t> ExecutorAgeFilter::age(ExecutorInfo executorInfo)
+Try<double_t> ExecutorAgeFilter::age(const ExecutorInfo& executorInfo)
 {
-  if (started == nullptr) LOG(ERROR) << " null ptr!";
   // Make core dump;
   LOG(INFO) << "Before core dump";
   auto startedTime = started->find(executorInfo);
@@ -63,11 +62,6 @@ Try<double_t> ExecutorAgeFilter::age(ExecutorInfo executorInfo)
     return difftime(time(NULL), startedTime->second);
   }
 }
-
-Try<Nothing> ExecutorAgeFilter::ageOrder(
-    std::list<ResourceUsage_Executor>& executors) {
-
-};
 
 }  // namespace serenity
 }  // namespace mesos

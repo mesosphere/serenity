@@ -29,10 +29,9 @@ class ExecutorAgeFilter :
   /**
    * Returns the age of an executor in seconds.
    */
-  Try<double_t> age(ExecutorInfo exec_id);
+  Try<double_t> age(const ExecutorInfo& exec_id);
 
-  Try<Nothing> ageOrder(std::list<ResourceUsage_Executor>& executors);
-
+ private:
   std::unique_ptr<ExecutorMap<double_t>> started;
 };
 
