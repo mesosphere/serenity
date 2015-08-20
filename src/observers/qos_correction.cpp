@@ -208,7 +208,8 @@ Try<QoSCorrections> SeverityBasedSeniorityDecider::decide(
       continue;
     }
 
-    executors.push_back(pair<double, ResourceUsage_Executor>(age, executor));
+    executors.push_back(pair<double, ResourceUsage_Executor>(age.get(),
+                                                             executor));
   }
 
   // TODO(nielsen): Actual time delta should be factored in i.e. not only work
