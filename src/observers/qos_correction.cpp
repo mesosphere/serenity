@@ -195,30 +195,30 @@ Try<QoSCorrections> SeverityBasedSeniorityDecider::decide(
   size_t killCount = possibleAggressors.size() * meanSeverity;
 
   // Get ages for executors.
-  list<pair<double, ResourceUsage_Executor>> executors;
+  list<pair<double_t, ResourceUsage_Executor>> executors;
   for (const ResourceUsage_Executor& executor : possibleAggressors) {
     LOG(INFO) << "Before getting age";
-    Try<double> age = ageFilter->age(executor.executor_info());
+    Try<double_t> age = ageFilter->age(executor.executor_info());
     LOG(INFO) << "After getting age";
     if (age.isError()) {
       LOG(WARNING) << age.error();
       continue;
     }
 
-    executors.push_back(pair<double, ResourceUsage_Executor>(age.get(),
+    executors.push_back(pair<double_t, ResourceUsage_Executor>(age.get(),
                                                              executor));
   }
 
   // TODO(nielsen): Actual time delta should be factored in i.e. not only work
   // as an ordering, but as a priority (taken time gaps).
   executors.sort([](
-    const pair<double, ResourceUsage_Executor>& left,
-    const pair<double, ResourceUsage_Executor>& right){
+    const pair<double_t, ResourceUsage_Executor>& left,
+    const pair<double_t, ResourceUsage_Executor>& right){
       return left.first < right.first;
   });
 
   // Kill first N executors (by age, youngest to oldest).
-  list<pair<double, ResourceUsage_Executor>>::iterator executorIterator =
+  list<pair<double_t, ResourceUsage_Executor>>::iterator executorIterator =
     executors.begin();
   for (int i = 0; i < killCount; i++) {
     if (executorIterator == executors.end()) {

@@ -26,13 +26,13 @@ ExecutorAgeFilter::~ExecutorAgeFilter() {}
 
 Try<Nothing> ExecutorAgeFilter::consume(const ResourceUsage& in)
 {
-  time_t now = time(NULL);
+  double_t now = time(NULL);
   
   for (ResourceUsage_Executor executor : in.executors()) {
     auto startedTime = this->started->find(executor.executor_info());
     if (startedTime == this->started->end()) {
         // If executor is missing, create start entry for executor.
-      this->started->insert(pair<ExecutorInfo, time_t>(
+      this->started->insert(pair<ExecutorInfo, double_t>(
           executor.executor_info(), now));
     }
   }
@@ -44,7 +44,7 @@ Try<Nothing> ExecutorAgeFilter::consume(const ResourceUsage& in)
 }
 
 
-Try<double> ExecutorAgeFilter::age(ExecutorInfo executorInfo)
+Try<double_t> ExecutorAgeFilter::age(ExecutorInfo executorInfo)
 {
   // Make core dump;
   LOG(INFO) << "Before core dump";
@@ -61,7 +61,9 @@ Try<double> ExecutorAgeFilter::age(ExecutorInfo executorInfo)
 }
 
 Try<Nothing> ExecutorAgeFilter::ageOrder(
-    std::list<ResourceUsage_Executor>& executors) { return Nothing(); };
+    std::list<ResourceUsage_Executor>& executors) {
+
+};
 
 }  // namespace serenity
 }  // namespace mesos
