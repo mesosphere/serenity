@@ -51,7 +51,7 @@ static QoSController* createIpcSerenityController(
   // contention.
   // Most detectors will use that.
   cpdState.fractionalThreshold = 0.3;
-  cpdState.severityLevel = 2.2;
+  cpdState.severityLevel = 2.1;
 
   conf.cpdState = cpdState;
   conf.emaAlpha = 0.9;
