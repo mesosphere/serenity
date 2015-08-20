@@ -143,6 +143,7 @@ Try<QoSCorrections> SeverityBasedCpuDecider::decide(
 
 
 Try<QoSCorrections> KillAllDecider::decide(
+    ExecutorAgeFilter* ageFilter,
     const Contentions& currentContentions,
     const ResourceUsage& currentUsage) {
   // Product.
@@ -159,6 +160,7 @@ Try<QoSCorrections> KillAllDecider::decide(
 
   return corrections;
 }
+
 
 // Using age filter.
 Try<QoSCorrections> SeverityBasedSeniorityDecider::decide(
