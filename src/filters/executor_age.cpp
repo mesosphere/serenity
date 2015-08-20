@@ -14,11 +14,11 @@ using std::map;
 using std::pair;
 using std::string;
 
-ExecutorAgeFilter::ExecutorAgeFilter() : started(new ExecutorMap<time_t>()) {}
+ExecutorAgeFilter::ExecutorAgeFilter() : started(new ExecutorMap<double_t>()) {}
 
 
 ExecutorAgeFilter::ExecutorAgeFilter(Consumer<ResourceUsage>* _consumer)
-  : Producer<ResourceUsage>(_consumer), started(new ExecutorMap<time_t>()) {}
+  : Producer<ResourceUsage>(_consumer), started(new ExecutorMap<double_t>()) {}
 
 
 ExecutorAgeFilter::~ExecutorAgeFilter() {}
