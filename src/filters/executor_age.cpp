@@ -49,10 +49,10 @@ Try<double_t> ExecutorAgeFilter::age(ExecutorInfo executorInfo)
   if (started == nullptr) LOG(ERROR) << " null ptr!";
   // Make core dump;
   LOG(INFO) << "Before core dump";
-  auto startedTime = this->started->find(executorInfo);
+  auto startedTime = started->find(executorInfo);
   LOG(INFO) << "Log not visible";
-  return 0;
-  if (startedTime == this->started->end()) {
+  
+  if (startedTime == started->end()) {
     return Error(
         "Could not find started time for executor '" +
         executorInfo.framework_id().value() + "' of framework '" +
