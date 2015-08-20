@@ -51,10 +51,7 @@ static QoSController* createIpcSerenityController(
   // contention.
   // Most detectors will use that.
   cpdState.fractionalThreshold = 0.3;
-  // Defines how to convert difference in values to CPU.
-  // This option helps RollingFractionalDetector to estimate severity of
-  // drop.
-  cpdState.severityLevel = 0.4;  // 0.4 IPC drop means ~ 1 CPU to kill.
+  cpdState.severityLevel = 0.4;
 
   conf.cpdState = cpdState;
   conf.emaAlpha = 0.9;
@@ -101,10 +98,7 @@ static QoSController* createIpsSerenityController(
   // contention.
   // Most detectors will use that.
   cpdState.fractionalThreshold = 0.5;
-  // Defines how many instructions can be done per one CPU in one second.
-  // This option helps RollingFractionalDetector to estimate severity of
-  // drop.
-  cpdState.severityLevel = 1000000000;  // 1 Billion.
+  cpdState.severityLevel = 0.1;
 
   conf.cpdState = cpdState;
   conf.emaAlpha = 0.8;

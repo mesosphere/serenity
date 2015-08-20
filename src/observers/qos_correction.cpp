@@ -186,7 +186,7 @@ Try<QoSCorrections> SeverityBasedSeniorityDecider::decide(
   }
   
   if (!currentContentions.empty()) {
-    meanSeverity /= (double) currentContentions.size();
+    meanSeverity /= currentContentions.size();
   }
   LOG(INFO) << meanSeverity;
   // TODO(nnielsen): Made gross assumption about homogenous best-effort tasks.
