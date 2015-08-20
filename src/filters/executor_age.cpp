@@ -50,6 +50,7 @@ Try<double_t> ExecutorAgeFilter::age(ExecutorInfo executorInfo)
   LOG(INFO) << "Before core dump";
   auto startedTime = this->started->find(executorInfo);
   LOG(INFO) << "Log not visible";
+  return 0;
   if (startedTime == this->started->end()) {
     return Error(
         "Could not find started time for executor '" +
