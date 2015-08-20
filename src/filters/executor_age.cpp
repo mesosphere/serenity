@@ -48,11 +48,7 @@ Try<Nothing> ExecutorAgeFilter::consume(const ResourceUsage& in)
 
 Try<double_t> ExecutorAgeFilter::age(const ExecutorInfo& executorInfo)
 {
-  // Make core dump;
-  LOG(INFO) << "Before core dump";
   auto startedTime = started->find(executorInfo);
-  LOG(INFO) << "Log not visible";
-
   if (startedTime == started->end()) {
     return Error(
         "Could not find started time for executor '" +

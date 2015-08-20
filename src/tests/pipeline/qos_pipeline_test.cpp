@@ -344,7 +344,7 @@ TEST(QoSIpcPipelineTest, AssuranceFractionalDetectorOneDropCorrectionWithEma) {
   // Defines how to convert difference in values to CPU.
   // This option helps RollingFractionalDetector to estimate severity of
   // drop.
-  cpdState.differenceToCPU = 0.4;  // 0.4 IPC drop means ~ 1 CPU to kill.
+  cpdState.differenceToCPU = 0.1;
   cpdState.nearFraction = 0.1;
 
   conf.cpdState = cpdState;
@@ -426,7 +426,7 @@ TEST(QoSIpcPipelineTest, AssuranceFractionalDetectorTwoDropCorrectionsWithEma) {
   // Defines how to convert difference in values to CPU.
   // This option helps RollingFractionalDetector to estimate severity of
   // drop.
-  cpdState.differenceToCPU = 0.4;  // 0.4 IPC drop means ~ 1 CPU to kill.
+  cpdState.differenceToCPU = 0.1;
   cpdState.nearFraction = 0.1;
 
   conf.cpdState = cpdState;
