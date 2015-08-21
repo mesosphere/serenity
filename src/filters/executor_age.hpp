@@ -4,8 +4,7 @@
 #include <list>
 #include <memory>
 #include <string>
-
-#include "time.h"
+#include <time>
 
 #include "mesos/mesos.hpp"
 

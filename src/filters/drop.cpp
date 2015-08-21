@@ -130,7 +130,7 @@ Result<ChangePointDetection> AssuranceFractionalDetector::processSample(
                           "corrections. Waiting iteration: "
                        <<  referencePointCounter;
     double_t nearValue = this->state.nearFraction * this->referencePoint.get();
-    if(in + nearValue > this->referencePoint.get()) {
+    if (in + nearValue > this->referencePoint.get()) {
       this->referencePoint = None();
       SERENITY_LOG(INFO) << "Signal returned to established state.";
     }
