@@ -29,7 +29,7 @@ ExecutorAgeFilter::~ExecutorAgeFilter() {}
 
 Try<Nothing> ExecutorAgeFilter::consume(const ResourceUsage& in) {
   double_t now = time(NULL);
-  
+
   for (ResourceUsage_Executor executor : in.executors()) {
     auto startedTime = this->started->find(executor.executor_info());
     if (startedTime == this->started->end()) {
