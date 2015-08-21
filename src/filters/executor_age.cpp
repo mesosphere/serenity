@@ -1,5 +1,6 @@
 #include <atomic>
 #include <string>
+#include <utility>
 
 #include "glog/logging.h"
 
@@ -26,8 +27,7 @@ ExecutorAgeFilter::ExecutorAgeFilter(Consumer<ResourceUsage>* _consumer)
 ExecutorAgeFilter::~ExecutorAgeFilter() {}
 
 
-Try<Nothing> ExecutorAgeFilter::consume(const ResourceUsage& in)
-{
+Try<Nothing> ExecutorAgeFilter::consume(const ResourceUsage& in) {
   double_t now = time(NULL);
   
   for (ResourceUsage_Executor executor : in.executors()) {
@@ -36,7 +36,7 @@ Try<Nothing> ExecutorAgeFilter::consume(const ResourceUsage& in)
         // If executor is missing, create start entry for executor.
       this->started->insert(pair<ExecutorInfo, double_t>(
           executor.executor_info(), now));
-      this->age( executor.executor_info()); //For test!
+      this->age( executor.executor_info());  // For test!
     }
   }
   // TODO(nnielsen): Clean up finished frameworks and executors.
@@ -46,8 +46,7 @@ Try<Nothing> ExecutorAgeFilter::consume(const ResourceUsage& in)
 }
 
 
-Try<double_t> ExecutorAgeFilter::age(const ExecutorInfo& executorInfo)
-{
+Try<double_t> ExecutorAgeFilter::age(const ExecutorInfo& executorInfo) {
   auto startedTime = started->find(executorInfo);
   if (startedTime == started->end()) {
     return Error(

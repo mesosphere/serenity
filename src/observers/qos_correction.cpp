@@ -1,5 +1,6 @@
 #include <list>
 #include <vector>
+#include <utility>
 
 #include "observers/qos_correction.hpp"
 
@@ -184,7 +185,7 @@ Try<QoSCorrections> SeverityBasedSeniorityDecider::decide(
       meanSeverity += contention.severity();
     }
   }
-  
+
   if (!currentContentions.empty()) {
     meanSeverity /= currentContentions.size();
   }
@@ -226,7 +227,8 @@ Try<QoSCorrections> SeverityBasedSeniorityDecider::decide(
       break;
     }
 
-    const ExecutorInfo& executorInfo = (executorIterator->second).executor_info();
+    const ExecutorInfo& executorInfo =
+      (executorIterator->second).executor_info();
 
     LOG(INFO) << "Marked executor '" << executorInfo.executor_id()
               << "' of framework '" << executorInfo.framework_id()
@@ -382,9 +384,9 @@ Try<Nothing> QoSCorrectionObserver::__correctSlave() {
   } else {
     // Allowed to interpret contention using different algorithms.
     Try<QoSCorrections> corrections =
-        this->contentionDecider->decide(ageFilter,
-					this->currentContentions.get(),
-                                        this->currentUsage.get());
+      this->contentionDecider->decide(ageFilter,
+                                      this->currentContentions.get(),
+                                      this->currentUsage.get());
     if (corrections.isError()) {
       // In case of Error produce empty corrections.
       produce(QoSCorrections());

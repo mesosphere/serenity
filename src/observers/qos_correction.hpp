@@ -56,7 +56,7 @@ class SeverityBasedCpuDecider : public ContentionDecider {
  * Kills all BE executors given in usage.
  */
 class KillAllDecider : public ContentionDecider {
-public:
+ public:
   ContentionDeciderFunction decide;
 };
 
@@ -87,7 +87,7 @@ class QoSCorrectionObserver : public SyncConsumer<Contentions>,
       currentContentions(None()),
       currentUsage(None()),
       contentionDecider(_contentionDecider),
-      ageFilter(_ageFilter){}
+      ageFilter(_ageFilter) {}
 
   ~QoSCorrectionObserver();
 

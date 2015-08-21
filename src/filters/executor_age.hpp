@@ -4,8 +4,8 @@
 #include <list>
 #include <memory>
 #include <string>
-#include <time.h>
 
+#include "time.h"
 
 #include "mesos/mesos.hpp"
 
@@ -18,9 +18,9 @@ namespace serenity {
 class ExecutorAgeFilter :
     public Consumer<ResourceUsage>, public Producer<ResourceUsage> {
  public:
-  explicit ExecutorAgeFilter();
+  ExecutorAgeFilter();
 
-  ExecutorAgeFilter(Consumer<ResourceUsage>* _consumer);
+  explitict ExecutorAgeFilter(Consumer<ResourceUsage>* _consumer);
 
   ~ExecutorAgeFilter();
 

@@ -178,7 +178,8 @@ class IpsQoSPipeline : public QoSControllerPipeline {
         // to the qosCorrectionObserver.
         ageFilter(),
         // Last item in pipeline.
-        qoSCorrectionObserver(this, 1, &ageFilter, new SeverityBasedSeniorityDecider),
+        qoSCorrectionObserver(this, 1, &ageFilter,
+                              new SeverityBasedSeniorityDecider),
         ipsDropFilter(
             &qoSCorrectionObserver,
             usage::getEmaIps,

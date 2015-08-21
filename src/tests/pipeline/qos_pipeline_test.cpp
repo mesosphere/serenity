@@ -116,7 +116,7 @@ TEST(QoSPipelineTest, NoCorrections) {
 const char QOS_PIPELINE_FIXTURE2[] =
     "tests/fixtures/pipeline/qos_one_drop_correction.json";
 
-//TEST(QoSIpcPipelineTest, RollingDetectorOneDropCorrectionsNoEma) {
+// TEST(QoSIpcPipelineTest, RollingDetectorOneDropCorrectionsNoEma) {
 //  uint64_t WINDOWS_SIZE = 10;
 //  uint64_t CONTENTION_COOLDOWN = 10;
 //  double_t RELATIVE_THRESHOLD = 0.4;
@@ -147,7 +147,8 @@ const char QOS_PIPELINE_FIXTURE2[] =
 //      LOAD_ITERATIONS);
 //
 //  for (; loadGen.end(); loadGen++) {
-//    // Test scenario: After 10 iterations create drop in IPC for executor num 3.
+//    // Test scenario: After 10 iterations create drop in
+// IPC for executor num 3.
 //    double_t ipcFor3Executor = (*loadGen)();
 //    if (loadGen.iteration >= 11) {
 //      ipcFor3Executor /= 2.0;
@@ -180,10 +181,10 @@ const char QOS_PIPELINE_FIXTURE2[] =
 //  }
 //
 //  delete pipeline;
-//}
+// }
 
 
-//TEST(QoSIpcPipelineTest, RollingDetectorOneDropCorrectionsWithEma) {
+// TEST(QoSIpcPipelineTest, RollingDetectorOneDropCorrectionsWithEma) {
 //  uint64_t WINDOWS_SIZE = 10;
 //  uint64_t CONTENTION_COOLDOWN = 10;
 //  double_t RELATIVE_THRESHOLD = 0.3;
@@ -214,7 +215,8 @@ const char QOS_PIPELINE_FIXTURE2[] =
 //      LOAD_ITERATIONS);
 //
 //  for (; loadGen.end(); loadGen++) {
-//    // Test scenario: After 10 iterations create drop in IPC for executor num 3.
+//    // Test scenario: After 10 iterations create drop in
+//  IPC for executor num 3.
 //    double_t ipcFor3Executor = (*loadGen)();
 //    if (loadGen.iteration >= 11) {
 //      ipcFor3Executor /= 2.0;
@@ -247,7 +249,7 @@ const char QOS_PIPELINE_FIXTURE2[] =
 //  }
 //
 //  delete pipeline;
-//}
+// }
 
 
 TEST(QoSIpcPipelineTest, RollingFractionalDetectorOneDropCorrectionsWithEma) {
@@ -325,7 +327,8 @@ TEST(QoSIpcPipelineTest, RollingFractionalDetectorOneDropCorrectionsWithEma) {
 }
 
 
-//TEST(QoSIpcPipelineTest, AssuranceFractionalDetectorOneDropCorrectionWithEma) {
+// TEST(QoSIpcPipelineTest,
+// AssuranceFractionalDetectorOneDropCorrectionWithEma) {
 //  QoSPipelineConf conf;
 //  ChangePointDetectionState cpdState;
 //  // Detector configuration:
@@ -404,10 +407,11 @@ TEST(QoSIpcPipelineTest, RollingFractionalDetectorOneDropCorrectionsWithEma) {
 //  }
 //
 //  delete pipeline;
-//}
+// }
 
 
-//TEST(QoSIpcPipelineTest, AssuranceFractionalDetectorTwoDropCorrectionsWithEma) {
+// TEST(QoSIpcPipelineTest,
+// AssuranceFractionalDetectorTwoDropCorrectionsWithEma) {
 //  QoSPipelineConf conf;
 //  ChangePointDetectionState cpdState;
 //  // Detector configuration:
@@ -486,7 +490,7 @@ TEST(QoSIpcPipelineTest, RollingFractionalDetectorOneDropCorrectionsWithEma) {
 //  }
 //
 //  delete pipeline;
-//}
+// }
 
 
 // This fixture includes 5 executors:
