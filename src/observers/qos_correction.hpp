@@ -16,11 +16,14 @@
 
 #include "serenity/serenity.hpp"
 
+#include "filters/executor_age.hpp"
+
 namespace mesos {
 namespace serenity {
 
 using ContentionDeciderFunction = Try<QoSCorrections>
-    (const Contentions& currentContentions,
+    (ExecutorAgeFilter* ageFilter,
+     const Contentions& currentContentions,
      const ResourceUsage& currentUsage);
 
 
@@ -49,6 +52,20 @@ class SeverityBasedCpuDecider : public ContentionDecider {
   ContentionDeciderFunction decide;
 };
 
+/**
+ * Kills all BE executors given in usage.
+ */
+class KillAllDecider : public ContentionDecider {
+ public:
+  ContentionDeciderFunction decide;
+};
+
+
+class SeverityBasedSeniorityDecider : public ContentionDecider {
+ public:
+  ContentionDeciderFunction decide;
+};
+
 
 /**
  * QoSCorrectionObserver observes incoming Contentions and
@@ -63,12 +80,14 @@ class QoSCorrectionObserver : public SyncConsumer<Contentions>,
   explicit QoSCorrectionObserver(
       Consumer<QoSCorrections>* _consumer,
       uint64_t _contentionProducents,
+      ExecutorAgeFilter* _ageFilter = new ExecutorAgeFilter(),
       ContentionDecider* _contentionDecider = new SeverityBasedCpuDecider())
     : SyncConsumer<Contentions>(_contentionProducents),
       Producer<QoSCorrections>(_consumer),
       currentContentions(None()),
       currentUsage(None()),
-      contentionDecider(_contentionDecider) {}
+      contentionDecider(_contentionDecider),
+      ageFilter(_ageFilter) {}
 
   ~QoSCorrectionObserver();
 
@@ -107,6 +126,7 @@ class QoSCorrectionObserver : public SyncConsumer<Contentions>,
   Option<Contentions> currentContentions;
   Option<ResourceUsage> currentUsage;
   ContentionDecider* contentionDecider;
+  ExecutorAgeFilter* ageFilter;
 
   //! Run when all required info are gathered.
   Try<Nothing> __correctSlave();
