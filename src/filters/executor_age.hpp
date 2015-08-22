@@ -1,16 +1,16 @@
 #ifndef SERENITY_EXECUTOR_AGE_FILTER_HPP
 #define SERENITY_EXECUTOR_AGE_FILTER_HPP
 
+#include <ctime>
 #include <list>
 #include <memory>
 #include <string>
-
-#include "time.h"
 
 #include "mesos/mesos.hpp"
 
 #include "serenity/executor_map.hpp"
 #include "serenity/serenity.hpp"
+
 
 namespace mesos {
 namespace serenity {
@@ -20,7 +20,7 @@ class ExecutorAgeFilter :
  public:
   ExecutorAgeFilter();
 
-  explitict ExecutorAgeFilter(Consumer<ResourceUsage>* _consumer);
+  explicit ExecutorAgeFilter(Consumer<ResourceUsage>* _consumer);
 
   ~ExecutorAgeFilter();
 
