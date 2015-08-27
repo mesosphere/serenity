@@ -28,16 +28,10 @@ ENDIF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 execute_process(
     COMMAND ${CMAKE_COMMAND} -E tar xzf curlcpp.tar.gz
     COMMAND ${CMAKE_COMMAND} -E tar xzf rapidjson-v1.0.2.tar.gz
+    COMMAND ${CMAKE_COMMAND} -E tar xzf gmock-1.7.0.tar.gz
+    COMMAND ${CMAKE_COMMAND} -E tar xzf pbjson.tar.gz
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib
 )
-
-# Add gtest.
-ADD_SUBDIRECTORY (lib/gmock-1.7.0)
-include_directories( ${gmock_SOURCE_DIR} include)
-include_directories( ${gtest_SOURCE_DIR} include)
-
-# Add pbjson - it doesn't have CMakeList.txt so include it manually.
-set(pbjson_SOURCE_DIR lib/pbjson)
 
 # Curlcpp.
 ADD_SUBDIRECTORY(lib/curlcpp)
@@ -47,6 +41,13 @@ INCLUDE_DIRECTORIES(${CURLCPP_SOURCE_DIR}/include)
 ADD_SUBDIRECTORY(lib/rapidjson-1.0.2)
 INCLUDE_DIRECTORIES(lib/rapidjson-1.0.2/include)
 
+# Add gtest.
+ADD_SUBDIRECTORY (lib/gmock-1.7.0)
+INCLUDE_DIRECTORIES(${gmock_SOURCE_DIR} include)
+INCLUDE_DIRECTORIES(${gtest_SOURCE_DIR} include)
+
+# Add pbjson - it doesn't have CMakeList.txt so include it manually.
+set(pbjson_SOURCE_DIR lib/pbjson)
 INCLUDE_DIRECTORIES(src)
 
 # Protobuf stuff.
