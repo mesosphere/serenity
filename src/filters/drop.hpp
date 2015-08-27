@@ -132,7 +132,8 @@ class AssuranceFractionalDetector : public ChangePointDetector {
   explicit AssuranceFractionalDetector(const Tag& _tag)
       : ChangePointDetector(_tag),
         referencePoint(None()),
-        referencePointCounter(0) {}
+        referencePointCounter(0),
+        lastSeverity(0) {}
 
   virtual Result<ChangePointDetection> processSample(double_t in);
 
@@ -140,6 +141,7 @@ class AssuranceFractionalDetector : public ChangePointDetector {
   std::list<double_t> window;
   Option<double_t> referencePoint;
   uint64_t referencePointCounter;
+  double_t lastSeverity;
 };
 
 

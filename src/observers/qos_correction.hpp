@@ -40,19 +40,6 @@ class ContentionDecider {
 
 
 /**
- * Checks contentions and choose executors to kill.
- * Currently it takes sorted contentions by severity.
- * We are iterating from the most serious contention to the less serious
- * and choose BE executors to kill.
- * WARNING(bplotka): This interpreter algorithm assumes that severity is
- * reflecting how many resources is needed for PR job to not starve again.
- */
-class SeverityBasedCpuDecider : public ContentionDecider {
- public:
-  ContentionDeciderFunction decide;
-};
-
-/**
  * Kills all BE executors given in usage.
  */
 class KillAllDecider : public ContentionDecider {
@@ -61,6 +48,11 @@ class KillAllDecider : public ContentionDecider {
 };
 
 
+/**
+ * Checks contentions and choose executors to kill.
+ * Currently it calculates mean contention and based on that estimates how
+ * many executors we should kill. Executors are sorted by age.
+ */
 class SeverityBasedSeniorityDecider : public ContentionDecider {
  public:
   ContentionDeciderFunction decide;
@@ -81,7 +73,8 @@ class QoSCorrectionObserver : public SyncConsumer<Contentions>,
       Consumer<QoSCorrections>* _consumer,
       uint64_t _contentionProducents,
       ExecutorAgeFilter* _ageFilter = new ExecutorAgeFilter(),
-      ContentionDecider* _contentionDecider = new SeverityBasedCpuDecider())
+      ContentionDecider* _contentionDecider =
+        new SeverityBasedSeniorityDecider())
     : SyncConsumer<Contentions>(_contentionProducents),
       Producer<QoSCorrections>(_consumer),
       currentContentions(None()),

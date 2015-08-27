@@ -97,7 +97,7 @@ Result<ChangePointDetection> RollingFractionalDetector::processSample(
     ChangePointDetection cpd;
 
     cpd.severity = currentDropFraction * this->state.severityLevel;
-    LOG(INFO) << tag.NAME() << " Contention severiy = "
+    LOG(INFO) << tag.NAME() << " Created contention with severity = "
               << cpd.severity;
     return cpd;
   }
@@ -115,9 +115,6 @@ Result<ChangePointDetection> AssuranceFractionalDetector::processSample(
   this->window.push_back(in);
 
   if (this->window.size() < this->state.windowSize) {
-    SERENITY_LOG(INFO) << "Warming up "
-                       << this->window.size() << "/"
-                       << this->state.windowSize;
     return None();  // Only warm up.
   }
 
@@ -126,17 +123,23 @@ Result<ChangePointDetection> AssuranceFractionalDetector::processSample(
 
   if (this->referencePoint.isSome()) {
     // Check if the signal returned to normal state. (!)
-    SERENITY_LOG(INFO) << "Waiting for signal to return to base state after "
-                          "corrections. Waiting iteration: "
-                       <<  referencePointCounter;
     double_t nearValue = this->state.nearFraction * this->referencePoint.get();
-    if (in + nearValue > this->referencePoint.get()) {
+    SERENITY_LOG(INFO) << "Waiting for signal to return to "
+                       << (this->referencePoint.get() - nearValue)
+                       << " (base value) after "
+                       << "corrections. Waiting iteration: "
+                       << referencePointCounter;
+    this->referencePointCounter++;
+    // We want to use reference Base Point instead of base point.
+    basePoint = in;
+    if (in >= (this->referencePoint.get() - nearValue)) {
       this->referencePoint = None();
       SERENITY_LOG(INFO) << "Signal returned to established state.";
     }
   }
 
   if (this->contentionCooldownCounter > 0) {
+    SERENITY_LOG(INFO) << "Cooldown for: " << contentionCooldownCounter;
     this->contentionCooldownCounter--;
     return None();
   }
@@ -146,23 +149,30 @@ Result<ChangePointDetection> AssuranceFractionalDetector::processSample(
   double_t currentDropFraction = 1.0 - (in / basePoint);
 
   SERENITY_LOG(INFO)
-      << " inputValue: " << in
-      << " | baseValue = " << basePoint
-      << " | current drop %: " << currentDropFraction * 100
-      << " | threshold %: " << this->state.fractionalThreshold * 100;
+  << " inputValue: " << in
+  << " | baseValue = " << basePoint
+  << " | current drop %: " << currentDropFraction * 100
+  << " | threshold %: " << this->state.fractionalThreshold * 100;
 
-  // If drop fraction is higher than threshold, then trigger contention.
+  // If drop fraction is higher than threshold or signal did not returned
+  // after cooldown, then trigger contention.
   if (currentDropFraction > this->state.fractionalThreshold ||
       (this->referencePoint.isSome())) {
+    ChangePointDetection cpd;
+    if (this->referencePoint.isNone()) {
+      cpd.severity =  currentDropFraction * this->state.severityLevel;
+      this->lastSeverity = cpd.severity;
+    } else {
+      cpd.severity =  this->lastSeverity;
+    }
+
+    LOG(INFO) << tag.NAME() << " Created contention with severity = "
+              << cpd.severity;
+
     this->contentionCooldownCounter = this->state.contentionCooldown;
     this->referencePoint = basePoint;
     this->referencePointCounter = 0;
-    ChangePointDetection cpd;
-    // We calculate severity as difference between values and convert
-    // it to CPUs units.
-    cpd.severity = (basePoint - in) / this->state.severityLevel;
-    LOG(INFO) << tag.NAME() << " Created contention with severiy = "
-    << cpd.severity;
+
     return cpd;
   }
 
