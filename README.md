@@ -88,22 +88,6 @@ Run the tests:
 make test
 ```
 
-### Build Serenity with autotools (deprecated)
-
-Once Mesos is built and installed, clone the Serenity package.
-
-The configuration phase needs to know some details about your Mesos build and installation
-location:
-
-```
-./bootstrap
-mkdir build && cd build
-../configure --with-mesos-root=~/mesos --with-mesos-build-dir=~/mesos/build
-make
-```
-
-At this point, the Module libraries are ready in `build/.libs`.
-
 ### Deploying Serenity Module
 
 Create a JSON file that describes the shared library and its parameters to the Mesos slave process:
