@@ -1,0 +1,61 @@
+import "mesos/mesos.proto";
+
+package mesos;
+
+option java_package = "org.apache.mesos";
+option java_outer_classname = "Protos";
+
+
+/**
+* Necessary union to define job.
+* Currently we cannot specify individual task.
+* NOTE: Framework id must be set for the specified executor.
+*/
+message WorkID {
+  optional FrameworkID framework_id = 1;
+  optional ExecutorID executor_id = 2;
+}
+
+
+/**
+* Describes resource contention and noisy neighbour situation.
+* It describes certain type of resource starvation (cpu, cache, io)
+* and the victim of starvation (only a PR task is applicable).
+* If possible, it also points the probably aggressor executor or tasks.
+*/
+message Contention{
+  // TODO(nnielsen): We are mostly exercising LLC and mem bw contention at the
+  // moment (based on different signals). Let's figure out ways to represent
+  // that.
+  enum Type {
+    CACHE = 1;
+    CPU = 2;
+    IO = 3;
+    NETWORK = 4;
+  }
+
+  optional WorkID victim = 1;
+  optional WorkID aggressor = 2;
+  optional Type type = 3;
+  optional double timestamp = 4;
+
+  // It should reflect how many resources is needed for PR
+  // job to not starve.
+  // TODO(nnielsen): Which values does severity take?
+  optional double severity = 5;
+}
+
+
+/**
+* Describes a collection of task performance metrics.
+*/
+message TaskPerformance {
+  message Sample {
+    required string name = 1;
+    required double value = 2;
+    optional double minimum = 3;
+    optional double maximum = 4;
+  }
+  required TaskID task = 1;
+  repeated Sample samples = 2;
+}
