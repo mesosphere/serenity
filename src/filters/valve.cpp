@@ -132,7 +132,6 @@ class ValveFilterEndpointProcess
         process::http::query::decode(request.body);
     if (decode.isError()) {
       return http::BadRequest(
-          // TODO(skonefal [bplotka]): add pipeline
           tag.NAME() + "Unable to decode query string: "
           + decode.error());
     }

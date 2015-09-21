@@ -19,7 +19,6 @@ namespace serenity {
 
 const std::string PIPELINE_ENABLE_KEY = "enabled";
 const std::string VALVE_ROUTE = "/valve";
-
 const std::string RESOURCE_ESTIMATOR_VALVE_PROCESS_BASE =
     "serenity_resource_estimator";
 const std::string QOS_CONTROLLER_VALVE_PROCESS_BASE =

@@ -69,8 +69,6 @@ class QoSCorrectionObserver : public SyncConsumer<Contentions>,
                               public Consumer<ResourceUsage>,
                               public Producer<QoSCorrections>,
                               public Producer<OversubscriptionControlMessage> {
-//  using Producer<QoSCorrections>::produce;
-//  using Producer<OversubscriptionControlMessage>::produce;
  public:
   QoSCorrectionObserver(
       Consumer<QoSCorrections>* _consumer,

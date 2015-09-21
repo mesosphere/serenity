@@ -178,8 +178,7 @@ Try<Nothing> QoSCorrectionObserver::__correctSlave() {
   if (!this->currentContentions.isSome() || !this->currentUsage.isSome())
     return Nothing();
 
-  if
-      (this->currentContentions.get().empty()) {
+  if (this->currentContentions.get().empty()) {
     produce(QoSCorrections());
   } else {
     // Allowed to interpret contention using different algorithms.

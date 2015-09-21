@@ -69,7 +69,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
   explicit CpuQoSPipeline(QoSPipelineConf _conf)
     : conf(_conf),
       // Communication bus
-      qosBus(CommunicationBus::RE_BUS),
+      qosBus(CommunicationBus::QOS_BUS),
       // Time series exporters.
       rawResourcesExporter("raw"),
       emaFilteredResourcesExporter("ema"),
@@ -120,10 +120,11 @@ class CpuQoSPipeline : public QoSControllerPipeline {
   }
 
  private:
+  QoSPipelineConf conf;
+
   // --- Communication bus ---
   CommunicationBus qosBus;
 
-  QoSPipelineConf conf;
   // --- Filters ---
   ExecutorAgeFilter ageFilter;
   EMAFilter emaFilter;
@@ -181,6 +182,8 @@ class IpsQoSPipeline : public QoSControllerPipeline {
  public:
   explicit IpsQoSPipeline(QoSPipelineConf _conf)
       : conf(_conf),
+        // Communication bus
+        qosBus(CommunicationBus::QOS_BUS),
         // Time series exporters.
         rawResourcesExporter("raw"),
         emaFilteredResourcesExporter("ema"),
@@ -219,6 +222,9 @@ class IpsQoSPipeline : public QoSControllerPipeline {
       this->addConsumer(&rawResourcesExporter);
       emaFilter.addConsumer(&emaFilteredResourcesExporter);
     }
+
+    // Register producers of messages to bus
+    qoSCorrectionObserver.addConsumer<OversubscriptionControlMessage>(&qosBus);
   }
 
   virtual Try<Nothing> resetSyncConsumers() {
@@ -229,6 +235,10 @@ class IpsQoSPipeline : public QoSControllerPipeline {
 
  private:
   QoSPipelineConf conf;
+
+  // --- Communication bus ---
+  CommunicationBus qosBus;
+
   // --- Filters ---
   EMAFilter emaFilter;
   DropFilter<Detector> ipsDropFilter;
