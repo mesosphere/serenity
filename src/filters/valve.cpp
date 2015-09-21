@@ -132,6 +132,7 @@ class ValveFilterEndpointProcess
         process::http::query::decode(request.body);
     if (decode.isError()) {
       return http::BadRequest(
+          // TODO(skonefal [bplotka]): add pipeline
           tag.NAME() + "Unable to decode query string: "
           + decode.error());
     }
@@ -204,6 +205,11 @@ Try<Nothing> ValveFilter::consume(const ResourceUsage& in) {
     SERENITY_LOG(INFO) << "pipeline is closed";
   }
 
+  return Nothing();
+}
+
+
+Try<Nothing> ValveFilter::consume(const OversubscriptionControlMessage& in) {
   return Nothing();
 }
 

@@ -12,14 +12,9 @@
 namespace mesos {
 namespace serenity {
 
-// The bus socket allows peers to communicate (subscribe and publish)
-// asynchronously.
-class BusSocket {
-};
-
 
 template<typename T>
-class Consumer : public BusSocket {
+class Consumer {
  public:
   virtual ~Consumer() {}
 
@@ -72,7 +67,7 @@ class SyncConsumer : public Consumer<T> {
 };
 
 template<typename T>
-class Producer : public BusSocket {
+class Producer {
  public:
   Producer() {}
 

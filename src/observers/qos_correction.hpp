@@ -67,9 +67,12 @@ class SeverityBasedSeniorityDecider : public ContentionDecider {
  */
 class QoSCorrectionObserver : public SyncConsumer<Contentions>,
                               public Consumer<ResourceUsage>,
-                              public Producer<QoSCorrections> {
+                              public Producer<QoSCorrections>,
+                              public Producer<OversubscriptionControlMessage> {
+//  using Producer<QoSCorrections>::produce;
+//  using Producer<OversubscriptionControlMessage>::produce;
  public:
-  explicit QoSCorrectionObserver(
+  QoSCorrectionObserver(
       Consumer<QoSCorrections>* _consumer,
       uint64_t _contentionProducents,
       ExecutorAgeFilter* _ageFilter = new ExecutorAgeFilter(),
@@ -88,6 +91,7 @@ class QoSCorrectionObserver : public SyncConsumer<Contentions>,
 
   Try<Nothing> consume(const ResourceUsage& usage) override;
 
+
   static bool compareSeverity(
       const Contention& first, const Contention& second) {
     if (!second.has_severity())
@@ -97,6 +101,7 @@ class QoSCorrectionObserver : public SyncConsumer<Contentions>,
 
     return (first.severity() > second.severity());
   }
+
 
   static bool compareCpuAllocated(
       const ResourceUsage_Executor& first,
@@ -113,9 +118,21 @@ class QoSCorrectionObserver : public SyncConsumer<Contentions>,
     return (firstAllocation.cpus().get() > secondAllocation.cpus().get());
   }
 
+
+  template <typename T>
+  Try<Nothing> addConsumer(Consumer<T>* consumer) {
+    return Producer<T>::addConsumer(consumer);
+  }
+
   static constexpr const char* name = "[SerenityQoS] CorrectionObserver: ";
 
  protected:
+  template <typename T>
+  Try<Nothing> produce(T product) {
+    return Producer<T>::produce(product);
+  }
+
+
   Option<Contentions> currentContentions;
   Option<ResourceUsage> currentUsage;
   ContentionDecider* contentionDecider;

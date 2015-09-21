@@ -8,6 +8,8 @@
 #include "process/future.hpp"
 #include "process/owned.hpp"
 
+#include "messages/serenity.hpp"
+
 #include "serenity/serenity.hpp"
 
 #include "stout/lambda.hpp"
@@ -17,11 +19,11 @@ namespace serenity {
 
 const std::string PIPELINE_ENABLE_KEY = "enabled";
 const std::string VALVE_ROUTE = "/valve";
+
 const std::string RESOURCE_ESTIMATOR_VALVE_PROCESS_BASE =
     "serenity_resource_estimator";
 const std::string QOS_CONTROLLER_VALVE_PROCESS_BASE =
     "serenity_qos_controller";
-
 
 static const std::string getValveProcessBaseName(const ModuleType type) {
   switch (type) {
@@ -38,8 +40,9 @@ static const std::string getValveProcessBaseName(const ModuleType type) {
 // Forward declaration
 class ValveFilterEndpointProcess;
 
-class ValveFilter :
-    public Consumer<ResourceUsage>, public Producer<ResourceUsage> {
+class ValveFilter : public Consumer<ResourceUsage>,
+                    public Producer<ResourceUsage>,
+                    public Consumer<OversubscriptionControlMessage> {
  public:
   explicit ValveFilter(bool _opened = true,
                        const Tag& _tag = Tag(UNDEFINED, "valveFilter"));
@@ -52,6 +55,7 @@ class ValveFilter :
   ~ValveFilter();
 
   Try<Nothing> consume(const ResourceUsage& in);
+  Try<Nothing> consume(const OversubscriptionControlMessage& in);
 
  private:
   const Tag tag;

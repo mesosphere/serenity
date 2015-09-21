@@ -1,6 +1,8 @@
 #ifndef SERENITY_ESTIMATOR_PIPELINE_HPP
 #define SERENITY_ESTIMATOR_PIPELINE_HPP
 
+#include "bus/communication_bus.hpp"
+
 #include "filters/ignore_new_executors.hpp"
 #include "filters/pr_executor_pass.hpp"
 #include "filters/utilization_threshold.hpp"
@@ -8,6 +10,8 @@
 
 #include "mesos/mesos.hpp"
 #include "mesos/resources.hpp"
+
+#include "messages/serenity.hpp"
 
 #include "observers/slack_resource.hpp"
 
@@ -60,6 +64,8 @@ class CpuEstimatorPipeline : public ResourceEstimatorPipeline {
       double_t _utilizationThreshold = utilization::DEFAULT_THRESHOLD,
       bool _visualisation = true,
       bool _valveOpened = true) :
+      // Communication bus
+      estimatorBus(CommunicationBus::QOS_BUS),
       // Time series exporters.
       slackTimeSeriesExporter(),
       // Last item in pipeline.
@@ -87,9 +93,17 @@ class CpuEstimatorPipeline : public ResourceEstimatorPipeline {
     if (_visualisation) {
       slackObserver.addConsumer(&slackTimeSeriesExporter);
     }
+
+    // Bus producers
+
+    // Bus consumers
+    estimatorBus.addConsumer<OversubscriptionControlMessage>(&valveFilter);
   }
 
  private:
+  // --- Communication bus ---
+  CommunicationBus estimatorBus;
+
   // --- Filters ---
   PrExecutorPassFilter prExecutorPassFilter;
   IgnoreNewExecutorsFilter ignoreNewExecutorsFilter;
@@ -107,3 +121,4 @@ class CpuEstimatorPipeline : public ResourceEstimatorPipeline {
 }  // namespace mesos
 
 #endif  // SERENITY_ESTIMATOR_PIPELINE_HPP
+
