@@ -120,6 +120,14 @@ In order to use serenity, add these lines to your mesos-slave command line optio
 --qos_controller="com_mesosphere_mesos_SerenityController"
 ```
 
+### Deploying Serenity Module using Deployment Scripts
+
+There is useful [Serenity-Formula project](https://github.com/Bplotka/serenity-formula) 
+for the Mesos & Serenity deployment. It can be used  to prepare cluster 
+for Serenity end-to-end tests.
+ 
+You are welcome to use it & contribute in case of any bug or enhancement.
+
 ### Contributing
 
 Send pull requests for code review before merging.
