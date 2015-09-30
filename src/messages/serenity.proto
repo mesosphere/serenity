@@ -6,6 +6,15 @@ option java_package = "org.apache.mesos";
 option java_outer_classname = "Protos";
 
 
+message OversubscriptionControlMessageEnvelope {
+  optional OversubscriptionControlMessage oversubscription_control_message = 1;
+}
+
+message OversubscriptionControlEventEnvelope {
+  optional OversubscriptionControlMessage message = 1;
+}
+
+
 /**
 * Necessary union to define job.
 * Currently we cannot specify individual task.
