@@ -17,6 +17,6 @@ RUN rm -rf build && \
     mkdir build && \
     cd build && \
     export LD_LIBRARY_PATH=LD_LIBRARY_PATH:/usr/local/lib && \
-    cmake -DWITH_MESOS="/mesos" -DWITH_SOURCE_MESOS="/mesos" .. && \
+    cmake -DWITH_MESOS="/mesos" -DWITH_SOURCE_MESOS="/mesos" -USE_CLANG .. && \
     make -j 2 && \
     ./serenity-tests

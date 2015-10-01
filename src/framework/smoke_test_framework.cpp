@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+#define PICOJSON_USE_INT64
+
 #include <list>
 #include <string>
 #include <vector>
@@ -28,6 +30,7 @@
 #include <stout/flags.hpp>
 #include <stout/foreach.hpp>
 #include <stout/hashset.hpp>
+#include <stout/json.hpp>
 #include <stout/option.hpp>
 #include <stout/os.hpp>
 #include <stout/path.hpp>
@@ -389,6 +392,7 @@ list<JobSpec> parseTaskJson(const Flags flags, bool& revocable) {
     EXIT(EXIT_FAILURE) << "File is empty.  "
     << flags.usage("Bad path for JSON tasks");
   }
+
 
   Try<JSON::Object> json = JSON::parse<JSON::Object>(read.get());
   if (json.isError()) {
