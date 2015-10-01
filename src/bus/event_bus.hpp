@@ -66,6 +66,7 @@ class EventBus : public ProtobufProcess<EventBus> {
 
   template <typename T>
   Try<Nothing> _registerEvent() {
+    // LOG(INFO) << typeid(decltype(&T::message));
     //GET_TYPE_OF(&T::message) x;
     //x.set_value(true);
 //    install<T>(&EventBus::receiveMsg<GET_TYPE_OF(&T::message)>,
