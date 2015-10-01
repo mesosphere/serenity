@@ -1,4 +1,19 @@
 cmake_minimum_required(VERSION 3.0.0)
+
+option(USE_CLANG "Build using clang 3.5 compiler" OFF)
+if (USE_CLANG)
+    message("Using Clang 3.5 as CXX compiler")
+    set(CMAKE_C_COMPILER "/usr/bin/clang-3.5")
+    set(CMAKE_C_FLAGS  "-Wall -std=c99")
+    set(CMAKE_C_FLAGS_DEBUG   "-g")
+    set(CMAKE_C_FLAGS_MINSIZEREL "-Os -DNDEBUG")
+    set(CMAKE_C_FLAGS_RELEASE   "-O4 -DNDEBUG")
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g")
+    set(CMAKE_CXX_COMPILER "/usr/bin/clang-3.5")
+    set(CMAKE_CXX_FLAGS "-v -Wall")
+    set(CMAKE_CXX_FLAGS_DEBUG "-g")
+endif(USE_CLANG)
+
 project(serenity)
 enable_testing()
 
@@ -8,14 +23,6 @@ set(MESOS_INSTALLATION_DIR ${WITH_MESOS})
 message("Mesos installation directory set to: " ${MESOS_INSTALLATION_DIR})
 
 option(INTEGRATION_TESTS "Enable compilation of integration tests." OFF)
-
-option(USE_CLANG "build with clang" OFF)
-
-if(USE_CLANG)
-    set(CMAKE_CXX_COMPILER "/usr/bin/clang++-3.5")
-    set(CMAKE_CXX_FLAGS "-Wall")
-    set(CMAKE_CXX_FLAGS_DEBUG "-g")
-endif(USE_CLANG)
 
 # Compiler things.
 include(CheckCXXCompilerFlag)
@@ -31,7 +38,6 @@ if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 endif(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
 
-
 # Untar libs.
 execute_process(
     COMMAND ${CMAKE_COMMAND} -E tar xzf curlcpp.tar.gz
@@ -45,9 +51,10 @@ execute_process(
 add_subdirectory(lib/curlcpp)
 include_directories(${CURLCPP_SOURCE_DIR}/include)
 
-# Rapidjson.
-add_subdirectory(lib/rapidjson-1.0.2)
-include_directories(lib/rapidjson-1.0.2/include)
+
+## Rapidjson.
+#add_subdirectory(lib/rapidjson-1.0.2)
+#include_directories(lib/rapidjson-1.0.2/include)
 
 # Add gtest.
 add_subdirectory (lib/gmock-1.7.0)
@@ -182,7 +189,7 @@ if (MESOS_SOURCE_DIR)
     # Serenity test framework exe.
     add_executable(test-framework
         src/framework/smoke_test_framework.cpp)
-    target_link_libraries(test-framework mesos protobuf glog)
+    target_link_libraries(test-framework mesos protobuf glog stdc++ m)
 
 else(MESOS_SOURCE_DIR)
     message(
