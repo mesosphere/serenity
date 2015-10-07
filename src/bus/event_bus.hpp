@@ -2,10 +2,13 @@
 #define SERENITY_EVENT_BUS_HPP
 
 #include <map>
+#include <unordered_set>
 // TODO(skonefal): Move to std shared_mutex when -std=c++14 is available
 #include <mutex>  // NOLINT [build/c++11]
 #include <string>
+#include <type_traits>
 #include <typeinfo>
+#include <typeindex>
 
 #include "glog/logging.h"
 
@@ -23,8 +26,32 @@
 namespace mesos {
 namespace serenity {
 
-template <class T, class M> M get_member_type(M T:: *);
-#define GET_TYPE_OF(mem) decltype(get_member_type(mem))
+
+/**
+ * Helper snippet of code to evaluate internal message type of the Envelope.
+ *
+ * Each event defined in proto need to be wrapped in "Envelope"
+ * with message variable e.g:
+ *
+ * message OversubscriptionControlEventEnvelope {
+ *  message OversubscriptionControlEvent {
+ *   optional bool enable_oversubscription = 1;
+ *   (...)
+ *  }
+ *
+ *  optional OversubscriptionControlEvent message = 1;
+ * }
+ */
+template <class Envelope>
+struct typeOfInternalMessage:std::true_type
+{
+  typedef decltype(std::declval<Envelope>().message()) type;
+};
+
+template <class Envelope>
+using EventType =  typename std::remove_const<
+  typename std::remove_reference<
+    typename typeOfInternalMessage<Envelope>::type>::type>::type;
 
 
 /**
@@ -33,7 +60,6 @@ template <class T, class M> M get_member_type(M T:: *);
  */
 class EventBus : public ProtobufProcess<EventBus> {
  public:
-
   virtual ~EventBus() { }
 
   /**
@@ -43,8 +69,24 @@ class EventBus : public ProtobufProcess<EventBus> {
   static EventBus* const GetInstance() {
     if (EventBus::instance == nullptr) {
       EventBus::instance = new EventBus();
+      process::spawn(EventBus::instance);
     }
     return EventBus::instance;
+  }
+
+  static Try<Nothing> const Release() {
+    if (EventBus::instance != nullptr) {
+      process::terminate(EventBus::instance->self(), false);
+      process::wait(EventBus::instance->self());
+
+      delete(EventBus::instance);
+      EventBus::instance = nullptr;
+    }
+    return Nothing();
+  }
+
+  static process::UPID address() {
+    return EventBus::GetInstance()->self();
   }
 
   template <typename T>
@@ -60,139 +102,103 @@ class EventBus : public ProtobufProcess<EventBus> {
   }
 
   template <typename T>
+  static Try<Nothing> publish(const T& in) {
+    EventBus::GetInstance()->_publish<T>(in);
+    return Nothing();
+  }
+
+  template <typename T>
   void receiveMsg(const T& msg) {
 
   }
 
+ private:
+
+  template <typename T>
+  Try<Nothing> _publish(const T& in) {
+    // Lock map?
+    auto subscribersForType = this->subscribersMap.find(typeid(EventType<T>));
+    if (subscribersForType == this->subscribersMap.end()) {
+      // Nobody subscribed for this event.
+      LOG(INFO) << "Nobody subscribed for this event.";
+      return Nothing();
+    }
+
+    for (const process::UPID& subscriberPID : subscribersForType->second) {
+      LOG(INFO) << "Sending to: " << subscriberPID;
+      T msg(in);
+      this->send(subscriberPID, msg);
+    }
+
+    return Nothing();
+  }
+
+
   template <typename T>
   Try<Nothing> _registerEvent() {
-    // LOG(INFO) << typeid(decltype(&T::message));
-    //GET_TYPE_OF(&T::message) x;
-    //x.set_value(true);
-//    install<T>(&EventBus::receiveMsg<GET_TYPE_OF(&T::message)>,
-//               &T::message);
+    std::lock_guard<std::mutex> lock(eventSetLock);
+
+    if (eventSet.find(typeid(T)) != eventSet.end()) {
+      LOG(INFO) << "This event type (" << typeid(T).name()
+                << ") is already defined.";
+      return Nothing();
+    }
+    install<T>(&EventBus::receiveMsg<EventType<T>>,
+               &T::message);
+    eventSet.insert(typeid(T));
 
     return Nothing();
   }
 
   /**
-   * Currently topic == type of message (T)
+   * Register subscriber for particular type of Event.
+   * Currently topic (classifier) is equal to type T id.
    */
   template <typename T>
   Try<Nothing> _subscribe(process::UPID _subscriberPID) {
-    std::lock_guard<std::mutex> lock(typeMapLock);
-    typeMap[typeid(T::message)] = _subscriberPID;
+    std::lock_guard<std::mutex> lock(subscribersMapLock);
+
+    auto subscribersForType = this->subscribersMap.find(typeid(EventType<T>));
+    if (subscribersForType == this->subscribersMap.end()) {
+      // Nobody has subscribed for this event type before.
+
+      std::unordered_set<process::UPID> subscribersSet;
+      subscribersSet.insert(_subscriberPID);
+
+      this->subscribersMap[typeid(EventType<T>)] = subscribersSet;
+      return Nothing();
+    }
+
+    if (subscribersForType->second.find(_subscriberPID) !=
+        subscribersForType->second.end()) {
+      LOG(INFO) << "This subscriber with PID: " << _subscriberPID
+                << "is already registered";
+      return Nothing();
+    }
+
+    subscribersForType->second.insert(_subscriberPID);
+
     return Nothing();
 
   }
-  /**
-   * Mutex for locking topicMap
-   * TODO(skonefal): remove when c++14 & shared_mutex implemented
-   */
-  std::mutex typeMapLock;
-  std::map<std::type_index, process::UPID> typeMap;
 
-  std::mutex registrationListLock;
-  std::list<std::type_index> registrationList;
+  /**
+   * Mutex for locking subscribersMap
+   * TODO: Remove when c++14 & shared_mutex implemented
+   */
+  std::mutex subscribersMapLock;
+  std::map<std::type_index, std::unordered_set<process::UPID>> subscribersMap;
+
+  /**
+   * Mutex for locking eventSet
+   * TODO: Remove when c++14 & shared_mutex implemented
+   */
+  std::mutex eventSetLock;
+  std::unordered_set<std::type_index> eventSet;
 
   // Singleton class instance
   static EventBus* instance;
 };
-
-//   */
-//  template <typename T>
-//  Try<Nothing> sendMessage(const T& _msg) {
-//    LOG(INFO) << this->tag << ": Broadcasting message";
-//    std::lock_guard<std::mutex> lock(busMapLock);
-//    for (const auto& pid : CommunicationBus::busMap) {
-//      send(pid.second, _msg);
-//    }
-//    return Nothing();
-//  }
-//
-//
-//  /**
-//   * Sends message to _to UPID
-//   */
-//  template <typename T>
-//  Try<Nothing> sendMessage(const process::UPID& _to, const T& _msg) {
-//    LOG(INFO) << this->tag << "Sending message to " << _to;
-//    send(_to, _msg);
-//    return Nothing();
-//  }
-//
-//
-//  /**
-//   * Sends message to _busname bus
-//   */
-//  template <typename T>
-//  Try<Nothing> sendMessage(const std::string& _busName, const T& _msg) {
-//    LOG(INFO) << this->tag << "Sending message to " << _busName;
-//    std::lock_guard<std::mutex> lock(busMapLock);
-//    Option<process::UPID> busUPID = CommunicationBus::_getBusUPID(_busName);
-//    if (busUPID.isSome()) {
-//      send(busUPID.get(), _msg);
-//      return Nothing();
-//    } else {
-//      return Error("Cannot find bus with name " + _busName);
-//    }
-//  }
-//
-//
-//  /**
-//   * Consume interface
-//   */
-//  Try<Nothing> consume(const OversubscriptionControlMessage& in) {
-//    LOG(INFO) << this->tag << ": Consuming OversubscriptionControlMessage";
-//    OversubscriptionControlMessageEnvelope msg;
-//    msg.set_allocated_oversubscription_control_message(
-//        new OversubscriptionControlMessage(in));
-//    return this->sendMessage(msg);
-//  }
-//
-//
-//  /** Produce interface */
-//  template <typename T>
-//  Try<Nothing> addConsumer(Consumer<T>* consumer) {
-//    LOG(INFO) << this->tag << ": Addind consumer...";
-//    return Producer<T>::addConsumer(consumer);
-//  }
-//
-//
-//  // Default bus names
-//  static const std::string RE_BUS;
-//  static const std::string QOS_BUS;
-//
-// protected:
-//  /**
-//  * Registration for other buses that would like to receive
-//  * messages from Serenity modules
-//  */
-//  static Try<Nothing> registerBus(const std::string& _busName,
-//                                  const process::UPID& _busUPID);
-//
-//
-//  /**
-//   * Returns bus UPID from bus name.
-//   * Does not use busMapLock mutex and operates on busMap structure.
-//   * TODO(skonefal): remove when c++14 & shared_mutex implemented
-//   */
-//  static Option<process::UPID> _getBusUPID(const std::string& _busName);
-//
-//
-//  /**
-//  * Callback for receving messages from other queues
-//  */
-//  template <typename T>
-//  void receiveMsg(const T& msg) {
-//    Producer<T>::produce(msg);
-//  }
-//
-//
-//  const std::string tag;
-//
-//
-//};
 
 }  // namespace serenity
 }  // namespace mesos
