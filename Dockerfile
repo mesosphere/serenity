@@ -1,4 +1,4 @@
-FROM mesosphere/mesos-modules-dev:latest
+FROM mesosphere/mesos-modules-dev-phusion:latest
 MAINTAINER Mesosphere <support@mesosphere.io>
 
 ADD . /serenity
