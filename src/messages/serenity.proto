@@ -10,8 +10,15 @@ message OversubscriptionControlMessageEnvelope {
   optional OversubscriptionControlMessage oversubscription_control_message = 1;
 }
 
+
+
+
 message OversubscriptionControlEventEnvelope {
-  optional OversubscriptionControlMessage message = 1;
+  message OversubscriptionControlEvent {
+    optional bool enable_oversubscription = 1;
+  }
+
+  optional OversubscriptionControlEvent message = 1;
 }
 
 
