@@ -170,6 +170,7 @@ target_link_libraries(serenity-tests
     gtest
     gtest_main
     mesos
+    glog # Need to be specified after libmesos
     messages-test
     pbjson
     serenity
