@@ -25,7 +25,7 @@ using ::testing::Return;
 class TestEventConsumer :
   public ProtobufProcess<TestEventConsumer> {
  public:
-  TestEventConsumer(bool enabled)
+  explicit sTestEventConsumer(bool enabled)
     : ProtobufProcess(),
       oversubscription_enabled(enabled)  {
     install<OversubscriptionControlEventEnvelope>(
@@ -35,14 +35,17 @@ class TestEventConsumer :
 
   bool oversubscription_enabled;
 
-  void event(const EventType<OversubscriptionControlEventEnvelope>& msg) {
+  void event(const MessageType<OversubscriptionControlEventEnvelope>& msg) {
     LOG(INFO) << "Got Message!";
     this->oversubscription_enabled = msg.enable_oversubscription();
   }
 };
 
+/**
+ * Subscribe for an OversubscriptionControlEvent and check if published event
+ * of that type will be receive by subscriber.
+ */
 TEST(EventBus, SubscribeAndPublish) {
-
   // Create consumer with endpoint installed.
   TestEventConsumer consumer(false);
   process::spawn(consumer);
@@ -71,9 +74,12 @@ TEST(EventBus, SubscribeAndPublish) {
 
   EXPECT_FALSE(consumer.oversubscription_enabled);
 
+  // Clear Clock.
+  process::Clock::resume();
+
   // Release libprocess threads.
   EventBus::Release();
-  process::terminate(consumer, false);
+  process::terminate(consumer);
   process::wait(consumer);
 }
 
