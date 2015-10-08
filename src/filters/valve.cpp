@@ -1,5 +1,8 @@
 #include <atomic>
 #include <string>
+#include <type_traits>
+#include <typeinfo>
+#include <typeindex>
 
 #include "glog/logging.h"
 
@@ -24,6 +27,15 @@ using namespace process;  // NOLINT(build/namespaces)
 
 using std::atomic_bool;
 using std::string;
+
+inline Option<string> getRequestParam(
+    const http::Request& request, const string KEY) {
+#ifdef NEWEST_LIBPROCESS
+  return request.url.query.get(KEY);
+#else
+  return request.query.get(KEY);
+#endif
+}
 
 static const string ESTIMATOR_VALVE_ENDPOINT_HELP() {
   return HELP(
@@ -82,6 +94,7 @@ Try<string> getFormValue(
   return decodedValue.get();
 }
 
+
 class ValveFilterEndpointProcess
   : public Process<ValveFilterEndpointProcess> {
  public:
@@ -139,7 +152,8 @@ class ValveFilterEndpointProcess
 
     // Get params.
     string enabled_param;
-    Option<string> pipeline_enable = request.url.query.get(PIPELINE_ENABLE_KEY);
+    Option<string> pipeline_enable =
+      getRequestParam(request, PIPELINE_ENABLE_KEY);
     if (pipeline_enable.isSome()) {
       enabled_param = pipeline_enable.get();
     } else {
