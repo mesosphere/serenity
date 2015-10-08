@@ -25,7 +25,7 @@ using ::testing::Return;
 class TestEventConsumer :
   public ProtobufProcess<TestEventConsumer> {
  public:
-  explicit sTestEventConsumer(bool enabled)
+  explicit TestEventConsumer(bool enabled)
     : ProtobufProcess(),
       oversubscription_enabled(enabled)  {
     install<OversubscriptionControlEventEnvelope>(
