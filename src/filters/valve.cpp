@@ -1,6 +1,8 @@
 #include <atomic>
 #include <string>
 
+#include "bus/event_bus.hpp"
+
 #include "glog/logging.h"
 
 #include "mesos/mesos.hpp"
@@ -83,13 +85,21 @@ Try<string> getFormValue(
 }
 
 class ValveFilterEndpointProcess
-  : public Process<ValveFilterEndpointProcess> {
+  : public ProtobufProcess<ValveFilterEndpointProcess> {
  public:
   explicit ValveFilterEndpointProcess(const Tag& _tag, bool _opened)
     : tag(_tag),
       ProcessBase(getValveProcessBaseName(_tag.TYPE())),
       opened(_opened),
-      limiter(2, Seconds(1)) {}  // 2 permits per second.
+      // 2 permits per second.
+      limiter(2, Seconds(1)) {
+    install<OversubscriptionControlEventEnvelope>(
+      &ValveFilterEndpointProcess::setOpen,
+      &OversubscriptionControlEventEnvelope::message);
+
+    // Subscribe for OversubscriptionControlEvent messages.
+    EventBus::subscribe<OversubscriptionControlEventEnvelope>(this->self());
+  }
 
   virtual ~ValveFilterEndpointProcess() {}
 

@@ -1,6 +1,8 @@
 #ifndef SERENITY_PIPELINE_HPP
 #define SERENITY_PIPELINE_HPP
 
+#include "bus/event_bus.hpp"
+
 #include "serenity/serenity.hpp"
 
 #include "stout/error.hpp"
@@ -23,7 +25,9 @@ namespace serenity {
 template<typename Product, typename Consumable>
 class Pipeline : public Producer<Product>, public Consumer<Consumable> {
  public:
-  virtual ~Pipeline() {}
+  virtual ~Pipeline() {
+    EventBus::Release();
+  }
 
   virtual Result<Consumable> run(const Product& _product) {
     // Reset result.

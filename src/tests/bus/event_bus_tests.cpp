@@ -37,7 +37,7 @@ class TestEventConsumer :
 
   void event(const MessageType<OversubscriptionControlEventEnvelope>& msg) {
     LOG(INFO) << "Got Message!";
-    this->oversubscription_enabled = msg.enable_oversubscription();
+    this->oversubscription_enabled = msg;
   }
 };
 
@@ -55,7 +55,7 @@ TEST(EventBus, SubscribeAndPublish) {
 
   // Prepare message to enable oversubscription.
   OversubscriptionControlEventEnvelope envelope;
-  envelope.mutable_message()->set_enable_oversubscription(true);
+  envelope.set_message(true);
   EventBus::publish<OversubscriptionControlEventEnvelope>(envelope);
 
   // Wait for libprocess queue to be processed.
@@ -65,7 +65,7 @@ TEST(EventBus, SubscribeAndPublish) {
   EXPECT_TRUE(consumer.oversubscription_enabled);
 
   // Disable oversubscription.
-  envelope.mutable_message()->set_enable_oversubscription(false);
+  envelope.set_message(false);
   EventBus::publish<OversubscriptionControlEventEnvelope>(envelope);
 
   // Wait for libprocess queue to be processed.

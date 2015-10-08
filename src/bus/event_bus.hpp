@@ -33,13 +33,14 @@ namespace serenity {
  * Each event defined in proto need to be wrapped in "Envelope"
  * with message variable e.g:
  *
- * message OversubscriptionControlEventEnvelope {
- *  message OversubscriptionControlEvent {
- *   optional bool enable_oversubscription = 1;
+ * message SomeEventEnvelope {
+ *  message SomeEvent {
+ *   optional bool first_event_param = 1;
+ *   optional bool second_event_param = 2;
  *   (...)
  *  }
  *
- *  optional OversubscriptionControlEvent message = 1;
+ *  optional SomeEvent message = 1;
  * }
  */
 template <class Envelope>
