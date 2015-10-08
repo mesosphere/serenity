@@ -1,17 +1,33 @@
 cmake_minimum_required(VERSION 3.0.0)
+
+option(USE_CLANG "Build using clang 3.5 compiler" "")
+if (USE_CLANG)
+    message("Using Clang 3.5 as CXX compiler")
+    set(CMAKE_C_COMPILER "/usr/bin/clang-3.5")
+    set(CMAKE_C_FLAGS  "-Wall -std=c99")
+    set(CMAKE_C_FLAGS_DEBUG   "-g")
+    set(CMAKE_C_FLAGS_MINSIZEREL "-Os -DNDEBUG")
+    set(CMAKE_C_FLAGS_RELEASE   "-O4 -DNDEBUG")
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g")
+    set(CMAKE_CXX_COMPILER "/usr/bin/clang-3.5")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS_DEBUG "-g")
+    set(EXTRA_LIBRARIES "stdc++ m")
+endif(USE_CLANG)
+
 project(serenity)
 enable_testing()
 
 # Command line options.
-SET(WITH_MESOS "/usr" CACHE STRING "Mesos installation directory")
-SET(MESOS_INSTALLATION_DIR ${WITH_MESOS})
-MESSAGE("Mesos installation directory set to: " ${MESOS_INSTALLATION_DIR})
+set(WITH_MESOS "/usr" CACHE STRING "Mesos installation directory")
+set(MESOS_INSTALLATION_DIR ${WITH_MESOS})
+message("Mesos installation directory set to: " ${MESOS_INSTALLATION_DIR})
 
-OPTION(INTEGRATION_TESTS "Enable compilation of integration tests." OFF)
+option(INTEGRATION_TESTS "Enable compilation of integration tests." OFF)
 
 # Compiler things.
 include(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+check_cxx_compiler_flag("-std=c++11" COMPILER_SUPPORTS_CXX11)
 if(COMPILER_SUPPORTS_CXX11)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 else()
@@ -19,10 +35,9 @@ else()
 endif()
 
 # Some libs needs to be compiled position indepenedent.
-IF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
+if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-ENDIF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
-
+endif(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
 
 # Untar libs.
 execute_process(
@@ -34,21 +49,22 @@ execute_process(
 )
 
 # Curlcpp.
-ADD_SUBDIRECTORY(lib/curlcpp)
-INCLUDE_DIRECTORIES(${CURLCPP_SOURCE_DIR}/include)
+add_subdirectory(lib/curlcpp)
+include_directories(${CURLCPP_SOURCE_DIR}/include)
 
-# Rapidjson.
-ADD_SUBDIRECTORY(lib/rapidjson-1.0.2)
-INCLUDE_DIRECTORIES(lib/rapidjson-1.0.2/include)
+
+## Rapidjson.
+#add_subdirectory(lib/rapidjson-1.0.2)
+#include_directories(lib/rapidjson-1.0.2/include)
 
 # Add gtest.
-ADD_SUBDIRECTORY (lib/gmock-1.7.0)
-INCLUDE_DIRECTORIES(${gmock_SOURCE_DIR} include)
-INCLUDE_DIRECTORIES(${gtest_SOURCE_DIR} include)
+add_subdirectory (lib/gmock-1.7.0)
+include_directories(${gmock_SOURCE_DIR} include)
+include_directories(${gtest_SOURCE_DIR} include)
 
 # Add pbjson - it doesn't have CMakeList.txt so include it manually.
 set(pbjson_SOURCE_DIR lib/pbjson)
-INCLUDE_DIRECTORIES(src)
+include_directories(src)
 
 # Protobuf stuff.
 find_package(Protobuf REQUIRED)
@@ -58,6 +74,7 @@ set(PROTOBUF_IMPORT_DIRS ${MESOS_INSTALLATION_DIR}/include/)
 file(GLOB ProtoFiles "src/messages/serenity.proto")
 PROTOBUF_GENERATE_CPP(ProtoSources ProtoHeaders ${ProtoFiles})
 add_library(messages STATIC ${ProtoSources} ${ProtoHeaders})
+target_link_libraries(messages)
 
 # Add message-test proto files.
 file(GLOB TestProtoFiles "src/tests/common/sources/json_source.proto")
@@ -98,8 +115,7 @@ set(SERENITY_SOURCES
     src/serenity/wid.cpp
     src/time_series_export/resource_usage_ts_export.cpp
     src/time_series_export/slack_ts_export.cpp
-    src/time_series_export/backend/influx_db8.cpp
-)
+    src/time_series_export/backend/influx_db8.cpp)
 
 set(SERENITY_TEST_SOURCES
     src/tests/main.cpp
@@ -146,7 +162,9 @@ add_executable(serenity-tests
     ${SERENITY_TEST_SOURCES}
     ${INTEGRATION_TEST_SOURCES}
 )
+
 target_link_libraries(serenity-tests
+    stdc++ m
     gmock
     gmock_main
     gtest
@@ -156,17 +174,21 @@ target_link_libraries(serenity-tests
     messages-test
     pbjson
     serenity
+    # Clang cannot compile it because of the error.
+    # Without glog ./serenity-tests ends with segmentation fault.
+    # Using GCC with or without glog everything is fine.
+    #glog
 )
 add_test(serenity-tests serenity-tests)
 
 
 # Smoke-test-framework requires mesos source directory.
 # If WITH_SOURCE_MESOS is not specified, test-framework is omitted.
-SET(WITH_SOURCE_MESOS "" CACHE STRING "Mesos source directory")
-SET(MESOS_SOURCE_DIR ${WITH_SOURCE_MESOS})
+set(WITH_SOURCE_MESOS "" CACHE STRING "Mesos source directory")
+set(MESOS_SOURCE_DIR ${WITH_SOURCE_MESOS})
 
 if (MESOS_SOURCE_DIR)
-    MESSAGE("Mesos source directory set to: " ${MESOS_SOURCE_DIR})
+    message("Mesos source directory set to: " ${MESOS_SOURCE_DIR})
 
     include_directories(
         ${MESOS_SOURCE_DIR}/build/src/
@@ -175,10 +197,10 @@ if (MESOS_SOURCE_DIR)
     # Serenity test framework exe.
     add_executable(test-framework
         src/framework/smoke_test_framework.cpp)
-    target_link_libraries(test-framework mesos protobuf glog)
+    target_link_libraries(test-framework mesos protobuf glog stdc++ m)
 
 else(MESOS_SOURCE_DIR)
-    MESSAGE(
+    message(
         "Mesos source directory was not set. "
         "Test-framework compilation will be omitted.")
 endif(MESOS_SOURCE_DIR)
