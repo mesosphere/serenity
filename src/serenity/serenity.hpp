@@ -9,6 +9,9 @@
 #include "stout/nothing.hpp"
 #include "stout/try.hpp"
 
+// TODO(bplotka): Uncomment that when using Mesos > 0.25.0-rc2
+// #define NEWEST_LIBPROCESS
+
 namespace mesos {
 namespace serenity {
 
