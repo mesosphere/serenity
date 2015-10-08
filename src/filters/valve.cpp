@@ -1,5 +1,10 @@
 #include <atomic>
 #include <string>
+#include <type_traits>
+#include <typeinfo>
+#include <typeindex>
+
+#include "bus/event_bus.hpp"
 
 #include "glog/logging.h"
 
@@ -24,6 +29,15 @@ using namespace process;  // NOLINT(build/namespaces)
 
 using std::atomic_bool;
 using std::string;
+
+inline Option<string> getRequestParam(
+    const http::Request& request, const string KEY) {
+#ifdef NEWEST_LIBPROCESS
+  return request.url.query.get(KEY);
+#else
+  return request.query.get(KEY);
+#endif
+}
 
 static const string ESTIMATOR_VALVE_ENDPOINT_HELP() {
   return HELP(
@@ -82,14 +96,23 @@ Try<string> getFormValue(
   return decodedValue.get();
 }
 
+
 class ValveFilterEndpointProcess
-  : public Process<ValveFilterEndpointProcess> {
+  : public ProtobufProcess<ValveFilterEndpointProcess> {
  public:
   explicit ValveFilterEndpointProcess(const Tag& _tag, bool _opened)
     : tag(_tag),
       ProcessBase(getValveProcessBaseName(_tag.TYPE())),
       opened(_opened),
-      limiter(2, Seconds(1)) {}  // 2 permits per second.
+      // 2 permits per second.
+      limiter(2, Seconds(1)) {
+    install<OversubscriptionControlEventEnvelope>(
+      &ValveFilterEndpointProcess::setOpen,
+      &OversubscriptionControlEventEnvelope::message);
+
+    // Subscribe for OversubscriptionControlEvent messages.
+    EventBus::subscribe<OversubscriptionControlEventEnvelope>(this->self());
+  }
 
   virtual ~ValveFilterEndpointProcess() {}
 
@@ -139,7 +162,8 @@ class ValveFilterEndpointProcess
 
     // Get params.
     string enabled_param;
-    Option<string> pipeline_enable = request.query.get(PIPELINE_ENABLE_KEY);
+    Option<string> pipeline_enable =
+      getRequestParam(request, PIPELINE_ENABLE_KEY);
     if (pipeline_enable.isSome()) {
       enabled_param = pipeline_enable.get();
     } else {

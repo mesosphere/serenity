@@ -1,9 +1,12 @@
-FROM mesosphere/mesos-modules-dev:latest
+FROM mesosphere/mesos-modules-dev:0.25.0-rc1
 MAINTAINER Mesosphere <support@mesosphere.io>
 
 ADD . /serenity
 
 WORKDIR /serenity
+
+RUN apt-get update -q && apt-get -qy install \
+  clang-3.5
 
 # Check for style errors.
 RUN ./scripts/lint.sh
@@ -17,6 +20,8 @@ RUN rm -rf build && \
     mkdir build && \
     cd build && \
     export LD_LIBRARY_PATH=LD_LIBRARY_PATH:/usr/local/lib && \
-    cmake -DWITH_MESOS="/mesos" -DWITH_SOURCE_MESOS="/mesos" .. && \
+    cmake -DWITH_MESOS="/mesos" \
+          -DWITH_SOURCE_MESOS="/mesos" \
+          -DUSE_CLANG=OFF ..  && \
     make -j 2 && \
     ./serenity-tests

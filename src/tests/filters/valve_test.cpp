@@ -2,8 +2,11 @@
 
 #include <stout/gtest.hpp>
 
+#include "bus/event_bus.hpp"
+
 #include "filters/valve.hpp"
 
+#include "process/clock.hpp"
 #include "process/future.hpp"
 #include "process/http.hpp"
 #include "process/pid.hpp"
@@ -209,6 +212,67 @@ TEST(ValveFilterTest, ControllerAndEstimatorEndpointsRunningTogether) {
   EXPECT_EQ(2, estimatorMockSink.numberOfMessagesConsumed);
   EXPECT_EQ(2, controllerMockSink.numberOfMessagesConsumed);
 }
+
+
+TEST(ValveFilterTest, EstimatorDisableThenEnableViaEventBus) {
+  // End of pipeline.
+  MockSink<ResourceUsage> mockSink;
+  EXPECT_CALL(mockSink, consume(_))
+    .Times(2);
+
+  // Second component in pipeline.
+  // Valve filter which exposes http endpoint for disabling/enabling
+  // slack estimations.
+  ValveFilter valveFilter(
+    &mockSink,
+    true,
+    Tag(RESOURCE_ESTIMATOR, "valveFilter"));
+
+  // First component in pipeline.
+  MockSource<ResourceUsage> mockSource(&valveFilter);
+
+  // PHASE 1: Run pipeline first time.
+  ResourceUsage usage;
+  mockSource.produce(usage);
+
+  // Expect that the usage was consumed by sink. (And slack estimated).
+  EXPECT_EQ(1, mockSink.numberOfMessagesConsumed);
+
+  // PHASE 2: Disable estimator pipeline via EventBus.
+  OversubscriptionControlEventEnvelope envelope;
+  envelope.set_message(false);
+  EventBus::publish<OversubscriptionControlEventEnvelope>(envelope);
+
+  // Wait for libprocess queue to be processed.
+  process::Clock::pause();
+  process::Clock::settle();
+
+  // Run pipeline second time.
+  mockSource.produce(usage);
+
+  // Expect that the usage wasn't consumed by sink (slack wasn't estimated).
+  EXPECT_EQ(1, mockSink.numberOfMessagesConsumed);
+
+  // PHASE 3: Enable estimator pipeline.
+  envelope.set_message(true);
+  EventBus::publish<OversubscriptionControlEventEnvelope>(envelope);
+
+  // Wait for libprocess queue to be processed.
+  process::Clock::pause();
+  process::Clock::settle();
+
+  // Run pipeline third time.
+  mockSource.produce(usage);
+
+  // Slack estimator should continue estimations.
+  EXPECT_EQ(2, mockSink.numberOfMessagesConsumed);
+
+  // Clear Clock.
+  process::Clock::resume();
+
+  EventBus::Release();
+}
+
 
 }  // namespace tests
 }  // namespace serenity

@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+#define PICOJSON_USE_INT64
+
 #include <list>
 #include <string>
 #include <vector>
@@ -28,6 +30,7 @@
 #include <stout/flags.hpp>
 #include <stout/foreach.hpp>
 #include <stout/hashset.hpp>
+#include <stout/json.hpp>
 #include <stout/option.hpp>
 #include <stout/os.hpp>
 #include <stout/path.hpp>
@@ -390,6 +393,7 @@ list<JobSpec> parseTaskJson(const Flags flags, bool& revocable) {
     << flags.usage("Bad path for JSON tasks");
   }
 
+
   Try<JSON::Object> json = JSON::parse<JSON::Object>(read.get());
   if (json.isError()) {
     EXIT(EXIT_FAILURE) << json.error() << " "
@@ -471,7 +475,7 @@ list<JobSpec> parseTaskJson(const Flags flags, bool& revocable) {
             "tasks[" + stringify(i) +"].totalTasks");
 
     if (_totalTasks.isSome()) {
-      _taskNum = _totalTasks.get().value;
+      _taskNum = _totalTasks.get().as<double>();
     }
 
     jobs.push_back(JobSpec(_command.get().value,
