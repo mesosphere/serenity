@@ -28,7 +28,7 @@ namespace serenity {
 
 
 /**
- * Helper snippet of code to evaluate internal message type of the Envelope.
+ * Helper snippet of code for internal Envelope message type evaluation.
  *
  * Each event defined in proto need to be wrapped in "Envelope"
  * with message variable e.g:
@@ -43,29 +43,25 @@ namespace serenity {
  * }
  */
 template <class Envelope>
-struct typeOfInternalMessage:std::true_type
-{
-  typedef decltype(std::declval<Envelope>().message()) type;
-};
-
-template <class Envelope>
-using EventType =  typename std::remove_const<
-  typename std::remove_reference<
-    typename typeOfInternalMessage<Envelope>::type>::type>::type;
+using MessageType =
+  typename std::remove_const<
+    typename std::remove_reference<decltype(std::declval<Envelope>().message())
+    >::type
+  >::type;
 
 
 /**
- *  Lookup Event based bus made as libprocess actor.
- *  Singleton.
+ *  Lookup Event-based bus made as libprocess actor.
+ *  Used as singleton.
  */
 class EventBus : public ProtobufProcess<EventBus> {
  public:
   virtual ~EventBus() { }
 
   /**
-  * Creates a new instance of the EventBus if hasn't already been created.
-  * Returns the singleton instance.
-  */
+   * Creates a new instance of the EventBus if hasn't already been created.
+   * Returns the singleton instance.
+   */
   static EventBus* const GetInstance() {
     if (EventBus::instance == nullptr) {
       EventBus::instance = new EventBus();
@@ -74,9 +70,12 @@ class EventBus : public ProtobufProcess<EventBus> {
     return EventBus::instance;
   }
 
+  /**
+   * Releases Event Bus process. Responsibility is for the user side.
+   */
   static Try<Nothing> const Release() {
     if (EventBus::instance != nullptr) {
-      process::terminate(EventBus::instance->self(), false);
+      process::terminate(EventBus::instance->self());
       process::wait(EventBus::instance->self());
 
       delete(EventBus::instance);
@@ -85,39 +84,36 @@ class EventBus : public ProtobufProcess<EventBus> {
     return Nothing();
   }
 
+  /**
+   * Returns UPID of Event Bus.
+   */
   static process::UPID address() {
     return EventBus::GetInstance()->self();
   }
 
+  /**
+   * Subscribe for a specific Envelope Type.
+   */
   template <typename T>
   static Try<Nothing> subscribe(process::UPID _subscriberPID) {
     EventBus::GetInstance()->_subscribe<T>(_subscriberPID);
     return Nothing();
   }
 
-  template <typename T>
-  static Try<Nothing> registerEvent() {
-    EventBus::GetInstance()->_registerEvent<T>();
-    return Nothing();
-  }
-
+  /**
+   * Publish Envelope.
+   */
   template <typename T>
   static Try<Nothing> publish(const T& in) {
     EventBus::GetInstance()->_publish<T>(in);
     return Nothing();
   }
 
-  template <typename T>
-  void receiveMsg(const T& msg) {
-
-  }
-
  private:
-
   template <typename T>
   Try<Nothing> _publish(const T& in) {
     // Lock map?
-    auto subscribersForType = this->subscribersMap.find(typeid(EventType<T>));
+    auto subscribersForType = this->subscribersMap.find(typeid(MessageType<T>));
     if (subscribersForType == this->subscribersMap.end()) {
       // Nobody subscribed for this event.
       LOG(INFO) << "Nobody subscribed for this event.";
@@ -133,39 +129,22 @@ class EventBus : public ProtobufProcess<EventBus> {
     return Nothing();
   }
 
-
-  template <typename T>
-  Try<Nothing> _registerEvent() {
-    std::lock_guard<std::mutex> lock(eventSetLock);
-
-    if (eventSet.find(typeid(T)) != eventSet.end()) {
-      LOG(INFO) << "This event type (" << typeid(T).name()
-                << ") is already defined.";
-      return Nothing();
-    }
-    install<T>(&EventBus::receiveMsg<EventType<T>>,
-               &T::message);
-    eventSet.insert(typeid(T));
-
-    return Nothing();
-  }
-
   /**
-   * Register subscriber for particular type of Event.
-   * Currently topic (classifier) is equal to type T id.
+   * Register subscriber for particular type of Envelope.
+   * Currently topic (classifier) is equal to MessageType<T> id.
    */
   template <typename T>
   Try<Nothing> _subscribe(process::UPID _subscriberPID) {
     std::lock_guard<std::mutex> lock(subscribersMapLock);
 
-    auto subscribersForType = this->subscribersMap.find(typeid(EventType<T>));
+    auto subscribersForType = this->subscribersMap.find(typeid(MessageType<T>));
     if (subscribersForType == this->subscribersMap.end()) {
       // Nobody has subscribed for this event type before.
 
       std::unordered_set<process::UPID> subscribersSet;
       subscribersSet.insert(_subscriberPID);
 
-      this->subscribersMap[typeid(EventType<T>)] = subscribersSet;
+      this->subscribersMap[typeid(MessageType<T>)] = subscribersSet;
       return Nothing();
     }
 
@@ -179,7 +158,6 @@ class EventBus : public ProtobufProcess<EventBus> {
     subscribersForType->second.insert(_subscriberPID);
 
     return Nothing();
-
   }
 
   /**
@@ -188,13 +166,6 @@ class EventBus : public ProtobufProcess<EventBus> {
    */
   std::mutex subscribersMapLock;
   std::map<std::type_index, std::unordered_set<process::UPID>> subscribersMap;
-
-  /**
-   * Mutex for locking eventSet
-   * TODO: Remove when c++14 & shared_mutex implemented
-   */
-  std::mutex eventSetLock;
-  std::unordered_set<std::type_index> eventSet;
 
   // Singleton class instance
   static EventBus* instance;
