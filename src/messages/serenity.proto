@@ -7,6 +7,23 @@ option java_outer_classname = "Protos";
 
 
 /**
+Inter-bus communication messages
+*/
+
+/**
+* Message for Valve Filter for enabling/disable oversubscription
+* @param enableOversubscription: Enable OS on true, disable OS on false
+*/
+message OversubscriptionControlMessage {
+  optional bool enableOversubscription = 1;
+}
+
+message OversubscriptionControlMessage_ {
+  optional OversubscriptionControlMessage oversubscription_control_message = 1;
+}
+
+
+/**
 * Necessary union to define job.
 * Currently we cannot specify individual task.
 * NOTE: Framework id must be set for the specified executor.

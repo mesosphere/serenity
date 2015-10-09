@@ -208,5 +208,10 @@ Try<Nothing> ValveFilter::consume(const ResourceUsage& in) {
 }
 
 
+Try<Nothing> ValveFilter::consume(const OversubscriptionControlMessage& in) {
+  return Nothing();
+}
+
+
 }  // namespace serenity
 }  // namespace mesos
