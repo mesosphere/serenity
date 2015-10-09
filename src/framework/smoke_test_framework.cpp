@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#define PICOJSON_USE_INT64
 
 #include <list>
 #include <string>
@@ -28,6 +29,7 @@
 #include <stout/flags.hpp>
 #include <stout/foreach.hpp>
 #include <stout/hashset.hpp>
+#include <stout/json.hpp>
 #include <stout/option.hpp>
 #include <stout/os.hpp>
 #include <stout/path.hpp>
