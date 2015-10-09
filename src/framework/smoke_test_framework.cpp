@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #define PICOJSON_USE_INT64
 
 #include <list>
@@ -266,6 +267,7 @@ private:
       // In case of limited jobs stop when scheduled totalTasks.
       job->scheduled = true;
       this->jobsScheduled++;
+
     }
 
     // Iterate over jobs list and find not yet fully scheduled job.
