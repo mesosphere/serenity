@@ -5,6 +5,9 @@ ADD . /serenity
 
 WORKDIR /serenity
 
+RUN apt-get update -q && apt-get -qy install \
+  clang-3.5
+
 # Check for style errors.
 RUN ./scripts/lint.sh
 
@@ -17,6 +20,8 @@ RUN rm -rf build && \
     mkdir build && \
     cd build && \
     export LD_LIBRARY_PATH=LD_LIBRARY_PATH:/usr/local/lib && \
-    cmake -DWITH_MESOS="/mesos" -DWITH_SOURCE_MESOS="/mesos" .. && \
+    cmake -DWITH_MESOS="/mesos" \
+          -DWITH_SOURCE_MESOS="/mesos" \
+          -DUSE_CLANG=ON ..  && \
     make -j 2 && \
     ./serenity-tests
