@@ -180,8 +180,7 @@ target_link_libraries(serenity-tests
     serenity
     # Clang cannot compile it because of the error.
     # Without glog ./serenity-tests ends with segmentation fault.
-    # Using GCC with or without glog everything is fine.
-    # glog
+    glog
 )
 add_test(serenity-tests serenity-tests)
 
