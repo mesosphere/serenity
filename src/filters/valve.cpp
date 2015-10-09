@@ -93,19 +93,31 @@ class ValveFilterEndpointProcess
       opened(_opened),
       // 2 permits per second.
       limiter(2, Seconds(1)) {
-    install<OversubscriptionControlEventEnvelope>(
-      &ValveFilterEndpointProcess::setOpen,
-      &OversubscriptionControlEventEnvelope::message);
+    switch (this->tag.TYPE()) {
+      case RESOURCE_ESTIMATOR:
+        install<OversubscriptionReCtrlEventEnvelope>(
+          &ValveFilterEndpointProcess::setOpen,
+          &OversubscriptionReCtrlEventEnvelope::message);
 
-    // Subscribe for OversubscriptionControlEvent messages.
-    EventBus::subscribe<OversubscriptionControlEventEnvelope>(this->self());
+        // Subscribe for OversubscriptionReCtrlEventEnvelope messages.
+        EventBus::subscribe<OversubscriptionReCtrlEventEnvelope>(this->self());
+        break;
+      case QOS_CONTROLLER:
+        install<OversubscriptionQoSCtrlEventEnvelope>(
+          &ValveFilterEndpointProcess::setOpen,
+          &OversubscriptionQoSCtrlEventEnvelope::message);
+
+        // Subscribe for OversubscriptionQoSCtrlEventEnvelope messages.
+        EventBus::subscribe<OversubscriptionQoSCtrlEventEnvelope>(this->self());
+        break;
+    }
   }
 
   virtual ~ValveFilterEndpointProcess() {}
 
   void setOpen(bool open) {
     // NOTE: In future we may want to trigger some actions here.
-    SERENITY_LOG(INFO) << (open?"Enabling ":"Disabling ") << " " << tag.AIM();
+    SERENITY_LOG(INFO) << (open?"Enabling":"Disabling") << " " << tag.AIM();
     this->opened = open;
   }
 

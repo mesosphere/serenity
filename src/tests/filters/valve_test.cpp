@@ -239,9 +239,9 @@ TEST(ValveFilterTest, EstimatorDisableThenEnableViaEventBus) {
   EXPECT_EQ(1, mockSink.numberOfMessagesConsumed);
 
   // PHASE 2: Disable estimator pipeline via EventBus.
-  OversubscriptionControlEventEnvelope envelope;
+  OversubscriptionReCtrlEventEnvelope envelope;
   envelope.set_message(false);
-  EventBus::publish<OversubscriptionControlEventEnvelope>(envelope);
+  EventBus::publish<OversubscriptionReCtrlEventEnvelope>(envelope);
 
   // Wait for libprocess queue to be processed.
   process::Clock::pause();
@@ -255,7 +255,7 @@ TEST(ValveFilterTest, EstimatorDisableThenEnableViaEventBus) {
 
   // PHASE 3: Enable estimator pipeline.
   envelope.set_message(true);
-  EventBus::publish<OversubscriptionControlEventEnvelope>(envelope);
+  EventBus::publish<OversubscriptionReCtrlEventEnvelope>(envelope);
 
   // Wait for libprocess queue to be processed.
   process::Clock::pause();

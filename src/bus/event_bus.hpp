@@ -114,7 +114,7 @@ class EventBus : public ProtobufProcess<EventBus> {
   template <typename T>
   Try<Nothing> _publish(const T& in) {
     // Lock map?
-    auto subscribersForType = this->subscribersMap.find(typeid(MessageType<T>));
+    auto subscribersForType = this->subscribersMap.find(typeid(T));
     if (subscribersForType == this->subscribersMap.end()) {
       // Nobody subscribed for this event.
       LOG(INFO) << "Nobody subscribed for this event.";
@@ -132,20 +132,23 @@ class EventBus : public ProtobufProcess<EventBus> {
 
   /**
    * Register subscriber for particular type of Envelope.
-   * Currently topic (classifier) is equal to MessageType<T> id.
+   * Currently topic (classifier) is equal to T id.
+   *
+   * TODO(bplotka): We can add here additional topic param and implement
+   * topic lookup in publish.
    */
   template <typename T>
   Try<Nothing> _subscribe(process::UPID _subscriberPID) {
     std::lock_guard<std::mutex> lock(subscribersMapLock);
 
-    auto subscribersForType = this->subscribersMap.find(typeid(MessageType<T>));
+    auto subscribersForType = this->subscribersMap.find(typeid(T));
     if (subscribersForType == this->subscribersMap.end()) {
       // Nobody has subscribed for this event type before.
 
       std::unordered_set<process::UPID> subscribersSet;
       subscribersSet.insert(_subscriberPID);
 
-      this->subscribersMap[typeid(MessageType<T>)] = subscribersSet;
+      this->subscribersMap[typeid(T)] = subscribersSet;
       return Nothing();
     }
 

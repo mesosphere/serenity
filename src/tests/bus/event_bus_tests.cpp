@@ -28,21 +28,21 @@ class TestEventConsumer :
   explicit TestEventConsumer(bool enabled)
     : ProtobufProcess(),
       oversubscription_enabled(enabled)  {
-    install<OversubscriptionControlEventEnvelope>(
+    install<OversubscriptionReCtrlEventEnvelope>(
       &TestEventConsumer::event,
-      &OversubscriptionControlEventEnvelope::message);
+      &OversubscriptionReCtrlEventEnvelope::message);
   }
 
   bool oversubscription_enabled;
 
-  void event(const MessageType<OversubscriptionControlEventEnvelope>& msg) {
+  void event(const MessageType<OversubscriptionReCtrlEventEnvelope>& msg) {
     LOG(INFO) << "Got Message!";
     this->oversubscription_enabled = msg;
   }
 };
 
 /**
- * Subscribe for an OversubscriptionControlEvent and check if published event
+ * Subscribe for an OversubscriptionReCtrlEventEnvelope and check if published event
  * of that type will be receive by subscriber.
  */
 TEST(EventBus, SubscribeAndPublish) {
@@ -50,13 +50,13 @@ TEST(EventBus, SubscribeAndPublish) {
   TestEventConsumer consumer(false);
   process::spawn(consumer);
 
-  // Subscribe for OversubscriptionControlEvent messages.
-  EventBus::subscribe<OversubscriptionControlEventEnvelope>(consumer.self());
+  // Subscribe for OversubscriptionReCtrlEventEnvelope messages.
+  EventBus::subscribe<OversubscriptionReCtrlEventEnvelope>(consumer.self());
 
   // Prepare message to enable oversubscription.
-  OversubscriptionControlEventEnvelope envelope;
+  OversubscriptionReCtrlEventEnvelope envelope;
   envelope.set_message(true);
-  EventBus::publish<OversubscriptionControlEventEnvelope>(envelope);
+  EventBus::publish<OversubscriptionReCtrlEventEnvelope>(envelope);
 
   // Wait for libprocess queue to be processed.
   process::Clock::pause();
@@ -66,7 +66,7 @@ TEST(EventBus, SubscribeAndPublish) {
 
   // Disable oversubscription.
   envelope.set_message(false);
-  EventBus::publish<OversubscriptionControlEventEnvelope>(envelope);
+  EventBus::publish<OversubscriptionReCtrlEventEnvelope>(envelope);
 
   // Wait for libprocess queue to be processed.
   process::Clock::pause();
