@@ -471,7 +471,7 @@ list<JobSpec> parseTaskJson(const Flags flags, bool& revocable) {
             "tasks[" + stringify(i) +"].totalTasks");
 
     if (_totalTasks.isSome()) {
-      _taskNum = _totalTasks.get().value;
+      _taskNum = _totalTasks.get().as<double>();
     }
 
     jobs.push_back(JobSpec(_command.get().value,
