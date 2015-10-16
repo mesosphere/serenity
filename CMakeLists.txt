@@ -82,6 +82,7 @@ include_directories(
 
 set(SERENITY_SOURCES
     src/bus/event_bus.cpp
+    src/detectors/assurance.cpp
     src/estimator/serenity_estimator.cpp
     src/estimator/serenity_estimator_module.cpp
     src/filters/drop.cpp
@@ -107,9 +108,9 @@ set(SERENITY_TEST_SOURCES
     src/tests/common/sources/json_source.cpp
     src/tests/controllers/qos_controller_test.cpp
     src/tests/estimators/estimator_test.cpp
-    src/tests/filters/drop/test.cpp
-    src/tests/filters/drop/naive_changepoint_test.cpp
-    src/tests/filters/drop/rolling_changepoint_test.cpp
+    src/tests/filters/drop_test.cpp
+    src/tests/filters/detectors/naive_test.cpp
+    src/tests/filters/detectors/rolling_test.cpp
     src/tests/filters/ema_test.cpp
     src/tests/filters/ignore_new_executors_test.cpp
     src/tests/filters/pr_executor_pass_test.cpp

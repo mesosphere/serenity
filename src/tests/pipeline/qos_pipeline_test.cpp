@@ -1,6 +1,12 @@
 #include <list>
 
 #include "gtest/gtest.h"
+
+#include "detectors/assurance_fractional.hpp"
+#include "detectors/rolling.hpp"
+#include "detectors/rolling_fractional.hpp"
+
+
 #include "filters/drop.hpp"
 
 #include "mesos/slave/oversubscription.hpp"

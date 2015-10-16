@@ -5,7 +5,7 @@
 
 #include "stout/gtest.hpp"
 
-#include "filters/drop.hpp"
+#include "detectors/rolling.hpp"
 
 #include "serenity/data_utils.hpp"
 
