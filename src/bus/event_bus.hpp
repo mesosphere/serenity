@@ -3,6 +3,7 @@
 
 #include <map>
 #include <unordered_set>
+#include <memory>
 // TODO(skonefal): Move to std shared_mutex when -std=c++14 is available
 #include <mutex>  // NOLINT [build/c++11]
 #include <string>
@@ -57,43 +58,26 @@ using MessageType =
  */
 class EventBus : public ProtobufProcess<EventBus> {
  public:
-  virtual ~EventBus() { }
-
   /**
    * Creates a new instance of the EventBus if hasn't already been created.
    * Returns the singleton instance.
+   *
+   * Using call_once to ensure multi-threading support.
    */
-  static EventBus* const GetInstance() {
-    if (EventBus::instance == nullptr) {
-      EventBus::instance = new EventBus();
-      process::spawn(EventBus::instance);
-    }
+  static std::shared_ptr<EventBus> GetInstance() {
+    std::call_once(EventBus::onlyOneInit,
+      []() {
+        EventBus::instance.reset(new EventBus());
+        process::spawn(*EventBus::instance);
+      });
+
     return EventBus::instance;
   }
 
   /**
-   * Releases Event Bus process. Responsibility is for the user side.
-   */
-  static Try<Nothing> const Release() {
-    if (EventBus::instance != nullptr) {
-      process::terminate(EventBus::instance->self());
-      process::wait(EventBus::instance->self());
-
-      delete(EventBus::instance);
-      EventBus::instance = nullptr;
-    }
-    return Nothing();
-  }
-
-  /**
-   * Returns UPID of Event Bus.
-   */
-  static process::UPID address() {
-    return EventBus::GetInstance()->self();
-  }
-
-  /**
    * Subscribe for a specific Envelope Type.
+   * TODO(bplotka): We can add here additional topic param and implement
+   * topic lookup in publish.
    */
   template <typename T>
   static Try<Nothing> subscribe(process::UPID _subscriberPID) {
@@ -110,18 +94,48 @@ class EventBus : public ProtobufProcess<EventBus> {
     return Nothing();
   }
 
+  ~EventBus() {
+    if (EventBus::instance != nullptr) {
+      process::terminate(EventBus::instance->self());
+      process::wait(EventBus::instance->self());
+
+      EventBus::instance = nullptr;
+    }
+  }
+
  private:
+  // Private constructor.
+  EventBus() {}
+
+  // Disable copying.
+  explicit EventBus(EventBus&) = delete;
+
+  // Disable copying.
+  void operator=(EventBus&) = delete;
+
+  /**
+   * Publishing message.
+   *
+   * Thread safe.
+   */
   template <typename T>
   Try<Nothing> _publish(const T& in) {
-    // Lock map?
-    auto subscribersForType = this->subscribersMap.find(typeid(T));
-    if (subscribersForType == this->subscribersMap.end()) {
-      // Nobody subscribed for this event.
-      LOG(INFO) << "Nobody subscribed for this event.";
-      return Nothing();
+    std::unordered_set<process::UPID> subscribers;
+    {
+      // Synchronized block of code.
+      std::lock_guard<std::mutex> lock(subscribersMapLock);
+
+      auto subscribersForType = this->subscribersMap.find(typeid(T));
+      if (subscribersForType == this->subscribersMap.end()) {
+        // Nobody subscribed for this event.
+        LOG(INFO) << "Nobody subscribed for this event.";
+        return Nothing();
+      }
+
+      subscribers = subscribersForType->second;
     }
 
-    for (const process::UPID& subscriberPID : subscribersForType->second) {
+    for (const process::UPID& subscriberPID : subscribers) {
       LOG(INFO) << "Sending to: " << subscriberPID;
       T msg(in);
       this->send(subscriberPID, msg);
@@ -136,6 +150,8 @@ class EventBus : public ProtobufProcess<EventBus> {
    *
    * TODO(bplotka): We can add here additional topic param and implement
    * topic lookup in publish.
+   *
+   * Thread safe.
    */
   template <typename T>
   Try<Nothing> _subscribe(process::UPID _subscriberPID) {
@@ -144,7 +160,6 @@ class EventBus : public ProtobufProcess<EventBus> {
     auto subscribersForType = this->subscribersMap.find(typeid(T));
     if (subscribersForType == this->subscribersMap.end()) {
       // Nobody has subscribed for this event type before.
-
       std::unordered_set<process::UPID> subscribersSet;
       subscribersSet.insert(_subscriberPID);
 
@@ -158,21 +173,22 @@ class EventBus : public ProtobufProcess<EventBus> {
                 << "is already registered";
       return Nothing();
     }
-
     subscribersForType->second.insert(_subscriberPID);
 
     return Nothing();
   }
 
   /**
-   * Mutex for locking subscribersMap
+   * Mutex for locking subscribersMap.
    * TODO: Remove when c++14 & shared_mutex implemented
    */
   std::mutex subscribersMapLock;
   std::map<std::type_index, std::unordered_set<process::UPID>> subscribersMap;
 
-  // Singleton class instance
-  static EventBus* instance;
+  static std::once_flag onlyOneInit;
+
+  // Singleton class instance.
+  static std::shared_ptr<EventBus> instance;
 };
 
 }  // namespace serenity

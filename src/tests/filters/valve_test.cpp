@@ -269,8 +269,6 @@ TEST(ValveFilterTest, EstimatorDisableThenEnableViaEventBus) {
 
   // Clear Clock.
   process::Clock::resume();
-
-  EventBus::Release();
 }
 
 

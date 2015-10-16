@@ -78,7 +78,6 @@ TEST(EventBus, SubscribeAndPublish) {
   process::Clock::resume();
 
   // Release libprocess threads.
-  EventBus::Release();
   process::terminate(consumer);
   process::wait(consumer);
 }

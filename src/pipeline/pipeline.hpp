@@ -25,9 +25,7 @@ namespace serenity {
 template<typename Product, typename Consumable>
 class Pipeline : public Producer<Product>, public Consumer<Consumable> {
  public:
-  virtual ~Pipeline() {
-    EventBus::Release();
-  }
+  virtual ~Pipeline() {}
 
   virtual Result<Consumable> run(const Product& _product) {
     // Reset result.

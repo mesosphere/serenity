@@ -3,7 +3,8 @@
 namespace mesos {
 namespace serenity {
 
-EventBus* EventBus::instance = nullptr;
+std::once_flag EventBus::onlyOneInit;
+std::shared_ptr<EventBus> EventBus::instance = nullptr;
 
 }  // namespace serenity
 }  // namespace mesos
