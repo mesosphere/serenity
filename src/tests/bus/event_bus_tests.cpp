@@ -28,21 +28,21 @@ class TestEventConsumer :
   explicit TestEventConsumer(bool enabled)
     : ProtobufProcess(),
       oversubscription_enabled(enabled)  {
-    install<OversubscriptionReCtrlEventEnvelope>(
+    install<OversubscriptionCtrlEventEnvelope>(
       &TestEventConsumer::event,
-      &OversubscriptionReCtrlEventEnvelope::message);
+      &OversubscriptionCtrlEventEnvelope::message);
   }
 
   bool oversubscription_enabled;
 
-  void event(const MessageType<OversubscriptionReCtrlEventEnvelope>& msg) {
+  void event(const MessageType<OversubscriptionCtrlEventEnvelope>& msg) {
     LOG(INFO) << "Got Message!";
-    this->oversubscription_enabled = msg;
+    this->oversubscription_enabled = msg.enable();
   }
 };
 
 /**
- * Subscribe for an OversubscriptionReCtrlEventEnvelope and check if published event
+ * Subscribe for an OversubscriptionCtrlEventEnvelope and check if published event
  * of that type will be receive by subscriber.
  */
 TEST(EventBus, SubscribeAndPublish) {
@@ -50,13 +50,13 @@ TEST(EventBus, SubscribeAndPublish) {
   TestEventConsumer consumer(false);
   process::spawn(consumer);
 
-  // Subscribe for OversubscriptionReCtrlEventEnvelope messages.
-  EventBus::subscribe<OversubscriptionReCtrlEventEnvelope>(consumer.self());
+  // Subscribe for OversubscriptionCtrlEventEnvelope messages.
+  EventBus::subscribe<OversubscriptionCtrlEventEnvelope>(consumer.self());
 
   // Prepare message to enable oversubscription.
-  OversubscriptionReCtrlEventEnvelope envelope;
-  envelope.set_message(true);
-  EventBus::publish<OversubscriptionReCtrlEventEnvelope>(envelope);
+  OversubscriptionCtrlEventEnvelope envelope;
+  envelope.mutable_message()->set_enable(true);
+  EventBus::publish<OversubscriptionCtrlEventEnvelope>(envelope);
 
   // Wait for libprocess queue to be processed.
   process::Clock::pause();
@@ -65,8 +65,8 @@ TEST(EventBus, SubscribeAndPublish) {
   EXPECT_TRUE(consumer.oversubscription_enabled);
 
   // Disable oversubscription.
-  envelope.set_message(false);
-  EventBus::publish<OversubscriptionReCtrlEventEnvelope>(envelope);
+  envelope.mutable_message()->set_enable(false);
+  EventBus::publish<OversubscriptionCtrlEventEnvelope>(envelope);
 
   // Wait for libprocess queue to be processed.
   process::Clock::pause();

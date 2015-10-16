@@ -95,20 +95,12 @@ class ValveFilterEndpointProcess
       limiter(2, Seconds(1)) {
     switch (this->tag.TYPE()) {
       case RESOURCE_ESTIMATOR:
-        install<OversubscriptionReCtrlEventEnvelope>(
-          &ValveFilterEndpointProcess::setOpen,
-          &OversubscriptionReCtrlEventEnvelope::message);
+        install<OversubscriptionCtrlEventEnvelope>(
+          &ValveFilterEndpointProcess::setOpenHandle,
+          &OversubscriptionCtrlEventEnvelope::message);
 
-        // Subscribe for OversubscriptionReCtrlEventEnvelope messages.
-        EventBus::subscribe<OversubscriptionReCtrlEventEnvelope>(this->self());
-        break;
-      case QOS_CONTROLLER:
-        install<OversubscriptionQoSCtrlEventEnvelope>(
-          &ValveFilterEndpointProcess::setOpen,
-          &OversubscriptionQoSCtrlEventEnvelope::message);
-
-        // Subscribe for OversubscriptionQoSCtrlEventEnvelope messages.
-        EventBus::subscribe<OversubscriptionQoSCtrlEventEnvelope>(this->self());
+        // Subscribe for OversubscriptionCtrlEventEnvelope messages.
+        EventBus::subscribe<OversubscriptionCtrlEventEnvelope>(this->self());
         break;
     }
   }
@@ -119,6 +111,12 @@ class ValveFilterEndpointProcess
     // NOTE: In future we may want to trigger some actions here.
     SERENITY_LOG(INFO) << (open?"Enabling":"Disabling") << " " << tag.AIM();
     this->opened = open;
+  }
+
+  void setOpenHandle(
+    const MessageType<OversubscriptionCtrlEventEnvelope>& msg) {
+
+    this->setOpen(msg.enable());
   }
 
   Future<bool> isOpened() {
