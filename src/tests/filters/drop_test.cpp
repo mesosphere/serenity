@@ -1,6 +1,8 @@
 #include <list>
 #include <string>
 
+#include "detectors/rolling.hpp"
+
 #include "gtest/gtest.h"
 
 #include "stout/gtest.hpp"

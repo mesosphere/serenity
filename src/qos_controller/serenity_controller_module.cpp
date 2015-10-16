@@ -1,6 +1,8 @@
 #include <string>
 #include <memory>
 
+#include "detectors/rolling_fractional.hpp"
+
 #include "filters/drop.hpp"
 
 #include "mesos/mesos.hpp"
