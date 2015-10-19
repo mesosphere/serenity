@@ -5,7 +5,7 @@ namespace serenity {
 
 
 std::once_flag StaticEventBus::onlyOneEventBusInit;
-std::shared_ptr<EventBus> StaticEventBus::eventBus = nullptr;
+std::unique_ptr<EventBus> StaticEventBus::eventBus = nullptr;
 
 }  // namespace serenity
 }  // namespace mesos

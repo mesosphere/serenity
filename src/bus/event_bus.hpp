@@ -178,7 +178,7 @@ class StaticEventBus {
   void operator=(StaticEventBus&) = delete;
 
 
-  static const std::shared_ptr<EventBus>& GetEventBus() {
+  static const std::unique_ptr<EventBus>& GetEventBus() {
     std::call_once(StaticEventBus::onlyOneEventBusInit,
        []() {
          StaticEventBus::eventBus.reset(new EventBus());
@@ -188,7 +188,7 @@ class StaticEventBus {
   }
 
   static std::once_flag onlyOneEventBusInit;
-  static std::shared_ptr<EventBus> eventBus;
+  static std::unique_ptr<EventBus> eventBus;
 };
 
 }  // namespace serenity
