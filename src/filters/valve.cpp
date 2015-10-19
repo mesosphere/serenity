@@ -1,6 +1,8 @@
 #include <atomic>
 #include <string>
 
+#include "bus/event_bus.hpp"
+
 #include "glog/logging.h"
 
 #include "mesos/mesos.hpp"
@@ -83,20 +85,36 @@ Try<string> getFormValue(
 }
 
 class ValveFilterEndpointProcess
-  : public Process<ValveFilterEndpointProcess> {
+  : public ProtobufProcess<ValveFilterEndpointProcess> {
  public:
   explicit ValveFilterEndpointProcess(const Tag& _tag, bool _opened)
     : tag(_tag),
       ProcessBase(getValveProcessBaseName(_tag.TYPE())),
       opened(_opened),
-      limiter(2, Seconds(1)) {}  // 2 permits per second.
+      // 2 permits per second.
+      limiter(2, Seconds(1)) {
+    switch (this->tag.TYPE()) {
+      case RESOURCE_ESTIMATOR:
+        install<OversubscriptionCtrlEventEnvelope>(
+          &ValveFilterEndpointProcess::setOpenHandle,
+          &OversubscriptionCtrlEventEnvelope::message);
+
+        // Subscribe for OversubscriptionCtrlEventEnvelope messages.
+        StaticEventBus::subscribe<OversubscriptionCtrlEventEnvelope>(self());
+        break;
+    }
+  }
 
   virtual ~ValveFilterEndpointProcess() {}
 
   void setOpen(bool open) {
     // NOTE: In future we may want to trigger some actions here.
-    SERENITY_LOG(INFO) << (open?"Enabling ":"Disabling ") << " " << tag.AIM();
+    SERENITY_LOG(INFO) << (open?"Enabling":"Disabling") << " " << tag.AIM();
     this->opened = open;
+  }
+
+  void setOpenHandle(const OversubscriptionCtrlEvent& msg) {
+    this->setOpen(msg.enable());
   }
 
   Future<bool> isOpened() {

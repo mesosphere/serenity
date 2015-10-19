@@ -1,6 +1,8 @@
 #ifndef SERENITY_PIPELINE_HPP
 #define SERENITY_PIPELINE_HPP
 
+#include "bus/event_bus.hpp"
+
 #include "serenity/serenity.hpp"
 
 #include "stout/error.hpp"

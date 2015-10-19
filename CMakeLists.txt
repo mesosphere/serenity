@@ -81,6 +81,7 @@ include_directories(
 )
 
 set(SERENITY_SOURCES
+    src/bus/event_bus.cpp
     src/estimator/serenity_estimator.cpp
     src/estimator/serenity_estimator_module.cpp
     src/filters/drop.cpp
@@ -102,6 +103,7 @@ set(SERENITY_SOURCES
 
 set(SERENITY_TEST_SOURCES
     src/tests/main.cpp
+    src/tests/bus/event_bus_tests.cpp
     src/tests/common/sources/json_source.cpp
     src/tests/controllers/qos_controller_test.cpp
     src/tests/estimators/estimator_test.cpp

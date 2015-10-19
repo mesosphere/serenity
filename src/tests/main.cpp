@@ -3,7 +3,6 @@
 
 #include "messages/serenity.hpp"
 
-
 int main(int argc, char** argv) {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
   FLAGS_logtostderr = true;
