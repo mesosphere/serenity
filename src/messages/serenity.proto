@@ -12,10 +12,11 @@ option java_outer_classname = "Protos";
  * TODO(bplotka): Add topic for EventBus and do not specify aim of the
  * event by message Type, but by the topic.
  */
-message OversubscriptionCtrlEventEnvelope {
-  message OversubscriptionCtrlEvent {
+ message OversubscriptionCtrlEvent {
     optional bool enable = 1;
-  }
+ }
+
+message OversubscriptionCtrlEventEnvelope {
   optional OversubscriptionCtrlEvent message = 1;
 }
 

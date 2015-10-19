@@ -35,7 +35,7 @@ class TestEventConsumer :
 
   bool oversubscription_enabled;
 
-  void event(const MessageType<OversubscriptionCtrlEventEnvelope>& msg) {
+  void event(const OversubscriptionCtrlEvent& msg) {
     LOG(INFO) << "Got Message!";
     this->oversubscription_enabled = msg.enable();
   }

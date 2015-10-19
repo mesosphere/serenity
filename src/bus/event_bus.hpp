@@ -29,27 +29,21 @@ namespace serenity {
 
 
 /**
- * Helper snippet of code for internal Envelope message type evaluation.
+ * Event definition.
  *
  * Each event defined in proto need to be wrapped in "Envelope"
  * with message variable e.g:
  *
- * message SomeEventEnvelope {
- *  message SomeEvent {
+ * message SomeEvent {
  *   optional bool first_event_param = 1;
  *   optional bool second_event_param = 2;
  *   (...)
- *  }
+ * }
  *
- *  optional SomeEvent message = 1;
+ * message SomeEventEnvelope {
+ *   optional SomeEvent message = 1;
  * }
  */
-template <class Envelope>
-using MessageType =
-  typename std::remove_const<
-    typename std::remove_reference<decltype(std::declval<Envelope>().message())
-    >::type
-  >::type;
 
 
 /**

@@ -113,9 +113,7 @@ class ValveFilterEndpointProcess
     this->opened = open;
   }
 
-  void setOpenHandle(
-    const MessageType<OversubscriptionCtrlEventEnvelope>& msg) {
-
+  void setOpenHandle(const OversubscriptionCtrlEvent& msg) {
     this->setOpen(msg.enable());
   }
 
