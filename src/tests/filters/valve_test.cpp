@@ -241,7 +241,7 @@ TEST(ValveFilterTest, EstimatorDisableThenEnableViaEventBus) {
   // PHASE 2: Disable estimator pipeline via EventBus.
   OversubscriptionCtrlEventEnvelope envelope;
   envelope.mutable_message()->set_enable(false);
-  EventBus::publish<OversubscriptionCtrlEventEnvelope>(envelope);
+  StaticEventBus::publish<OversubscriptionCtrlEventEnvelope>(envelope);
 
   // Wait for libprocess queue to be processed.
   process::Clock::pause();
@@ -255,7 +255,7 @@ TEST(ValveFilterTest, EstimatorDisableThenEnableViaEventBus) {
 
   // PHASE 3: Enable estimator pipeline.
   envelope.mutable_message()->set_enable(true);
-  EventBus::publish<OversubscriptionCtrlEventEnvelope>(envelope);
+  StaticEventBus::publish<OversubscriptionCtrlEventEnvelope>(envelope);
 
   // Wait for libprocess queue to be processed.
   process::Clock::pause();

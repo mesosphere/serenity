@@ -51,12 +51,12 @@ TEST(EventBus, SubscribeAndPublish) {
   process::spawn(consumer);
 
   // Subscribe for OversubscriptionCtrlEventEnvelope messages.
-  EventBus::subscribe<OversubscriptionCtrlEventEnvelope>(consumer.self());
+  StaticEventBus::subscribe<OversubscriptionCtrlEventEnvelope>(consumer.self());
 
   // Prepare message to enable oversubscription.
   OversubscriptionCtrlEventEnvelope envelope;
   envelope.mutable_message()->set_enable(true);
-  EventBus::publish<OversubscriptionCtrlEventEnvelope>(envelope);
+  StaticEventBus::publish<OversubscriptionCtrlEventEnvelope>(envelope);
 
   // Wait for libprocess queue to be processed.
   process::Clock::pause();
@@ -66,7 +66,7 @@ TEST(EventBus, SubscribeAndPublish) {
 
   // Disable oversubscription.
   envelope.mutable_message()->set_enable(false);
-  EventBus::publish<OversubscriptionCtrlEventEnvelope>(envelope);
+  StaticEventBus::publish<OversubscriptionCtrlEventEnvelope>(envelope);
 
   // Wait for libprocess queue to be processed.
   process::Clock::pause();

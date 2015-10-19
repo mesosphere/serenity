@@ -48,64 +48,12 @@ namespace serenity {
 
 /**
  *  Lookup Event-based bus made as libprocess actor.
- *  Used as singleton.
  */
 class EventBus : public ProtobufProcess<EventBus> {
  public:
-  /**
-   * Creates a new instance of the EventBus if hasn't already been created.
-   * Returns the singleton instance.
-   *
-   * Using call_once to ensure multi-threading support.
-   */
-  static std::shared_ptr<EventBus> GetInstance() {
-    std::call_once(EventBus::onlyOneInit,
-      []() {
-        EventBus::instance.reset(new EventBus());
-        process::spawn(*EventBus::instance);
-      });
-
-    return EventBus::instance;
+  EventBus() {
+    process::spawn(this);
   }
-
-  /**
-   * Subscribe for a specific Envelope Type.
-   * TODO(bplotka): We can add here additional topic param and implement
-   * topic lookup in publish.
-   */
-  template <typename T>
-  static Try<Nothing> subscribe(process::UPID _subscriberPID) {
-    EventBus::GetInstance()->_subscribe<T>(_subscriberPID);
-    return Nothing();
-  }
-
-  /**
-   * Publish Envelope.
-   */
-  template <typename T>
-  static Try<Nothing> publish(const T& in) {
-    EventBus::GetInstance()->_publish<T>(in);
-    return Nothing();
-  }
-
-  ~EventBus() {
-    if (EventBus::instance != nullptr) {
-      process::terminate(EventBus::instance->self());
-      process::wait(EventBus::instance->self());
-
-      EventBus::instance = nullptr;
-    }
-  }
-
- private:
-  // Private constructor.
-  EventBus() {}
-
-  // Disable copying.
-  explicit EventBus(EventBus&) = delete;
-
-  // Disable copying.
-  void operator=(EventBus&) = delete;
 
   /**
    * Publishing message.
@@ -113,7 +61,7 @@ class EventBus : public ProtobufProcess<EventBus> {
    * Thread safe.
    */
   template <typename T>
-  Try<Nothing> _publish(const T& in) {
+  Try<Nothing> publish(const T& in) {
     std::unordered_set<process::UPID> subscribers;
     {
       // Synchronized block of code.
@@ -148,7 +96,7 @@ class EventBus : public ProtobufProcess<EventBus> {
    * Thread safe.
    */
   template <typename T>
-  Try<Nothing> _subscribe(process::UPID _subscriberPID) {
+  Try<Nothing> subscribe(process::UPID _subscriberPID) {
     std::lock_guard<std::mutex> lock(subscribersMapLock);
 
     auto subscribersForType = this->subscribersMap.find(typeid(T));
@@ -164,7 +112,7 @@ class EventBus : public ProtobufProcess<EventBus> {
     if (subscribersForType->second.find(_subscriberPID) !=
         subscribersForType->second.end()) {
       LOG(INFO) << "This subscriber with PID: " << _subscriberPID
-                << "is already registered";
+      << "is already registered";
       return Nothing();
     }
     subscribersForType->second.insert(_subscriberPID);
@@ -178,11 +126,69 @@ class EventBus : public ProtobufProcess<EventBus> {
    */
   std::mutex subscribersMapLock;
   std::map<std::type_index, std::unordered_set<process::UPID>> subscribersMap;
+};
 
-  static std::once_flag onlyOneInit;
 
-  // Singleton class instance.
-  static std::shared_ptr<EventBus> instance;
+/**
+ * Static wrapper for Event-based bus made to share state between pipelines
+ * within same lib.
+ */
+class StaticEventBus {
+ public:
+  /**
+   * Subscribe for a specific Envelope Type.
+   * TODO(bplotka): We can add here additional topic param and implement
+   * topic lookup in publish.
+   */
+  template <typename T>
+  static Try<Nothing> subscribe(process::UPID _subscriberPID) {
+    StaticEventBus::GetEventBus()->subscribe<T>(_subscriberPID);
+    return Nothing();
+  }
+
+  /**
+   * Publish Envelope.
+   */
+  template <typename T>
+  static Try<Nothing> publish(const T& in) {
+    StaticEventBus::GetEventBus()->publish<T>(in);
+    return Nothing();
+  }
+
+  /**
+   * Destructor.
+   */
+  ~StaticEventBus() {
+    if (StaticEventBus::eventBus != nullptr) {
+      process::terminate(StaticEventBus::eventBus->self());
+      process::wait(StaticEventBus::eventBus->self());
+
+      StaticEventBus::eventBus = nullptr;
+    }
+  }
+
+ private:
+  // Private constructor.
+  StaticEventBus() {}
+
+  // Disable copying.
+  explicit StaticEventBus(StaticEventBus&) = delete;
+
+  // Disable copying.
+  void operator=(StaticEventBus&) = delete;
+
+
+  static const std::shared_ptr<EventBus>& GetEventBus() {
+    std::call_once(StaticEventBus::onlyOneEventBusInit,
+       []() {
+         StaticEventBus::eventBus.reset(new EventBus());
+       });
+
+    return StaticEventBus::eventBus;
+  }
+
+  static std::once_flag onlyOneEventBusInit;
+  static std::shared_ptr<EventBus> eventBus;
 };
 
 }  // namespace serenity
