@@ -5,9 +5,6 @@ ADD . /serenity
 
 WORKDIR /serenity
 
-RUN apt-get update -q && apt-get -qy install \
-  clang-3.5
-
 # Check for style errors.
 RUN ./scripts/lint.sh
 
