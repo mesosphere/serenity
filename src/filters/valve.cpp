@@ -149,38 +149,47 @@ class ValveFilterEndpointProcess
     Try<hashmap<string, string>> decode =
         process::http::query::decode(request.body);
     if (decode.isError()) {
-      return http::BadRequest(
-          tag.NAME() + "Unable to decode query string: "
-          + decode.error());
+      const string message =
+        tag.NAME() + "Unable to decode query string: " + decode.error();
+      return http::BadRequest(message);
     }
     hashmap<string, string> values = decode.get();
 
-    // Get params.
     string enabled_param;
+    // Get params via GET method.
     Option<string> pipeline_enable = request.query.get(PIPELINE_ENABLE_KEY);
     if (pipeline_enable.isSome()) {
       enabled_param = pipeline_enable.get();
     } else {
+      // Get params via POST method.
       Try<string> pipeline_enable_form =
           getFormValue(PIPELINE_ENABLE_KEY, values);
 
       if (pipeline_enable_form.isError()) {
-        return http::BadRequest(pipeline_enable_form.error());
+        // There is no 'enabled' param.
+        const string message =
+          tag.NAME() + "Missed 'enabled' param.";
+        return http::BadRequest(message);
       }
       enabled_param = pipeline_enable_form.get();
     }
+    bool pipeline_enable_decision;
+    string message = "";
 
-    bool pipeline_enable_decision = false;
     if (!enabled_param.compare("true")) {
       pipeline_enable_decision = true;
+      message = tag.NAME() + "Enabled.";
+    } else if (!enabled_param.compare("false")) {
+      pipeline_enable_decision = false;
+      message = tag.NAME() + "Disabled.";
+    } else {
+      // Unknown value of 'enabled' param.
+      return http::BadRequest(tag.NAME() + "Unknown value of 'enabled' param. "
+                              + "Possible values: true / false");
     }
-
     this->setOpen(pipeline_enable_decision);
 
-    JSON::Object response;
-    response.values[PIPELINE_ENABLE_KEY] = enabled_param;
-
-    return http::OK(response);
+    return http::OK(message);
   }
 
   atomic_bool opened;
