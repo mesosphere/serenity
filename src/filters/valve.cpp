@@ -30,15 +30,6 @@ using namespace process;  // NOLINT(build/namespaces)
 using std::atomic_bool;
 using std::string;
 
-inline Option<string> getRequestParam(
-    const http::Request& request, const string KEY) {
-#ifdef NEWEST_LIBPROCESS
-  return request.url.query.get(KEY);
-#else
-  return request.query.get(KEY);
-#endif
-}
-
 static const string ESTIMATOR_VALVE_ENDPOINT_HELP() {
   return HELP(
       TLDR(
@@ -169,8 +160,8 @@ class ValveFilterEndpointProcess
     hashmap<string, string> values = decode.get();
 
     string enabled_param;
-    Option<string> pipeline_enable =
-      getRequestParam(request, PIPELINE_ENABLE_KEY);
+    Option<string> pipeline_enable = request.query.get(PIPELINE_ENABLE_KEY);
+
     if (pipeline_enable.isSome()) {
       enabled_param = pipeline_enable.get();
     } else {
