@@ -1,5 +1,5 @@
-FROM mesosphere/mesos-modules-dev:0.25.0-rc1
-MAINTAINER Mesosphere <support@mesosphere.io>
+FROM bplotka/mesos-modules-dev:0.25.0
+MAINTAINER serenity
 
 ADD . /serenity
 
