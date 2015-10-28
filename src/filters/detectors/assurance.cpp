@@ -1,9 +1,6 @@
 #include <utility>
 
-#include "detectors/assurance_fractional.hpp"
-#include "detectors/detector.hpp"
-
-#include "filters/drop.hpp"
+#include "filters/detectors/assurance.hpp"
 
 #include "messages/serenity.hpp"
 
@@ -12,11 +9,11 @@
 namespace mesos {
 namespace serenity {
 
-Result<ChangePointDetection> AssuranceFractionalDetector::processSample(
+Result<Detection> AssuranceDetector::processSample(
     double_t in) {
   this->window.push_back(in);
 
-  if (this->window.size() < this->state.windowSize) {
+  if (this->window.size() < this->cfg.getU64(detector::WINDOW_SIZE)) {
     return None();  // Only warm up.
   }
 
@@ -25,7 +22,8 @@ Result<ChangePointDetection> AssuranceFractionalDetector::processSample(
 
   if (this->referencePoint.isSome()) {
     // Check if the signal returned to normal state. (!)
-    double_t nearValue = this->state.nearFraction * this->referencePoint.get();
+    double_t nearValue =
+      this->cfg.getD(detector::NEAR_FRACTION) * this->referencePoint.get();
     SERENITY_LOG(INFO) << "Waiting for signal to return to "
                        << (this->referencePoint.get() - nearValue)
                        << " (base value) after "
@@ -54,15 +52,17 @@ Result<ChangePointDetection> AssuranceFractionalDetector::processSample(
   << " inputValue: " << in
   << " | baseValue = " << basePoint
   << " | current drop %: " << currentDropFraction * 100
-  << " | threshold %: " << this->state.fractionalThreshold * 100;
+  << " | threshold %: "
+  << this->cfg.getD(detector::FRACTIONAL_THRESHOLD) * 100;
 
   // If drop fraction is higher than threshold or signal did not returned
   // after cooldown, then trigger contention.
-  if (currentDropFraction > this->state.fractionalThreshold ||
+  if (currentDropFraction > this->cfg.getD(detector::FRACTIONAL_THRESHOLD) ||
       (this->referencePoint.isSome())) {
-    ChangePointDetection cpd;
+    Detection cpd;
     if (this->referencePoint.isNone()) {
-      cpd.severity =  currentDropFraction * this->state.severityLevel;
+      cpd.severity =
+        currentDropFraction * this->cfg.getD(detector::SEVERITY_FRACTION);
       this->lastSeverity = cpd.severity;
     } else {
       cpd.severity =  this->lastSeverity;
@@ -71,7 +71,8 @@ Result<ChangePointDetection> AssuranceFractionalDetector::processSample(
     LOG(INFO) << tag.NAME() << " Created contention with severity = "
               << cpd.severity;
 
-    this->contentionCooldownCounter = this->state.contentionCooldown;
+    this->contentionCooldownCounter =
+      this->cfg.getU64(detector::CONTENTION_COOLDOWN);
     this->referencePoint = basePoint;
     this->referencePointCounter = 0;
 
@@ -85,11 +86,6 @@ Result<ChangePointDetection> AssuranceFractionalDetector::processSample(
 
   return None();
 }
-
-// Fix for using templated methods in .cpp file.
-// See:
-//    https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
-template class DropFilter<AssuranceFractionalDetector>;
 
 }  // namespace serenity
 }  // namespace mesos
