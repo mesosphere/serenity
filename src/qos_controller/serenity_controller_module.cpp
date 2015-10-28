@@ -1,10 +1,6 @@
 #include <string>
 #include <memory>
 
-#include "detectors/rolling_fractional.hpp"
-
-#include "filters/drop.hpp"
-
 #include "mesos/mesos.hpp"
 #include "mesos/module.hpp"
 
@@ -21,44 +17,43 @@
 
 // TODO(nnielsen): Should be explicit using-directives.
 using namespace mesos;  // NOLINT(build/namespaces)
+using namespace mesos::serenity::ema;  // NOLINT(build/namespaces)
+using namespace mesos::serenity::detector;  // NOLINT(build/namespaces)
+using namespace mesos::serenity::qos_pipeline;  // NOLINT(build/namespaces)
 
-using mesos::serenity::ChangePointDetectionState;
+using mesos::serenity::AssuranceDetector;
 using mesos::serenity::CpuQoSPipeline;
-using mesos::serenity::IpsQoSPipeline;
-using mesos::serenity::RollingFractionalDetector;
+using mesos::serenity::SerenityConfig;
 using mesos::serenity::SerenityController;
 using mesos::serenity::QoSControllerPipeline;
-using mesos::serenity::QoSPipelineConf;
 
 using mesos::slave::QoSController;
 
-// IPC pipeline.
-static QoSController* createIpcSerenityController(
+
+// IPC QoS pipeline.
+static QoSController* createSerenityController(
     const Parameters& parameters) {
   LOG(INFO) << "Loading Serenity QoS Controller module";
-  // TODO(bplotka): Fetch configuration from parameters or conf file
-  // to customize IpcDrop
-
+  // TODO(bplotka): Fetch configuration from parameters or conf file.
+  //
   // --Hardcoded configuration for Serenity QoS Controller---
 
-  QoSPipelineConf conf;
-  ChangePointDetectionState cpdState;
+  SerenityConfig conf;
   // Detector configuration:
   // How far we look back in samples.
-  cpdState.windowSize = 10;
+  conf["Detector"].set(WINDOW_SIZE, 10u);
   // How many iterations detector will wait with creating another
   // contention.
-  cpdState.contentionCooldown = 10;
+  conf["Detector"].set(CONTENTION_COOLDOWN, 10u);
   // Defines how much (relatively to base point) value must drop to trigger
   // contention.
   // Most detectors will use that.
-  cpdState.fractionalThreshold = 0.3;
-  cpdState.severityLevel = 2.1;
+  conf["Detector"].set(FRACTIONAL_THRESHOLD, 0.3f);
+  conf["Detector"].set(SEVERITY_FRACTION, 2.1f);
 
-  conf.cpdState = cpdState;
-  conf.emaAlpha = 0.9;
-  conf.visualisation = true;
-  conf.valveOpened = true;
+  conf.set(ALPHA, 0.9f);
+  conf.set(ENABLED_VISUALISATION, false);
+  conf.set(VALVE_OPENED, true);
 
   // Since slave is configured for 5 second perf interval, it is useless to
   // check correction more often then 5 sec.
@@ -66,10 +61,11 @@ static QoSController* createIpcSerenityController(
 
   // --End of hardcoded configuration for Serenity QoS Controller---
 
+  // Use static constructor of QoSController.
   Try<QoSController*> result =
-      SerenityController::create(
-          std::shared_ptr<QoSControllerPipeline>(
-              new CpuQoSPipeline<RollingFractionalDetector>(conf)),
+    SerenityController::create(
+      std::shared_ptr<QoSControllerPipeline>(
+          new CpuQoSPipeline(conf)),
           onEmptyCorrectionInterval);
 
   if (result.isError()) {
@@ -78,55 +74,6 @@ static QoSController* createIpcSerenityController(
   return result.get();
 }
 
-
-// IPS pipeline
-static QoSController* createIpsSerenityController(
-    const Parameters& parameters) {
-  LOG(INFO) << "Loading Serenity QoS Controller module";
-  // TODO(bplotka): Fetch configuration from parameters or conf file
-  // to customize IpsDrop
-
-  // --Hardcoded configuration for Serenity QoS Controller---
-
-  QoSPipelineConf conf;
-  ChangePointDetectionState cpdState;
-  // Detector configuration:
-  // How far we look back in samples.
-  cpdState.windowSize = 10;
-  // How many iterations detector will wait with creating another
-  // contention.
-  cpdState.contentionCooldown = 10;
-  // Defines how much (relatively to base point) value must drop to trigger
-  // contention.
-  // Most detectors will use that.
-  cpdState.fractionalThreshold = 0.5;
-  cpdState.severityLevel = 1;
-
-  conf.cpdState = cpdState;
-  conf.emaAlpha = 0.8;
-  conf.visualisation = true;
-  // Let's start with QoS pipeline disabled.
-  conf.valveOpened = false;
-
-  // Since slave is configured for 5 second perf interval, it is useless to
-  // check correction more often then 5 sec.
-  double onEmptyCorrectionInterval = 5;
-
-  // --End of hardcoded configuration for Serenity QoS Controller---
-
-  Try<QoSController*> result =
-    SerenityController::create(
-        std::shared_ptr<QoSControllerPipeline>(
-            new IpsQoSPipeline<RollingFractionalDetector>(conf)),
-        onEmptyCorrectionInterval);
-
-  if (result.isError()) {
-    return NULL;
-  }
-  return result.get();
-}
-
-
 mesos::modules::Module<QoSController> com_mesosphere_mesos_SerenityController(
     MESOS_MODULE_API_VERSION,
     MESOS_VERSION,
@@ -134,4 +81,4 @@ mesos::modules::Module<QoSController> com_mesosphere_mesos_SerenityController(
     "support@mesosphere.com",
     "Serenity QoS Controller",
     NULL,
-    createIpcSerenityController);
+    createSerenityController);

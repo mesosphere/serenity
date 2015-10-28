@@ -1,14 +1,11 @@
 #include <utility>
 
-#include "filters/drop.hpp"
-
-#include "serenity/wid.hpp"
+#include "filters/detector.hpp"
 
 namespace mesos {
 namespace serenity {
 
-template <typename T>
-Try<Nothing> DropFilter<T>::consume(const ResourceUsage& in) {
+Try<Nothing> DetectorFilter::consume(const ResourceUsage& in) {
   std::unique_ptr<ExecutorSet> newSamples(new ExecutorSet());
   Contentions product;
 
@@ -29,13 +26,15 @@ Try<Nothing> DropFilter<T>::consume(const ResourceUsage& in) {
     newSamples->insert(inExec);
 
     // Check if change point Detector for given executor exists.
-    auto cpDetector = this->cpDetectors->find(inExec.executor_info());
-    if (cpDetector == this->cpDetectors->end()) {
-      // If not insert new one.
-      auto pair = std::pair<ExecutorInfo, T*>(inExec.executor_info(),
-                                              new T(tag));
-      pair.second->configure(this->changePointDetectionState);
-      this->cpDetectors->insert(pair);
+    auto cpDetector = this->detectors->find(inExec.executor_info());
+    if (cpDetector == this->detectors->end()) {
+      // If not insert new detector using detector factory..
+      auto pair = std::pair<ExecutorInfo, std::shared_ptr<BaseDetector>>(
+        inExec.executor_info(),
+        std::make_shared<BaseDetector>(AssuranceDetector(tag,
+                                                         this->detectorConf)));
+
+      this->detectors->insert(pair);
 
     } else {
       // Check if previousSample for given executor exists.
@@ -49,7 +48,7 @@ Try<Nothing> DropFilter<T>::consume(const ResourceUsage& in) {
         }
 
         // Perform change point detection.
-        Result<ChangePointDetection> cpDetected =
+        Result<Detection> cpDetected =
             (cpDetector->second)->processSample(value.get());
         if (cpDetected.isError()) {
           SERENITY_LOG(ERROR)  << cpDetected.error();

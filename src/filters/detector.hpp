@@ -1,15 +1,15 @@
-#ifndef SERENITY_DROP_FILTER_HPP
-#define SERENITY_DROP_FILTER_HPP
+#ifndef SERENITY_DETECTOR_FILTER_HPP
+#define SERENITY_DETECTOR_FILTER_HPP
 
 #include <list>
 #include <memory>
 #include <string>
-#include <type_traits>
-
-#include "detectors/detector.hpp"
+#include <utility>
 
 #include "glog/logging.h"
 
+#include "filters/detectors/assurance.hpp"
+#include "filters/detectors/base.hpp"
 #include "filters/ema.hpp"
 
 #include "messages/serenity.hpp"
@@ -19,6 +19,7 @@
 #include "serenity/executor_map.hpp"
 #include "serenity/executor_set.hpp"
 #include "serenity/serenity.hpp"
+#include "serenity/wid.hpp"
 
 #include "stout/lambda.hpp"
 #include "stout/nothing.hpp"
@@ -30,40 +31,41 @@ namespace serenity {
 
 
 /**
- * DropFilter is able to check defined value and trigger some contentions
+ * DetectorFilter is able to check defined value and trigger some contentions
  * on given thresholds.
  */
-template <class T>
-class DropFilter :
+class DetectorFilter :
     public Consumer<ResourceUsage>, public Producer<Contentions> {
-  static_assert(std::is_base_of<ChangePointDetector, T>::value,
-              "T must derive from ChangePointDetector");
  public:
-  DropFilter(
+  DetectorFilter(
       Consumer<Contentions>* _consumer,
       const lambda::function<usage::GetterFunction>& _valueGetFunction,
-      ChangePointDetectionState _changePointDetectionState,
-      const Tag& _tag = Tag(QOS_CONTROLLER, "dropFilter"))
+      SerenityConfig _detectorConf,
+      const Tag& _tag = Tag(QOS_CONTROLLER, "detectorFilter"))
     : tag(_tag),
       Producer<Contentions>(_consumer),
       previousSamples(new ExecutorSet),
-      cpDetectors(new ExecutorMap<T*>()),
+      detectors(new ExecutorMap<std::shared_ptr<BaseDetector>>()),
       valueGetFunction(_valueGetFunction),
-      changePointDetectionState(_changePointDetectionState) {}
+      detectorConf(_detectorConf) {}
 
-  ~DropFilter() {}
+  ~DetectorFilter() {}
 
   Try<Nothing> consume(const ResourceUsage& in) override;
+
+  static const constexpr char* NAME = "Detector";
 
  protected:
   const Tag tag;
   const lambda::function<usage::GetterFunction> valueGetFunction;
   std::unique_ptr<ExecutorSet> previousSamples;
-  std::unique_ptr<ExecutorMap<T*>> cpDetectors;
-  ChangePointDetectionState changePointDetectionState;
+
+  // Detections.
+  std::unique_ptr<ExecutorMap<std::shared_ptr<BaseDetector>>> detectors;
+  SerenityConfig detectorConf;
 };
 
 }  // namespace serenity
 }  // namespace mesos
 
-#endif  // SERENITY_DROP_FILTER_HPP
+#endif  // SERENITY_DETECTOR_FILTER_HPP
