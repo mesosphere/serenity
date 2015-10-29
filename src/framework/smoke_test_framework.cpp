@@ -80,14 +80,21 @@ public:
       tasksFinished(0u),
       tasksTerminated(0u),
       tasksPending(0u),
-      jobScheduled(0u) {
+      jobsScheduled(0u) {
     foreach (const SmokeJob& job, _jobs) {
         if(job.isUnlimited()) {
-          // TODO(bplotka): Add support for unlimitedjobs.
           unlimitedJobs.push_back(SmokeJob(job));
         } else {
+          // TODO(bplotka): Sort base on priority.
           limitedJobs.push_back(SmokeJob(job));
         }
+    }
+
+    if (unlimitedJobs.size() > 0) {
+      // TODO(bplotka): Add support for > 1 unlimited jobs.
+      LOG(WARNING) << "Currently there is support only for one unlimited"
+        << "job. Only first task (cmd:" << unlimitedJobs[0].command
+        << " will be scheduled.";
     }
   }
 
@@ -123,8 +130,9 @@ public:
     filters.set_refuse_seconds(Duration::max().secs());
     foreach (const Offer& offer, offers) {
       // Check each offer.
-      if (jobScheduled >= limitedJobs.size()) {
-        // In case of end of our scheduling - fully resign from offers.
+      if (unlimitedJobs.size() == 0 &&
+        jobsScheduled >= limitedJobs.size()) {
+        // In case of end of our scheduling - fully resign from any offer.
         driver->declineOffer(offer.id(), filters);
         continue;
       }
@@ -134,41 +142,51 @@ public:
 
       Resources remaining = offer.resources();
       vector<TaskInfo> tasks;
-      for(auto job=limitedJobs.begin(); job != limitedJobs.end(); ++job) {
-        if (job->scheduled) continue;
-        if (job->targetHostname.isSome() &&
-            job->targetHostname.get().compare(offer.hostname()) != 0){
-          // Host don't match.
-          LOG(INFO) << "Offered host " << offer.hostname()
-                    << " not matched with target " << job->targetHostname.get()
-                    << ". Omitting.";
-          continue;
+
+      SmokeJob* job = nullptr;
+      if (jobsScheduled >= limitedJobs.size()) {
+        // Get job from limited job vector.
+        job = &limitedJobs[jobsScheduled];
+      } else {
+        // Get job from unlimited job vector (only first).
+        job = &unlimitedJobs[0];
+      }
+
+      if (job->targetHostname.isSome() &&
+          job->targetHostname.get().compare(offer.hostname()) != 0){
+        // Host don't match.
+        LOG(INFO) << "Offered host " << offer.hostname()
+        << " not matched with target " << job->targetHostname.get()
+        << ". Omitting.";
+        continue;
+      }
+
+      while (true) {
+        // Check if there are still resources for next task.
+        if (!remaining.contains(job->taskResources)) {
+          LOG(INFO) << "Not enough resources for "
+          << stringify(jobsScheduled) + "_"
+             + stringify(job->tasksLaunched)
+          << " job. Needed: " << job->taskResources
+          << " Offered: " << remaining;
+          break;
         }
 
-        while (true) {
-          // Check if there are still resources for next task.
-          if (!remaining.contains(job->taskResources)) {
-            LOG(INFO) << "Not enough resources for "
-                      << stringify(jobScheduled) + "_"
-                         + stringify(job->tasksLaunched)
-                      << " job. Needed: " << job->taskResources
-                      << " Offered: " << remaining;
-            break;
-          }
+        remaining -= job->taskResources;
 
-          remaining -= job->taskResources;
+        tasks.push_back(
+          job->createTask(jobsScheduled, offer.slave_id()));
 
-          tasks.push_back(job->createTask(jobScheduled, offer.slave_id()));
+        this->activeTasks.insert(tasks.back().task_id());
+        job->tasksLaunched++;
+        LOG(INFO) << "Launching " << tasks.back().task_id();
+        if (!job->isUnlimited() &&
+            job->tasksLaunched  >= job->totalTasks.get()) {
+          // In case of unlimited job stop when scheduled totalTasks.
+          job->scheduled = true;
 
-          this->activeTasks.insert(tasks.back().task_id());
-          job->tasksLaunched++;
-          LOG(INFO) << "Launching " << tasks.back().task_id();
-          if (job->tasksLaunched  >= job->totalTasks.get()) {
-            job->scheduled = true;
-
-            this->jobScheduled++;
-            break;
-          }
+          this->jobsScheduled++;
+          break;
         }
       }
 
@@ -263,13 +281,13 @@ public:
 
 private:
   FrameworkInfo frameworkInfo;
-  list<SmokeJob> limitedJobs;
-  list<SmokeJob> unlimitedJobs;
+  vector<SmokeJob> limitedJobs;
+  vector<SmokeJob> unlimitedJobs;
   size_t tasksFinished;
   size_t tasksTerminated;
   hashset<TaskID> activeTasks;
   size_t tasksPending;
-  size_t jobScheduled;
+  size_t jobsScheduled;
 };
 
 
