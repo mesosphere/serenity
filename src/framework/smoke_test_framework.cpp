@@ -39,8 +39,10 @@
 #include "common/protobuf_utils.hpp"
 #include "common/status_utils.hpp"
 
-#include "logging/flags.hpp"
 #include "logging/logging.hpp"
+
+#include "smoke_flags.hpp"
+#include "smoke_job.hpp"
 
 using namespace mesos;
 using namespace mesos::internal;
@@ -50,6 +52,7 @@ using std::string;
 using std::vector;
 
 using mesos::Resources;
+
 
 static Offer::Operation LAUNCH(const vector<TaskInfo>& tasks)
 {
@@ -64,53 +67,27 @@ static Offer::Operation LAUNCH(const vector<TaskInfo>& tasks)
 }
 
 
-struct JobSpec {
-  JobSpec(
-      const string& _command,
-      const Resources& _taskResources,
-      const Option<size_t>& _totalTasks,
-      const Option<string>& _targetHostname = None())
-    : command(_command),
-      taskResources(_taskResources),
-      totalTasks((_totalTasks.isSome()?_totalTasks.get():1)),
-      targetHostname(_targetHostname),
-      tasksLaunched(0u),
-      scheduled(false) {}
-
-  const string command;
-  const Resources taskResources;
-  const size_t totalTasks;
-  size_t tasksLaunched;
-  bool scheduled;
-
-  const Option<string> targetHostname;
-
-  void print() {
-    LOG(INFO) << "| Command: " << this->command
-        << "; Resources: " <<  this->taskResources
-        << "; Tasks to spawn: " << this->totalTasks
-        << "; Target hostname: "
-        << (this->targetHostname.isSome()?this->targetHostname.get():"<all>")
-        << "|";
-
-  }
-};
-
-
+/**
+ * Serenity No Executor Scheduler based on Mesos No Executor Scheduler.
+ */
 class SerenityNoExecutorScheduler : public Scheduler
 {
 public:
   SerenityNoExecutorScheduler(
       const FrameworkInfo& _frameworkInfo,
-      const list<JobSpec>& _jobs)
+      const list<SmokeJob>& _jobs)
     : frameworkInfo(_frameworkInfo),
-      jobs(_jobs),
       tasksFinished(0u),
       tasksTerminated(0u),
       tasksPending(0u),
       jobScheduled(0u) {
-    foreach (const JobSpec& job, jobs) {
-      tasksPending += job.totalTasks;
+    foreach (const SmokeJob& job, _jobs) {
+        if(job.isUnlimited()) {
+          // TODO(bplotka): Add support for unlimitedjobs.
+          unlimitedJobs.push_back(SmokeJob(job));
+        } else {
+          limitedJobs.push_back(SmokeJob(job));
+        }
     }
   }
 
@@ -145,7 +122,9 @@ public:
     Filters filters;
     filters.set_refuse_seconds(Duration::max().secs());
     foreach (const Offer& offer, offers) {
-      if (jobScheduled >= jobs.size()) {
+      // Check each offer.
+      if (jobScheduled >= limitedJobs.size()) {
+        // In case of end of our scheduling - fully resign from offers.
         driver->declineOffer(offer.id(), filters);
         continue;
       }
@@ -155,10 +134,11 @@ public:
 
       Resources remaining = offer.resources();
       vector<TaskInfo> tasks;
-      for(auto job=jobs.begin(); job != jobs.end(); ++job) {
+      for(auto job=limitedJobs.begin(); job != limitedJobs.end(); ++job) {
         if (job->scheduled) continue;
         if (job->targetHostname.isSome() &&
             job->targetHostname.get().compare(offer.hostname()) != 0){
+          // Host don't match.
           LOG(INFO) << "Offered host " << offer.hostname()
                     << " not matched with target " << job->targetHostname.get()
                     << ". Omitting.";
@@ -166,6 +146,7 @@ public:
         }
 
         while (true) {
+          // Check if there are still resources for next task.
           if (!remaining.contains(job->taskResources)) {
             LOG(INFO) << "Not enough resources for "
                       << stringify(jobScheduled) + "_"
@@ -174,22 +155,15 @@ public:
                       << " Offered: " << remaining;
             break;
           }
-          TaskInfo task;
-          task.mutable_task_id()->set_value(
-              stringify(jobScheduled) + "_" + stringify(job->tasksLaunched));
-          task.set_name(stringify(jobScheduled) + "_" + job->command);
-          task.mutable_slave_id()->CopyFrom(offer.slave_id());
-          task.mutable_resources()->CopyFrom(job->taskResources);
-          task.mutable_command()->set_shell(true);
-          task.mutable_command()->set_value(job->command);
 
           remaining -= job->taskResources;
 
-          tasks.push_back(task);
-          this->activeTasks.insert(task.task_id());
+          tasks.push_back(job->createTask(jobScheduled, offer.slave_id()));
+
+          this->activeTasks.insert(tasks.back().task_id());
           job->tasksLaunched++;
-          LOG(INFO) << "Launching " << task.task_id();
-          if (job->tasksLaunched  >= job->totalTasks) {
+          LOG(INFO) << "Launching " << tasks.back().task_id();
+          if (job->tasksLaunched  >= job->totalTasks.get()) {
             job->scheduled = true;
 
             this->jobScheduled++;
@@ -289,7 +263,8 @@ public:
 
 private:
   FrameworkInfo frameworkInfo;
-  list<JobSpec> jobs;
+  list<SmokeJob> limitedJobs;
+  list<SmokeJob> unlimitedJobs;
   size_t tasksFinished;
   size_t tasksTerminated;
   hashset<TaskID> activeTasks;
@@ -298,198 +273,10 @@ private:
 };
 
 
-class Flags : public logging::Flags
-{
-public:
-  Flags()
-  {
-    add(&master,
-        "master",
-        "The master to connect to. May be one of:\n"
-        "  master@addr:port (The PID of the master)\n"
-        "  zk://host1:port1,host2:port2,.../path\n"
-        "  zk://username:password@host1:port1,host2:port2,.../path\n"
-        "  file://path/to/file (where file contains one of the above)");
-
-    add(&checkpoint,
-        "checkpoint",
-        "Whether to enable checkpointing (true by default).",
-        true);
-
-    add(&role,
-        "role",
-        "Framework role.",
-        "*");
-
-    add(&principal,
-        "principal",
-        "To enable authentication, both --principal and --secret\n"
-        "must be supplied.");
-
-    add(&secret,
-        "secret",
-        "To enable authentication, both --principal and --secret\n"
-        "must be supplied.");
-
-    add(&tasks_json_path,
-        "json_path",
-        "File path for JSON file which specifies task to be run.");
-
-    // If JSON is not specified.
-    add(&command,
-        "command",
-        "The command to run for each task.",
-        "echo hello");
-
-    add(&task_resources,
-        "task_resources",
-        "The resources that the task uses.",
-        "cpus:0.1;mem:32;disk:32");
-
-    // TODO(bmahler): We need to take a separate flag for
-    // revocable resources because there is no support yet
-    // for specifying revocable resources in a resource string.
-    add(&task_revocable_resources,
-        "task_revocable_resources",
-        "The revocable resources that the task uses.");
-
-    add(&num_tasks,
-        "num_tasks",
-        "Optionally, the number of tasks to run to completion before exiting.\n"
-        "If unset, as many tasks as possible will be launched.");
-
-    add(&target_hostname,
-        "target_hostname",
-        "Target Slave. (Waiting for offer from specified slave.");
-
-  }
-
-  Option<string> master;
-  bool checkpoint;
-  Option<string> principal;
-  Option<string> secret;
-  string command;
-  string task_resources;
-  Option<string> task_revocable_resources;
-  Option<size_t> num_tasks;
-  Option<string> tasks_json_path;
-  Option<string> target_hostname;
-  string role;
-};
-
-
-list<JobSpec> parseTaskJson(const Flags flags, bool& revocable) {
-
-  list<JobSpec> jobs;
-  LOG(INFO) << "Loading JSON with tasks from: " << flags.tasks_json_path.get();
-
-  Try<std::string> read = os::read(flags.tasks_json_path.get());
-  if (read.isError()) {
-    EXIT(EXIT_FAILURE) << read.error() << " "
-    << flags.usage("Bad path for JSON tasks");
-  } else if (read.get().empty()) {
-    EXIT(EXIT_FAILURE) << "File is empty.  "
-    << flags.usage("Bad path for JSON tasks");
-  }
-
-  Try<JSON::Object> json = JSON::parse<JSON::Object>(read.get());
-  if (json.isError()) {
-    EXIT(EXIT_FAILURE) << json.error() << " "
-    << flags.usage("Bad JSON file.");
-  }
-
-  Result<JSON::Array> tasks = json.get().find<JSON::Array>("tasks");
-  if (!tasks.isSome()) {
-    EXIT(EXIT_FAILURE)
-    << flags.usage("JSON file does not contain array 'tasks' in root.");
-  }
-
-  int numJobs = tasks.get().values.size();
-
-  for(int i=0; i<numJobs;i++) {
-    Result<JSON::String> _command =
-        json.get().find<JSON::String>("tasks[" + stringify(i) +"].command");
-
-    if (!_command.isSome()) {
-      EXIT(EXIT_FAILURE)
-      << flags.usage(
-          "JSON task " + stringify(i) + "does not contain command");
-    }
-
-    Result<JSON::String> _taskResources =
-        json.get().find<JSON::String>(
-            "tasks[" + stringify(i) +"].taskResources");
-
-    if (!_taskResources.isSome()) {
-      EXIT(EXIT_FAILURE)
-      << flags.usage(
-          "JSON task " + stringify(i) + "does not contain taskResources");
-    }
-
-    Try<Resources> _resources =
-        Resources::parse(_taskResources.get().value);
-
-    if (_resources.isError()) {
-      EXIT(EXIT_FAILURE)
-      << flags.usage("Invalid taskResources in JSON:" +
-                     _resources.error());
-    }
-
-    Result<JSON::String> _revocableTaskResources =
-        json.get().find<JSON::String>(
-            "tasks[" + stringify(i) +"].revocableResources");
-
-    if (_revocableTaskResources.isSome()) {
-      revocable = true;
-      Try<Resources> _revocableResources =
-          Resources::parse(_revocableTaskResources.get().value);
-
-      if (_revocableResources.isError()) {
-        EXIT(EXIT_FAILURE)
-        << flags.usage("Invalid revocableResources in JSON: " +
-                       _revocableResources.error());
-      }
-
-      foreach (Resource _revocable, _revocableResources.get()) {
-        _revocable.mutable_revocable();
-        _resources.get() += _revocable;
-      }
-    }
-
-    Option<string> _targetHostname = None();
-
-    Result<JSON::String> _target =
-        json.get().find<JSON::String>(
-            "tasks[" + stringify(i) +"].targetHostname");
-
-    if (_target.isSome()) {
-      _targetHostname = _target.get().value;
-    }
-
-    Option<size_t> _taskNum = None();
-
-    Result<JSON::Number> _totalTasks =
-        json.get().find<JSON::Number>(
-            "tasks[" + stringify(i) +"].totalTasks");
-
-    if (_totalTasks.isSome()) {
-      _taskNum = _totalTasks.get().as<double>();
-    }
-
-    jobs.push_back(JobSpec(_command.get().value,
-                           _resources.get(),
-                           _taskNum,
-                           _targetHostname));
-    jobs.back().print();
-  }
-
-  return jobs;
-}
-
 int main(int argc, char** argv)
 {
   bool enableRevocable = false;
-  Flags flags;
+  SmokeFlags flags;
 
   Try<Nothing> load = flags.load("MESOS_", argc, argv);
 
@@ -522,10 +309,10 @@ int main(int argc, char** argv)
   framework.set_checkpoint(flags.checkpoint);
   framework.set_role(flags.role);
 
-  list<JobSpec> jobs;
+  list<SmokeJob> jobs;
   if (flags.tasks_json_path.isSome())
   {
-    jobs = parseTaskJson(flags, enableRevocable);
+    jobs = SmokeJob::createJobsFromJson(flags, enableRevocable);
 
   } else {
     // Task specification.
@@ -557,11 +344,16 @@ int main(int argc, char** argv)
       }
     }
 
-    jobs.push_back(JobSpec(flags.command,
-                           taskResources,
-                           flags.num_tasks,
-                           flags.target_hostname));
-
+    Option<SmokeURI> uri = None();
+    if (flags.uri_value.isSome()) {
+      uri = SmokeURI(flags.uri_value.get());
+    }
+    jobs.push_back(
+      SmokeJob(flags.command,
+               taskResources,
+               flags.num_tasks,
+               flags.target_hostname,
+               uri));
   }
 
   if (enableRevocable) {
