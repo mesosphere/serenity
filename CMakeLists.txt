@@ -175,6 +175,7 @@ if (MESOS_SOURCE_DIR)
     include_directories(
         ${MESOS_SOURCE_DIR}/build/src/
         ${MESOS_SOURCE_DIR}/src/
+        src/framework/
     )
     # Serenity test framework exe.
     add_executable(test-framework
