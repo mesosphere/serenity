@@ -35,8 +35,7 @@ class QoSPipelineConfig : public SerenityConfig {
   }
 
   void initDefaults() {
-    this->sections[DetectorFilter::NAME] =
-      std::make_shared<SerenityConfig>(AssuranceDetectorConfig());
+    // Used sections: QoSCorrectionObserver, Detector
     // TODO(bplotka): Moved EMA conf to separate section.
     this->fields[ema::ALPHA] = ema::DEFAULT_ALPHA;
     this->fields[VALVE_OPENED] = DEFAULT_VALVE_OPENED;
@@ -93,7 +92,8 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       ageFilter(),
       // Last item in pipeline.
       qoSCorrectionObserver(this, 1, &ageFilter,
-                            new SeverityBasedSeniorityDecider),
+                            new SeverityBasedSeniorityDecider,
+                            conf["QoSCorrectionObserver"]),
       ipcDropFilter(
           &qoSCorrectionObserver,
           usage::getEmaIpc,
