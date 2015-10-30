@@ -45,7 +45,7 @@ class TestConfig : public SerenityConfig {
    */
   explicit TestConfig(const SerenityConfig& customCfg) {
     this->initDefaults();
-    this->cpy(customCfg);
+    this->applyConfig(customCfg);
   }
 
   /**

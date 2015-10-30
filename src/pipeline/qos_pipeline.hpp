@@ -31,7 +31,7 @@ class QoSPipelineConfig : public SerenityConfig {
 
   explicit QoSPipelineConfig(const SerenityConfig& customCfg) {
     this->initDefaults();
-    this->cpy(customCfg);
+    this->applyConfig(customCfg);
   }
 
   void initDefaults() {
