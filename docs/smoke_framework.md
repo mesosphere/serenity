@@ -27,8 +27,8 @@ Scheme:
       "uri": [Optional] {
                 "value": <custom uri for fetcher>,,
                 "executable": <if exec (bool)[default=false]>,
-                "extract": "<extract after fetching [default=true]>",
-                "cache": "<if using cache fetcher (bool)[default=false]>"
+                "extract": <extract after fetching [default=true]>,
+                "cache": <if using cache fetcher (bool)[default=false]>
       },
       "taskResources": <Needed resources>,
       "revocableResources": <[Optional] needed revocable resources>,

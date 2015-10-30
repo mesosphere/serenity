@@ -77,23 +77,23 @@ public:
       const FrameworkInfo& _frameworkInfo,
       const list<SmokeJob>& _jobs)
     : frameworkInfo(_frameworkInfo),
+      tasksLaunched(0u),
       tasksFinished(0u),
       tasksTerminated(0u),
-      tasksPending(0u),
       jobsScheduled(0u) {
     foreach (const SmokeJob& job, _jobs) {
-        if(job.isUnlimited()) {
-          unlimitedJobs.push_back(SmokeJob(job));
+        if(job.isEndless()) {
+          endlessJobs.push_back(SmokeJob(job));
         } else {
           // TODO(bplotka): Sort base on priority.
           limitedJobs.push_back(SmokeJob(job));
         }
     }
 
-    if (unlimitedJobs.size() > 0) {
+    if (endlessJobs.size() > 1) {
       // TODO(bplotka): Add support for > 1 unlimited jobs.
       LOG(WARNING) << "Currently there is support only for one unlimited"
-        << "job. Only first task (cmd:" << unlimitedJobs[0].command
+        << "job. Only first task (cmd:" << endlessJobs[0].command
         << " will be scheduled.";
     }
 
@@ -128,13 +128,11 @@ public:
       SchedulerDriver* driver,
       const vector<Offer>& offers)
   {
-    LOG(INFO) << "Got offer";
     Filters filters;
     filters.set_refuse_seconds(Duration::max().secs());
     foreach (const Offer& offer, offers) {
       // Check each offer.
-      if (unlimitedJobs.size() == 0 &&
-        jobsScheduled >= limitedJobs.size()) {
+      if (!this->endlessMode() && this->allLimitedJobsScheduled()) {
         // In case of end of our scheduling - fully resign from any offer.
         driver->declineOffer(offer.id(), filters);
         continue;
@@ -147,12 +145,12 @@ public:
       vector<TaskInfo> tasks;
 
       SmokeJob* job = nullptr;
-      if (jobsScheduled >= limitedJobs.size()) {
+      if (!allLimitedJobsScheduled()) {
         // Get job from limited job vector.
         job = &limitedJobs[jobsScheduled];
       } else {
         // Get job from unlimited job vector (only first).
-        job = &unlimitedJobs[0];
+        job = &endlessJobs[0];
       }
 
       if (job->targetHostname.isSome() &&
@@ -182,10 +180,12 @@ public:
 
         this->activeTasks.insert(tasks.back().task_id());
         job->tasksLaunched++;
+        tasksLaunched++;
         LOG(INFO) << "Launching " << tasks.back().task_id();
-        if (!job->isUnlimited() &&
+
+        if (!job->isEndless() &&
             job->tasksLaunched  >= job->totalTasks.get()) {
-          // In case of unlimited job stop when scheduled totalTasks.
+          // In case of limited jobs stop when scheduled totalTasks.
           job->scheduled = true;
 
           this->jobsScheduled++;
@@ -227,6 +227,7 @@ public:
       LOG(INFO) << "Task '" << status.task_id() << "'"
                 << " is in state " << status.state();
     }
+
     if (internal::protobuf::isTerminalState(status.state())) {
       if (status.state() == TASK_FINISHED) {
         tasksFinished++;
@@ -236,13 +237,16 @@ public:
       activeTasks.erase(status.task_id());
     }
 
-    if ( tasksTerminated == tasksPending) {
+    // In Endless Mode we can stop framework only by killing or sigterming it.
+    if (!endlessMode() && allLimitedJobsScheduled() &&
+        tasksTerminated >= tasksLaunched) {
       if (tasksTerminated - tasksFinished > 0) {
         EXIT(EXIT_FAILURE)
           << "Failed to complete successfully: "
           << stringify(tasksTerminated - tasksFinished)
-          << " of " << stringify(tasksPending) << " terminated abnormally";
+          << " of " << stringify(tasksLaunched) << " terminated abnormally";
       } else {
+        LOG(INFO) << "Stopping framework.";
         driver->stop();
       }
     }
@@ -285,12 +289,21 @@ public:
 private:
   FrameworkInfo frameworkInfo;
   vector<SmokeJob> limitedJobs;
-  vector<SmokeJob> unlimitedJobs;
+  vector<SmokeJob> endlessJobs;
+  size_t tasksLaunched;
   size_t tasksFinished;
   size_t tasksTerminated;
   hashset<TaskID> activeTasks;
-  size_t tasksPending;
   size_t jobsScheduled;
+
+  bool endlessMode() {
+    return (endlessJobs.size() > 0);
+  }
+
+  bool allLimitedJobsScheduled() {
+    return jobsScheduled >= limitedJobs.size();
+  }
+
 };
 
 
