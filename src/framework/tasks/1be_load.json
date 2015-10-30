@@ -1,0 +1,18 @@
+{
+  "tasks": [
+    {
+      "command": "/usr/local/bin/rkt run  --insecure-skip-verify --mds-register=false docker://jess/stress --exec /usr/bin/stress -- -c 1",
+      "uri": {
+          "value": "https://raw.githubusercontent.com/mesosphere/serenity/master/README.md",
+          "executable": false,
+          "extract": false,
+          "cache": false
+      },
+      "taskResources": "mem(serenity):64",
+      "revocableResources": "cpus(serenity):1",
+      "targetHostname": "kp9.intelsdi.com",
+      "totalTasks": 5,
+      "priority" : 99
+    }
+  ]
+}

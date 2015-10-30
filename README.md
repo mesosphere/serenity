@@ -156,3 +156,10 @@ $ ln -s scripts/pre-commit .git/hooks/pre-commit
 ### Details about using Mesos Modules
 
 See [Mesos Modules](http://mesos.apache.org/documentation/latest/modules/)
+
+
+### Serenity Smoke Test Framework
+
+Serenity includes Test Mesos Framework with convienient JSON API.
+
+For more documentation, please refer to [docs](https://github.com/mesosphere/serenity/blob/master/docs/smoke_framework.md).
