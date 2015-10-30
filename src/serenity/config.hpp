@@ -35,23 +35,8 @@ class SerenityConfig {
   /**
    * Overlapping custom configuration options using recursive copy.
    */
-  void cpy(const SerenityConfig& customCfg) {
+  void applyConfig(const SerenityConfig& customCfg) {
     this->recursiveCfgCopy(this, customCfg);
-  }
-
-  /**
-   * Recursive copy.
-   */
-  void recursiveCfgCopy(SerenityConfig* base,
-                        const SerenityConfig& customCfg) const {
-    for (auto customItem : customCfg.fields) {
-      base->fields[customItem.first] = customItem.second;
-    }
-
-    for (auto customSection : customCfg.sections) {
-      this->recursiveCfgCopy(
-        &((*base)[customSection.first]), *customSection.second);
-    }
   }
 
   /**
@@ -62,7 +47,8 @@ class SerenityConfig {
   }
 
   /**
-   * Gets variant config value.
+   * Gets config section.
+   * In case there is not one, create empty section.
    */
   SerenityConfig& operator[](std::string key) {
     return *getSection(key);
@@ -119,20 +105,6 @@ class SerenityConfig {
    */
   void set(std::string key, std::string value) {
     this->setVariant(key, value);
-  }
-
-  /**
-   * Sets int config value.
-   */
-  void set(std::string key, int value) {
-    this->setVariant(key, (int64_t)value);
-  }
-
-  /**
-   * Sets unsigned int config value.
-   */
-  void set(std::string key, unsigned int value) {
-    this->setVariant(key, (uint64_t)value);
   }
 
   /**
@@ -213,6 +185,21 @@ class SerenityConfig {
 
     // Element not found.
     return None();
+  }
+
+  /**
+   * Recursive copy.
+   */
+  void recursiveCfgCopy(SerenityConfig* base,
+                        const SerenityConfig& customCfg) const {
+    for (auto customItem : customCfg.fields) {
+      base->fields[customItem.first] = customItem.second;
+    }
+
+    for (auto customSection : customCfg.sections) {
+      this->recursiveCfgCopy(
+        &((*base)[customSection.first]), *customSection.second);
+    }
   }
 };
 

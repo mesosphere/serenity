@@ -34,7 +34,7 @@ class AssuranceDetectorConfig : public SerenityConfig {
 
   explicit AssuranceDetectorConfig(const SerenityConfig& customCfg) {
     this->initDefaults();
-    this->cpy(customCfg);
+    this->applyConfig(customCfg);
   }
 
   void initDefaults() {
