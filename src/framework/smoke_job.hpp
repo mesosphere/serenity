@@ -13,6 +13,12 @@
 
 #include "smoke_flags.hpp"
 
+template<typename T, typename JSONType>
+inline Option<T> getOption(Result<JSONType> result) {
+  return (result.isSome() ? Option<T>(result.get().value) : None());
+};
+
+
 /**
  * Smoke URI.
  */
@@ -44,6 +50,21 @@ class SmokeURI {
     if (this->cache.isSome()) {
       uri->set_cache(this->cache.get());
     }
+  }
+
+  std::string toString() const {
+    std::stringstream result;
+    result  << "{ "
+      << " Value: " << this->value
+      << "; Executable: "
+      <<  (this->executable.isSome() ?
+           std::to_string(this->executable.get()) : "0")
+      << "; Extract: "
+      <<  (this->extract.isSome() ? std::to_string(this->extract.get()): "1")
+      << "; Cache: "
+      <<  (this->cache.isSome() ? std::to_string(this->cache.get()): "0")
+      << "}";
+    return result.str();
   }
 };
 
@@ -90,11 +111,11 @@ class SmokeJob {
   void print() {
     LOG(INFO) << "| Command: " << this->command
     << "; URI: "
-    << (this->uri.isSome() ? this->uri.get().value : "<None>")
+    << (this->uri.isSome() ? this->uri.get().toString() : "<None>")
     << "; Resources: " << this->taskResources
     << "; Tasks to spawn: "
-    << (this->totalTasks.isSome() ? (const char*) this->totalTasks.get() :
-        "<no limit>")
+    << (this->totalTasks.isSome() ?
+        std::to_string(this->totalTasks.get()) : "<none>")
     << "; Target hostname: "
     << (this->targetHostname.isSome() ? this->targetHostname.get() : "<all>")
     << "; Priority: " << this->priority
@@ -155,6 +176,7 @@ class SmokeJob {
 
     for(size_t i=0; i < numJobs; i++) {
       // Get command.
+
       Result<JSON::String> optionCommand =
         json.get().find<JSON::String>("tasks[" + stringify(i) +"].command");
 
@@ -175,7 +197,7 @@ class SmokeJob {
 
         Result<JSON::Boolean> _uri_executable =
           json.get().find<JSON::Boolean>(
-            "tasks[" + stringify(i) +"].uri._uri_executable");
+            "tasks[" + stringify(i) +"].uri.executable");
 
         Result<JSON::Boolean> _uri_extract =
           json.get().find<JSON::Boolean>(
@@ -187,9 +209,9 @@ class SmokeJob {
 
         optionUri = SmokeURI(
           _uri_value.get().value,
-           Option<bool>(_uri_executable.get().value),
-           Option<bool>(_uri_extract.get().value),
-           Option<bool>(_uri_cache.get().value));
+          getOption<bool, JSON::Boolean>(_uri_executable),
+          getOption<bool, JSON::Boolean>(_uri_extract),
+          getOption<bool, JSON::Boolean>(_uri_cache));
       }
 
       // Get TaskResources.
