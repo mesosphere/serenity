@@ -42,10 +42,6 @@ class AssuranceDetectorConfig : public SerenityConfig {
     //! How far in the past we look.
     this->fields[detector::WINDOW_SIZE] =
       detector::DEFAULT_WINDOW_SIZE;
-    //! How many iterations detector will wait with creating another
-    //! contention.
-    this->fields[detector::CONTENTION_COOLDOWN] =
-      detector::DEFAULT_CONTENTION_COOLDOWN;
 
     //! Defines how much (relatively to base point) value must drop to trigger
     //! contention.
