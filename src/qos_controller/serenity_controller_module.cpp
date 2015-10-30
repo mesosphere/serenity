@@ -41,17 +41,17 @@ static QoSController* createSerenityController(
   SerenityConfig conf;
   // Detector configuration:
   // How far we look back in samples.
-  conf["Detector"].set(WINDOW_SIZE, (uint64_t)10);
+  conf["Detector"].set(WINDOW_SIZE, (uint64_t) 10);
   // How many iterations detector will wait with creating another
   // contention.
-  conf["Detector"].set(CONTENTION_COOLDOWN, (uint64_t)10);
+  conf["Detector"].set(CONTENTION_COOLDOWN, (uint64_t) 10);
   // Defines how much (relatively to base point) value must drop to trigger
   // contention.
   // Most detectors will use that.
-  conf["Detector"].set(FRACTIONAL_THRESHOLD, 0.3f);
-  conf["Detector"].set(SEVERITY_FRACTION, 2.1f);
+  conf["Detector"].set(FRACTIONAL_THRESHOLD, (double_t) 0.3);
+  conf["Detector"].set(SEVERITY_FRACTION, (double_t) 2.1);
 
-  conf.set(ALPHA, 0.9f);
+  conf.set(ALPHA, (double_t) 0.9);
   conf.set(ENABLED_VISUALISATION, false);
   conf.set(VALVE_OPENED, true);
 

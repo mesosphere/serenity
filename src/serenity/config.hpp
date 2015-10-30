@@ -108,13 +108,6 @@ class SerenityConfig {
   }
 
   /**
-   * Sets float_t config value.
-   */
-  void set(std::string key, float_t value) {
-    this->setVariant(key, (double_t)value);
-  }
-
-  /**
    * Sets bool config value.
    */
   void set(std::string key, bool value) {
