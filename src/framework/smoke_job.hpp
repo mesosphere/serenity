@@ -104,7 +104,7 @@ class SmokeJob {
   size_t tasksLaunched;
   bool scheduled;
 
-  bool isUnlimited() const {
+  bool isEndless() const {
     return this->totalTasks.isNone();
   }
 
