@@ -12,10 +12,12 @@
 namespace mesos {
 namespace serenity {
 
-// The bus socket allows peers to communicate (subscribe and publish)
-// asynchronously.
-class BusSocket {
-};
+
+/**
+ * The bus socket allows peers to communicate (subscribe and publish)
+ *  asynchronously.
+ */
+class BusSocket {};
 
 
 template<typename T>
@@ -116,12 +118,17 @@ enum ModuleType {
 };
 
 
-#define SERENITY_LOG(severity) LOG(severity) << this->tag.NAME()
+#define SERENITY_LOG(severity) LOG(severity) << tag.NAME()
 
 class Tag {
  public:
   Tag(const ModuleType& _type, const std::string& _name)
       : type(_type), name(_name) {
+    this->fullName = this->init();
+  }
+
+  explicit Tag(const std::string& _name)
+    : type(UNDEFINED), name(_name) {
     this->fullName = this->init();
   }
 

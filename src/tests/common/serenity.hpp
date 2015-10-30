@@ -8,7 +8,6 @@
 
 #include <process/future.hpp>
 
-
 #include <list>
 #include <string>
 

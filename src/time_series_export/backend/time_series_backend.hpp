@@ -31,6 +31,7 @@ enum class Series : uint8_t {
   CACHE_MISSES
 };
 
+
 static std::string SeriesString(Series series) {
   switch (series) {
     case Series::SLACK_RESOURCES: return "slack_resources";
@@ -72,10 +73,10 @@ static std::string TagString(TsTag tag) {
 
 
 /**
-* Variant type for storing multiple types of data that will be stored in
-* time series backend.
-* This alias must resemble VariantType enum.
-*/
+ * Variant type for storing multiple types of data that will be stored in
+ * time series backend.
+ * This alias must resemble VariantType enum.
+ */
 using Variant = boost::variant<uint64_t, int64_t, double_t, std::string>;
 
 
