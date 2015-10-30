@@ -26,9 +26,9 @@ Scheme:
       "command": <command>,
       "uri": [Optional] {
                 "value": <custom uri for fetcher>,,
-                "executable": <if exec (bool)>,
-                "extract": "<if extract after fetching (bool)>",
-                "cache": "<if using cache fetcher (bool)>"
+                "executable": <if exec (bool)[default=false]>,
+                "extract": "<extract after fetching [default=true]>",
+                "cache": "<if using cache fetcher (bool)[default=false]>"
       },
       "taskResources": <Needed resources>,
       "revocableResources": <[Optional] needed revocable resources>,
@@ -55,7 +55,7 @@ Example (using rkt container):
       },
       "taskResources": "mem(serenity):64",
       "revocableResources": "cpus(serenity):1",
-      "targetHostname": "my_super_slave@serenity.com",
+      "targetHostname": "my_super_agent@serenity.com",
       "totalTasks": 5,
       "priority" : 99
     }

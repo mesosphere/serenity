@@ -96,6 +96,8 @@ public:
         << "job. Only first task (cmd:" << unlimitedJobs[0].command
         << " will be scheduled.";
     }
+
+    LOG(INFO) << "SerenityNoExecutorScheduler initialized.";
   }
 
   virtual void registered(
@@ -126,6 +128,7 @@ public:
       SchedulerDriver* driver,
       const vector<Offer>& offers)
   {
+    LOG(INFO) << "Got offer";
     Filters filters;
     filters.set_refuse_seconds(Duration::max().secs());
     foreach (const Offer& offer, offers) {
