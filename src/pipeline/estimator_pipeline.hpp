@@ -58,7 +58,7 @@ class CpuEstimatorPipeline : public ResourceEstimatorPipeline {
   explicit CpuEstimatorPipeline(
       double_t _newExecutorsThreshold = new_executor::DEFAULT_THRESHOLD_SEC,
       double_t _utilizationThreshold = utilization::DEFAULT_THRESHOLD,
-      bool _visualisation = true,
+      bool _visualisation = false,
       bool _valveOpened = true) :
       // Time series exporters.
       slackTimeSeriesExporter(),

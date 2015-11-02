@@ -29,7 +29,7 @@ TEST(EstimatorPipelineTest, FiltersNotProperlyFed) {
   ResourceUsage usage;
   usage.CopyFrom(usages.get().resource_usage(0));
 
-  ResourceEstimatorPipeline* pipeline = new CpuEstimatorPipeline(false, true);
+  ResourceEstimatorPipeline* pipeline = new CpuEstimatorPipeline();
 
   Result<Resources> slack = pipeline->run(usage);
   EXPECT_NONE(slack);
@@ -48,7 +48,7 @@ TEST(EstimatorPipelineTest, NoSlack) {
   ResourceUsage usage;
   usage.CopyFrom(usages.get().resource_usage(0));
 
-  ResourceEstimatorPipeline* pipeline = new CpuEstimatorPipeline(false, true);
+  ResourceEstimatorPipeline* pipeline = new CpuEstimatorPipeline();
 
   Result<Resources> slack = pipeline->run(usage);
   ASSERT_SOME(slack);
