@@ -38,6 +38,16 @@ Try<Nothing> SlackResourceObserver::consume(const ResourceUsage& usage) {
     }
   }
 
+  Resources totalAgentResources(usage.total());
+  Option<double_t> totalAgentCpus = totalAgentResources.cpus();
+
+  if (totalAgentCpus.isSome()) {
+    double_t maxSlack = maxOversubscriptionFraction * totalAgentCpus.get();
+    if (cpuSlack > maxSlack) {
+      cpuSlack = maxSlack;
+    }
+  }
+
   Resource slackResult;
   Value_Scalar *cpuSlackScalar = new Value_Scalar();
   cpuSlackScalar->set_value(cpuSlack);

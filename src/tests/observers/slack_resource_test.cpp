@@ -30,7 +30,7 @@ ACTION_P(BasicTestAction, check) {
   } else {
     EXPECT_FALSE(resources.empty());
 
-    // if is used here, because in gmock you can not use ASSERT inside ACTION
+    // if is used here, because gmock can not use ASSERT inside ACTION
     if (!resources.empty()) {
       EXPECT_THAT(resources.begin()->scalar().value(), DoubleEq(check));
       EXPECT_THAT(++resources.begin(), Eq(resources.end()));
@@ -56,7 +56,29 @@ TEST(SlackResourceObserver, BasicTest) {
       EXPECT_CALL(mockSink, consume(_)).WillOnce(BasicTestAction(param));
     }
   }
-  jsonSource.RunTests("tests/fixtures/slack_calculation_test.json");
+  jsonSource.RunTests("tests/fixtures/slack_estimator/"
+                          "slack_calculation_test.json");
+}
+
+
+TEST(SlackResourceObserver, MaxOversubscriptionFraction) {
+  SlackResourceObserver observer;
+  JsonSource jsonSource;
+  MockSink<Resources> mockSink;
+
+  jsonSource.addConsumer(&observer);
+  observer.addConsumer(&mockSink);
+
+  std::array<double_t, 2> expectedCpus = {0.0, 1.6};
+
+  {
+    InSequence seq;
+    for (double_t param : expectedCpus) {
+      EXPECT_CALL(mockSink, consume(_)).WillOnce(BasicTestAction(param));
+    }
+  }
+  jsonSource.RunTests("tests/fixtures/slack_estimator/"
+                          "max_oversubscription_fraction_test.json");
 }
 
 

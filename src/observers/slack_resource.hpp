@@ -36,11 +36,19 @@ inline std::string getDefaultRole() {
 class SlackResourceObserver : public Consumer<ResourceUsage>,
                               public Producer<Resources> {
  public:
-  SlackResourceObserver()
-      : previousSamples(new ExecutorSet()), default_role(getDefaultRole()) {}
+  SlackResourceObserver(
+      double_t _maxOversubscriptionFraction =
+      DEFAULT_MAX_OVERSUBSCRIPTION_FRACTION)
+      : previousSamples(new ExecutorSet()),
+        maxOversubscriptionFraction(_maxOversubscriptionFraction),
+        default_role(getDefaultRole()) {}
 
-  explicit SlackResourceObserver(Consumer<Resources>* _consumer)
-    : Producer<Resources>(_consumer),
+  explicit SlackResourceObserver(
+      Consumer<Resources>* _consumer,
+      double_t _maxOversubscriptionFraction =
+        DEFAULT_MAX_OVERSUBSCRIPTION_FRACTION) :
+      Producer<Resources>(_consumer),
+      maxOversubscriptionFraction(_maxOversubscriptionFraction),
       previousSamples(new ExecutorSet()),
       default_role(getDefaultRole()) {}
 
@@ -54,6 +62,14 @@ class SlackResourceObserver : public Consumer<ResourceUsage>,
                                      const;
 
   std::unique_ptr<ExecutorSet> previousSamples;
+
+  /**
+   * Report up to maxOversubscriptionFraction of
+   * total Agent's CPU resources as slack resources
+   */
+  double_t maxOversubscriptionFraction;
+
+  static constexpr const double_t DEFAULT_MAX_OVERSUBSCRIPTION_FRACTION = 0.8;
 
   /** Don't report slack when it's less than this value */
   static constexpr const double_t SLACK_EPSILON = 0.001;
