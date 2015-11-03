@@ -46,7 +46,7 @@ class SignalScenario : public SignalGenerator {
 
   SignalScenario& constantAddAt(
       const size_t iterations, const double_t value, const size_t duration) {
-    for(size_t interIter = 0; interIter < duration; interIter++) {
+    for (size_t interIter = 0; interIter < duration; interIter++) {
       this->addAt(iterations + interIter, value);
     }
     return *this;
@@ -93,7 +93,7 @@ class SignalScenario : public SignalGenerator {
   }
 
   reference operator*() {
-    if(firstIter) {
+    if (firstIter) {
       applyModifiers(0);
       i = SignalSample(modelFunction(iteration), 0, DEFAULT_START_TIMESTAMP);
       firstIter = false;
@@ -101,7 +101,7 @@ class SignalScenario : public SignalGenerator {
     return i;
   }
   pointer operator->() {
-    if(firstIter) {
+    if (firstIter) {
       applyModifiers(0);
       i = SignalSample(modelFunction(iteration), 0, DEFAULT_START_TIMESTAMP);
       firstIter = false;

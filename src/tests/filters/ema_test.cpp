@@ -18,7 +18,7 @@ namespace mesos {
 namespace serenity {
 namespace tests {
 
-using namespace pwave;
+using namespace pwave;  // NOLINT(build/namespaces)
 
 using ::testing::DoAll;
 

@@ -10,7 +10,7 @@ constexpr double_t DEFAULT_MAX_NOISE = 50;
  * It is needed for Load Generator to introduce noise in samples.
  */
 class NoiseGenerator {
-public:
+ public:
   virtual double_t generate(size_t iteration) = 0;
 };
 
@@ -19,7 +19,7 @@ public:
  * Primary Noise Generator - generates no noise.
  */
 class ZeroNoise : public NoiseGenerator {
-public:
+ public:
   double_t generate(size_t iteration) {
     return 0;
   }
@@ -33,7 +33,7 @@ public:
  * Average of generated values equals 0.
  */
 class SymetricNoiseGenerator : public NoiseGenerator {
-public:
+ public:
   explicit SymetricNoiseGenerator(double_t _maxNoise) : maxNoise(_maxNoise) {}
 
   double_t generate(size_t iteration) {
@@ -48,8 +48,8 @@ public:
   double_t noiseModifier = 2;
   double_t maxNoise = DEFAULT_MAX_NOISE;
 
-private:
-  short sign = -1;
+ private:
+  int16_t sign = -1;
   double_t noise = 0;
 };
 
