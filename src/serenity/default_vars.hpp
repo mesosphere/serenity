@@ -48,13 +48,13 @@ constexpr double_t DEFAULT_THRESHOLD = 0.95;
 
 
 namespace new_executor {
-constexpr uint32_t DEFAULT_THRESHOLD_SEC = 5 * 60;  //!< Five minutes.
+constexpr uint32_t DEFAULT_THRESHOLD_SEC = 5 * 60;  // !< Five minutes.
 }  // namespace new_executor
 
-namespace qos_observer {
+namespace decider {
 const constexpr char* CONTENTION_COOLDOWN = "CONTENTION_COOLDOWN";
 constexpr uint64_t DEFAULT_CONTENTION_COOLDOWN = 10;
-}  // namespace qos_observer
+}  // namespace decider
 
 }  // namespace serenity
 }  // namespace mesos
