@@ -20,7 +20,7 @@ using namespace mesos;  // NOLINT(build/namespaces)
 using namespace mesos::serenity::ema;  // NOLINT(build/namespaces)
 using namespace mesos::serenity::detector;  // NOLINT(build/namespaces)
 using namespace mesos::serenity::qos_pipeline;  // NOLINT(build/namespaces)
-using namespace mesos::serenity::qos_observer;  // NOLINT(build/namespaces)
+using namespace mesos::serenity::decider;  // NOLINT(build/namespaces)
 
 using mesos::serenity::AssuranceDetector;
 using mesos::serenity::CpuQoSPipeline;

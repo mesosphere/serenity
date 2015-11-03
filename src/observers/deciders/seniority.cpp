@@ -1,7 +1,7 @@
-#include "observers/deciders/seniority_based.hpp"
-
 #include <list>
 #include <utility>
+
+#include "observers/deciders/seniority.hpp"
 
 namespace mesos {
 namespace serenity {
@@ -9,9 +9,7 @@ namespace serenity {
 using std::list;
 using std::pair;
 
-
-// Using age filter.
-Try<QoSCorrections> SeverityBasedSeniorityDecider::decide(
+Try<QoSCorrections> SeniorityDecider::decide(
   ExecutorAgeFilter* ageFilter,
   const Contentions& currentContentions,
   const ResourceUsage& currentUsage) {
@@ -22,7 +20,7 @@ Try<QoSCorrections> SeverityBasedSeniorityDecider::decide(
   list<ResourceUsage_Executor> possibleAggressors =
     filterPrExecutors(currentUsage);
 
-  // We save here aggressors to be killed.
+  // Agressors to be killed.
   std::list<slave::QoSCorrection_Kill> aggressorsToKill;
 
   double meanSeverity = 0.0;

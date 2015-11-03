@@ -20,28 +20,10 @@
 #include "serenity/serenity.hpp"
 
 #include "observers/deciders/base.hpp"
-#include "observers/deciders/seniority_based.hpp"
+#include "observers/deciders/seniority.hpp"
 
 namespace mesos {
 namespace serenity {
-
-class QoSCorrectionObserverConfig : public SerenityConfig {
- public:
-  QoSCorrectionObserverConfig() {
-    this->initDefaults();
-  }
-
-  explicit QoSCorrectionObserverConfig(const SerenityConfig& customCfg) {
-    this->initDefaults();
-    this->applyConfig(customCfg);
-  }
-
-  void initDefaults() {
-    this->fields[qos_observer::CONTENTION_COOLDOWN] =
-      qos_observer::DEFAULT_CONTENTION_COOLDOWN;
-  }
-};
-
 
 /**
  * QoSCorrectionObserver observes incoming Contentions and
@@ -56,17 +38,21 @@ class QoSCorrectionObserver : public SyncConsumer<Contentions>,
   explicit QoSCorrectionObserver(
       Consumer<QoSCorrections>* _consumer,
       uint64_t _contentionProducents,
+      const SerenityConfig& _config,
       ExecutorAgeFilter* _ageFilter = new ExecutorAgeFilter(),
-      ContentionDecider* _contentionDecider =
-        new SeverityBasedSeniorityDecider(),
-      const SerenityConfig& _config = QoSCorrectionObserverConfig())
+      ContentionDecider* _contentionDecider = nullptr)
     : SyncConsumer<Contentions>(_contentionProducents),
       Producer<QoSCorrections>(_consumer),
       currentContentions(None()),
       currentUsage(None()),
       contentionDecider(_contentionDecider),
       ageFilter(_ageFilter),
-      config(QoSCorrectionObserverConfig(_config)) {}
+      config(_config) {
+
+    if (contentionDecider == nullptr) {
+      contentionDecider = new SeniorityDecider(this->config);
+    }
+  }
 
   ~QoSCorrectionObserver();
 
@@ -100,6 +86,7 @@ class QoSCorrectionObserver : public SyncConsumer<Contentions>,
   }
 
   static constexpr const char* NAME = "CorrectionObserver: ";
+  static constexpr const char* name = "[SerenityQoS] CorrectionObserver: ";
 
  protected:
   Option<Contentions> currentContentions;

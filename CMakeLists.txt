@@ -73,6 +73,7 @@ include_directories(
     ./
     ../
     include/
+    3rdparty/
     ${gmock_SOURCE_DIR}/include/
     ${gmock_SOURCE_DIR}/gtest/include/
     ${pbjson_SOURCE_DIR}/src/
@@ -95,7 +96,7 @@ set(SERENITY_SOURCES
     src/observers/qos_correction.cpp
     src/observers/slack_resource.cpp
     src/observers/deciders/kill_all.cpp
-    src/observers/deciders/seniority_based.cpp
+    src/observers/deciders/seniority.cpp
     src/qos_controller/serenity_controller.cpp
     src/qos_controller/serenity_controller_module.cpp
     src/serenity/agent_utils.cpp

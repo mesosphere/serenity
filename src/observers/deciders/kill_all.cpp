@@ -1,6 +1,6 @@
-#include "observers/deciders/kill_all.hpp"
-
 #include <list>
+
+#include "observers/deciders/kill_all.hpp"
 
 namespace mesos {
 namespace serenity {

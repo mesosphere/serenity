@@ -6,8 +6,10 @@
 
 #include "process/future.hpp"
 
-#include "tests/common/load_generator.hpp"
+#include "pwave/scenario.hpp"
+
 #include "tests/common/usage_helper.hpp"
+#include "tests/common/signal_helper.hpp"
 #include "tests/common/sinks/mock_sink.hpp"
 #include "tests/common/sources/json_source.hpp"
 #include "tests/common/sources/mock_source.hpp"
@@ -16,20 +18,26 @@ namespace mesos {
 namespace serenity {
 namespace tests {
 
+using namespace pwave;
+
 using ::testing::DoAll;
 
 TEST(EMATest, SmoothingConstSample) {
   const double_t THRESHOLD = 0.01;
-  const int32_t LOAD_ITERATIONS = 100;
+  const int32_t ITERATIONS = 100;
+
   ExponentialMovingAverage ema(
       EMA_REGULAR_SERIES, 0.2);
-  LoadGenerator loadGen(
-      [](double_t iter) { return 10; }, new ZeroNoise(), LOAD_ITERATIONS);
 
-  for (; loadGen.end() ; loadGen++) {
-    double_t result = ema.calculateEMA((*loadGen)(), (*loadGen).timestamp);
+  SignalScenario signalGen =
+    SignalScenario(ITERATIONS)
+      .use(math::const10Function)
+      .use(new ZeroNoise());
 
-    EXPECT_NEAR((*loadGen).clearValue(), result, THRESHOLD);
+  ITERATE_SIGNAL(signalGen) {
+    double_t result = ema.calculateEMA((*signalGen)(), (*signalGen).timestamp);
+
+    EXPECT_NEAR((*signalGen).clearValue(), result, THRESHOLD);
   }
 }
 
@@ -37,18 +45,20 @@ TEST(EMATest, SmoothingConstSample) {
 TEST(EMATest, SmoothingNoisyConstSample) {
   const double_t THRESHOLD = 4;
   const double_t MAX_NOISE = 30;
-  const int32_t LOAD_ITERATIONS = 100;
+  const int32_t ITERATIONS = 100;
+
   ExponentialMovingAverage ema(
       EMA_REGULAR_SERIES, 0.2);
-  LoadGenerator loadGen(
-      [](double_t iter) { return 10; },
-      new SymetricNoiseGenerator(MAX_NOISE),
-      LOAD_ITERATIONS);
 
-  for (; loadGen.end() ; loadGen++) {
-    double_t result = ema.calculateEMA((*loadGen)(), (*loadGen).timestamp);
+  SignalScenario signalGen =
+    SignalScenario(ITERATIONS)
+      .use(math::const10Function)
+      .use(new SymetricNoiseGenerator(MAX_NOISE));
 
-    EXPECT_NEAR((*loadGen).clearValue(), result, THRESHOLD);
+  ITERATE_SIGNAL(signalGen) {
+    double_t result = ema.calculateEMA((*signalGen)(), (*signalGen).timestamp);
+
+    EXPECT_NEAR((*signalGen).clearValue(), result, THRESHOLD);
   }
 }
 
@@ -56,18 +66,19 @@ TEST(EMATest, SmoothingNoisyConstSample) {
 TEST(EMATest, SmoothingNoisyLinearSample) {
   const double_t THRESHOLD = 11;
   const double_t MAX_NOISE = 50;
-  const int32_t LOAD_ITERATIONS = 100;
+  const int32_t ITERATIONS = 100;
   ExponentialMovingAverage ema(
       EMA_REGULAR_SERIES, 0.2);
-  LoadGenerator loadGen(
-      math::linearFunction,
-      new SymetricNoiseGenerator(MAX_NOISE),
-      LOAD_ITERATIONS);
 
-  for (; loadGen.end() ; loadGen++) {
-    double_t result = ema.calculateEMA((*loadGen)(), (*loadGen).timestamp);
+  SignalScenario signalGen =
+    SignalScenario(ITERATIONS)
+      .use(math::linearFunction)
+      .use(new SymetricNoiseGenerator(MAX_NOISE));
 
-    EXPECT_NEAR((*loadGen).clearValue(), result, THRESHOLD);
+  ITERATE_SIGNAL(signalGen) {
+    double_t result = ema.calculateEMA((*signalGen)(), (*signalGen).timestamp);
+
+    EXPECT_NEAR((*signalGen).clearValue(), result, THRESHOLD);
   }
 }
 
@@ -75,18 +86,19 @@ TEST(EMATest, SmoothingNoisyLinearSample) {
 TEST(EMATest, SmoothingNoisySinSample) {
   const double_t THRESHOLD = 7;
   const double_t MAX_NOISE = 50;
-  const int32_t LOAD_ITERATIONS = 100;
+  const int32_t ITERATIONS = 100;
   ExponentialMovingAverage ema(
       EMA_REGULAR_SERIES, 0.2);
-  LoadGenerator loadGen(
-      math::sinFunction,
-      new SymetricNoiseGenerator(MAX_NOISE),
-      LOAD_ITERATIONS);
 
-  for (; loadGen.end() ; loadGen++) {
-    double_t result = ema.calculateEMA((*loadGen)(), (*loadGen).timestamp);
+  SignalScenario signalGen =
+    SignalScenario(ITERATIONS)
+      .use(math::sinFunction)
+      .use(new SymetricNoiseGenerator(MAX_NOISE));
 
-    EXPECT_NEAR((*loadGen).clearValue(), result, THRESHOLD);
+  ITERATE_SIGNAL(signalGen) {
+    double_t result = ema.calculateEMA((*signalGen)(), (*signalGen).timestamp);
+
+    EXPECT_NEAR((*signalGen).clearValue(), result, THRESHOLD);
   }
 }
 
@@ -94,22 +106,21 @@ TEST(EMATest, SmoothingNoisySinSample) {
 TEST(EMATest, SmoothingNoisySinSampleDrop) {
   const double_t THRESHOLD = 8;
   const double_t MAX_NOISE = 50;
-  const double_t DROP = 10;
-  const int32_t LOAD_ITERATIONS = 200;
+  const double_t DROP = -10;
+  const int32_t ITERATIONS = 200;
   ExponentialMovingAverage ema(
       EMA_REGULAR_SERIES, 0.2);
-  LoadGenerator loadGen(
-      math::sinFunction,
-      new SymetricNoiseGenerator(MAX_NOISE),
-      LOAD_ITERATIONS);
 
-  for (; loadGen.end() ; loadGen++) {
-    // Introduce dramatic drop in the middle of the test.
-    if (loadGen.iteration == 100) loadGen.modifier -= DROP;
+  SignalScenario signalGen =
+    SignalScenario(ITERATIONS)
+      .use(math::sinFunction)
+      .use(new SymetricNoiseGenerator(MAX_NOISE))
+      .after(100).add(DROP);
 
-    double_t result = ema.calculateEMA((*loadGen)(), (*loadGen).timestamp);
+  ITERATE_SIGNAL(signalGen) {
+    double_t result = ema.calculateEMA((*signalGen)(), (*signalGen).timestamp);
 
-    EXPECT_NEAR((*loadGen).clearValue(), result, THRESHOLD);
+    EXPECT_NEAR((*signalGen).clearValue(), result, THRESHOLD);
   }
 }
 
@@ -117,23 +128,22 @@ TEST(EMATest, SmoothingNoisySinSampleDrop) {
 TEST(EMATest, SmoothingNoisySinStableDrop) {
   const double_t THRESHOLD = 8;
   const double_t MAX_NOISE = 50;
-  const double_t DROP_PROGRES = 0.2;
-  const int32_t LOAD_ITERATIONS = 200;
+  const double_t DROP_PROGRES = -0.2;
+  const int32_t ITERATIONS = 200;
+
   ExponentialMovingAverage ema(
       EMA_REGULAR_SERIES, 0.2);
-  LoadGenerator loadGen(
-      math::sinFunction,
-      new SymetricNoiseGenerator(MAX_NOISE),
-      LOAD_ITERATIONS);
 
-  for (; loadGen.end() ; loadGen++) {
-    // Introduce stable drop in the middle of the test.
-    if (loadGen.iteration > 100 &&
-        loadGen.iteration < 150) loadGen.modifier -= DROP_PROGRES;
+  SignalScenario signalGen =
+    SignalScenario(ITERATIONS)
+      .use(math::sinFunction)
+      .use(new SymetricNoiseGenerator(MAX_NOISE))
+      .after(100).constantAdd(DROP_PROGRES, 100);
 
-    double_t result = ema.calculateEMA((*loadGen)(), (*loadGen).timestamp);
+  ITERATE_SIGNAL(signalGen) {
+    double_t result = ema.calculateEMA((*signalGen)(), (*signalGen).timestamp);
 
-    EXPECT_NEAR((*loadGen).clearValue(), result, THRESHOLD);
+    EXPECT_NEAR((*signalGen).clearValue(), result, THRESHOLD);
   }
 }
 
@@ -221,22 +231,23 @@ TEST(EMATest, IpcEMATestNoisyConstSample) {
   const double_t IPC_VALUE = 10;
   const double_t THRESHOLD = 1.2;
   const double_t MAX_NOISE = 5;
-  const int32_t LOAD_ITERATIONS = 100;
-  LoadGenerator loadGen(
-      [](double_t iter) { return 10; },
-      new SymetricNoiseGenerator(MAX_NOISE),
-      LOAD_ITERATIONS);
+  const int32_t ITERATIONS = 100;
 
-  for (; loadGen.end(); loadGen++) {
+  SignalScenario signalGen =
+    SignalScenario(ITERATIONS)
+      .use(math::const10Function)
+      .use(new SymetricNoiseGenerator(MAX_NOISE));
+
+  ITERATE_SIGNAL(signalGen) {
     usage.mutable_executors(0)->CopyFrom(
-        generateIPC(usage.executors(0),
-                    (*loadGen)(),
-                    (*loadGen).timestamp));
+      generateIPC(usage.executors(0),
+                  (*signalGen)(),
+                  (*signalGen).timestamp));
 
     // Run pipeline iteration.
     source.produce(usage);
 
-    if (loadGen.iteration > 0)
+    if (signalGen.iteration > 0)
       mockSink.expectIpc(0, IPC_VALUE, THRESHOLD);
   }
 
@@ -259,7 +270,7 @@ TEST(EMATest, CpuUsageEMATest) {
 
   // Second component in pipeline.
   EMAFilter cpuUsageEMAFilter(
-      &mockSink, usage::getCpuUsage, usage::setEmaCpuUsage);
+      &mockSink, usage::getCpuUsage, usage::setEmaCpuUsage, 0.2);
 
   // First component in pipeline.
   JsonSource jsonSource(&cpuUsageEMAFilter);
@@ -289,7 +300,7 @@ TEST(EMATest, CpuUsageEMATestNoCpuStatistics) {
 
   // Second component in pipeline.
   EMAFilter cpuUsageEMAFilter(
-      &mockSink, usage::getCpuUsage, usage::setEmaCpuUsage);
+      &mockSink, usage::getCpuUsage, usage::setEmaCpuUsage, 0.2);
 
   // First component in pipeline.
   JsonSource jsonSource(&cpuUsageEMAFilter);
@@ -312,7 +323,7 @@ TEST(EMATest, CpuUsageEMATestNoisyConstSample) {
 
   // Second component in pipeline.
   EMAFilter cpuUsageEMAFilter(
-      &mockSink, usage::getCpuUsage, usage::setEmaCpuUsage);
+      &mockSink, usage::getCpuUsage, usage::setEmaCpuUsage, 0.2);
 
   // First component in pipeline.
   MockSource<ResourceUsage> source(&cpuUsageEMAFilter);
@@ -326,32 +337,27 @@ TEST(EMATest, CpuUsageEMATestNoisyConstSample) {
   ResourceUsage usage;
   usage.CopyFrom(usages.get().resource_usage(0));
 
-  const double_t IPC_VALUE = 10;
+  const double_t CPU_USAGE_VALUE = 10;
   const double_t THRESHOLD = 1.2;
   const double_t MAX_NOISE = 5;
-  const int32_t LOAD_ITERATIONS = 100;
-  LoadGenerator loadGen(
-      [](double_t iter) { return 10; },
-      new SymetricNoiseGenerator(MAX_NOISE),
-      LOAD_ITERATIONS);
+  const int32_t ITERATIONS = 100;
 
-  uint64_t previousLoad = 0;
-  for (; loadGen.end(); loadGen++) {
-    usage.mutable_executors(0)->mutable_statistics()
-        ->set_cpus_system_time_secs(previousLoad + (uint64_t)(*loadGen)());
-    previousLoad += (uint64_t)(*loadGen)();
+  SignalScenario signalGen =
+    SignalScenario(ITERATIONS)
+      .use(math::const10Function)
+      .use(new SymetricNoiseGenerator(MAX_NOISE));
 
-    usage.mutable_executors(0)->mutable_statistics()
-        ->set_cpus_user_time_secs(0);
-
-    usage.mutable_executors(0)->mutable_statistics()
-        ->set_timestamp((*loadGen).timestamp);
+  ITERATE_SIGNAL(signalGen) {
+    usage.mutable_executors(0)->CopyFrom(
+      generateCpuUsage(usage.executors(0),
+                       (uint64_t)(*signalGen).cumulative(),
+                       signalGen->timestamp));
 
     // Run pipeline iteration
     source.produce(usage);
 
-    if (loadGen.iteration > 0)
-      mockSink.expectCpuUsage(0, IPC_VALUE, THRESHOLD);
+    if (signalGen.iteration > 0)
+      mockSink.expectCpuUsage(0, CPU_USAGE_VALUE, THRESHOLD);
   }
 
   EXPECT_EQ(99, mockSink.numberOfMessagesConsumed);

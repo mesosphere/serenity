@@ -6,11 +6,14 @@
 
 #include "filters/executor_age.hpp"
 
+#include "mesos/slave/oversubscription.hpp"
+
 #include "mesos/mesos.hpp"
 #include "mesos/resources.hpp"
 
 #include "messages/serenity.hpp"
 
+#include "serenity/config.hpp"
 #include "serenity/serenity.hpp"
 
 #include "stout/try.hpp"
