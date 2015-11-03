@@ -86,4 +86,4 @@ inline ResourceUsage_Executor generateCpuUsage(
 }  // namespace serenity
 }  // namespace mesos
 
-#endif //SERENITY_TEST_SIGNAL_HELPER_HPP
+#endif  // SERENITY_TEST_SIGNAL_HELPER_HPP

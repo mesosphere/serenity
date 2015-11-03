@@ -11,7 +11,7 @@
 
 namespace pwave {
 
-#define ITERATE_SIGNAL(generator) for(; generator.end() ; generator++)
+#define ITERATE_SIGNAL(generator) for (; generator.end(); generator++)
 
 constexpr double_t DEFAULT_TIME_WINDOW = 1;
 constexpr double_t DEFAULT_START_TIMESTAMP = 34223425;
