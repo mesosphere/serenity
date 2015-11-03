@@ -97,7 +97,7 @@ class SmokeJob {
   const mesos::Resources taskResources;
   const Option<size_t> totalTasks;
   const Option<std::string> targetHostname;
-  const Option<SmokeURI>& uri;
+  const Option<SmokeURI> uri;
   const size_t priority;
 
   // Stats

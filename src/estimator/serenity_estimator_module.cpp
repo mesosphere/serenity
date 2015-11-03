@@ -29,7 +29,7 @@ static ResourceEstimator* createSerenityEstimator(
 
   Try<ResourceEstimator*> result = SerenityEstimator::create(
     std::shared_ptr<ResourceEstimatorPipeline>(
-        new CpuEstimatorPipeline(true, true)));
+        new CpuEstimatorPipeline(false, true)));
   if (result.isError()) {
     return NULL;
   }
