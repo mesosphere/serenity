@@ -126,7 +126,7 @@ set(SERENITY_TEST_SOURCES
     src/tests/estimators/estimator_test.cpp
     # Detectors tests WIP.
     # src/tests/filters/detector_test.cpp
-    # src/tests/filters/detectors/assurance_test.cpp
+    src/tests/filters/detectors/assurance_test.cpp
     src/tests/filters/ema_test.cpp
     src/tests/filters/ignore_new_executors_test.cpp
     src/tests/filters/pr_executor_pass_test.cpp

@@ -36,6 +36,10 @@ const constexpr char* SEVERITY_FRACTION = "SEVERITY_FRACTION";
 constexpr double_t DEFAULT_SEVERITY_FRACTION = 0.4;
 const constexpr char* NEAR_FRACTION = "NEAR_FRACTION";
 constexpr double_t DEFAULT_NEAR_FRACTION = 0.1;
+const constexpr char* CHECKPOINTS = "CHECKPOINTS";
+constexpr uint64_t DEFAULT_CHECKPOINTS = 3;
+const constexpr char* QUORUM = "QUORUM";
+constexpr uint64_t DEFAULT_QUORUM = 3;
 }  // namespace detector
 
 namespace slack_observer {

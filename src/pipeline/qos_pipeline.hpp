@@ -122,6 +122,9 @@ class CpuQoSPipeline : public QoSControllerPipeline {
     // QoSCorrection needs ResourceUsage as well.
     valveFilter.addConsumer(&qoSCorrectionObserver);
 
+    // ipcDropFilter needs BeResourceUsage as well.
+    prExecutorPassFilter.addConsumer<BeResourceUsage>(&ipcDropFilter);
+
     // Setup Time Series export
     if (conf.getB(ENABLED_VISUALISATION)) {
       this->addConsumer(&rawResourcesExporter);

@@ -34,6 +34,8 @@ class BaseDetector {
 
   virtual Result<Detection> processSample(double_t in) { return None(); }
 
+  virtual Try<Nothing> reset() { return Nothing(); }
+
  protected:
   const Tag tag;
   SerenityConfig cfg;

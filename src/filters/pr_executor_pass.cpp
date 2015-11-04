@@ -6,7 +6,10 @@ namespace mesos {
 namespace serenity {
 
 Try<Nothing> PrExecutorPassFilter::consume(const ResourceUsage& in) {
-  ResourceUsage product;
+  ResourceUsage prProduct;
+  prProduct.mutable_total()->CopyFrom(in.total());
+  BeResourceUsage beProduct;
+  beProduct.mutable_usage()->mutable_total()->CopyFrom(in.total());
   for (ResourceUsage_Executor inExec : in.executors()) {
     if (!inExec.has_executor_info()) {
       LOG(ERROR) << name << "Executor <unknown>"
@@ -25,21 +28,20 @@ Try<Nothing> PrExecutorPassFilter::consume(const ResourceUsage& in) {
     Resources allocated(inExec.allocated());
     // Check if task uses revocable resources.
     if (!allocated.revocable().empty()) {
-      // Filter out BE tasks.
-      continue;
+      // Add an BE executor.
+      ResourceUsage_Executor* outExec =
+        beProduct.mutable_usage()->mutable_executors()->Add();
+      outExec->CopyFrom(inExec);
+    } else {
+      // Add an PR executor.
+      ResourceUsage_Executor* outExec = prProduct.mutable_executors()->Add();
+      outExec->CopyFrom(inExec);
     }
-
-    // Add an executor only when there was no error.
-    ResourceUsage_Executor* outExec = product.mutable_executors()->Add();
-    outExec->CopyFrom(inExec);
   }
 
-  if (0 != product.executors_size()) {
-    // Continue pipeline.
-    // Copy total agent's capacity
-    product.mutable_total()->CopyFrom(in.total());
-    produce(product);
-  }
+  Producer<ResourceUsage>::produce(prProduct);
+
+  Producer<BeResourceUsage>::produce(beProduct);
 
   return Nothing();
 }

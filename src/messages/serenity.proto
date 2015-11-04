@@ -21,6 +21,14 @@ message OversubscriptionCtrlEventEnvelope {
 }
 
 /**
+ * Necessary message for separating Be jobs & Pr jobs.
+ * TODO(bplotka): Implement more dynamic method for data transitions.
+ */
+message BeResourceUsage {
+  required ResourceUsage usage = 1;
+}
+
+/**
  * Necessary union to define job.
  * Currently we cannot specify individual task.
  * NOTE: Framework id must be set for the specified executor.

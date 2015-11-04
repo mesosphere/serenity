@@ -1,5 +1,7 @@
 #include <list>
 
+#include "filters/pr_executor_pass.hpp"
+
 #include "observers/strategies/kill_all.hpp"
 
 namespace mesos {

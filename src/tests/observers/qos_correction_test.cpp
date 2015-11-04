@@ -10,6 +10,7 @@
 #include "messages/serenity.hpp"
 
 #include "filters/executor_age.hpp"
+#include "filters/pr_executor_pass.hpp"
 
 #include "observers/qos_correction.hpp"
 
