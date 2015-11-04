@@ -35,7 +35,9 @@ namespace serenity {
  * on given thresholds.
  */
 class DetectorFilter :
-    public Consumer<ResourceUsage>, public Producer<Contentions> {
+    public Consumer<ResourceUsage>,
+    public Consumer<BeResourceUsage>,
+    public Producer<Contentions> {
  public:
   DetectorFilter(
       Consumer<Contentions>* _consumer,
@@ -53,6 +55,10 @@ class DetectorFilter :
 
   Try<Nothing> consume(const ResourceUsage& in) override;
 
+  Try<Nothing> consume(const BeResourceUsage& in) override;
+
+  Try<Nothing> __detect();
+
   static const constexpr char* NAME = "Detector";
 
  protected:
@@ -63,6 +69,9 @@ class DetectorFilter :
   // Detections.
   std::unique_ptr<ExecutorMap<std::shared_ptr<BaseDetector>>> detectors;
   SerenityConfig detectorConf;
+
+  Option<ResourceUsage> currentVictimsUsage;
+  Option<ResourceUsage> currentAggressorsUsage;
 };
 
 }  // namespace serenity

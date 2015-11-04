@@ -5,11 +5,34 @@
 namespace mesos {
 namespace serenity {
 
-Try<Nothing> DetectorFilter::consume(const ResourceUsage& in) {
+Try<Nothing> DetectorFilter::consume(const ResourceUsage& usage) {
+  this->currentVictimsUsage = usage;
+
+  if (this->currentAggressorsUsage.isSome()) {
+    this->__detect();
+  }
+
+  return Nothing();
+}
+
+Try<Nothing> DetectorFilter::consume(const BeResourceUsage& usage) {
+  this->currentAggressorsUsage = usage.usage();
+
+  if (this->currentVictimsUsage.isSome()) {
+    this->__detect();
+  }
+
+  return Nothing();
+}
+
+
+Try<Nothing> DetectorFilter::__detect() {
   std::unique_ptr<ExecutorSet> newSamples(new ExecutorSet());
+  const ResourceUsage currentAggressors = this->currentAggressorsUsage.get();
+  const ResourceUsage currentVictims = this->currentVictimsUsage.get();
   Contentions product;
 
-  for (ResourceUsage_Executor inExec : in.executors()) {
+  for (ResourceUsage_Executor inExec : currentVictims.executors()) {
     if (!inExec.has_executor_info()) {
       SERENITY_LOG(ERROR) << "Executor <unknown>"
                  << " does not include executor_info";
@@ -71,6 +94,9 @@ Try<Nothing> DetectorFilter::consume(const ResourceUsage& in) {
 
   // Continue pipeline.
   produce(product);
+
+  this->currentVictimsUsage = None();
+  this->currentAggressorsUsage = None();
 
   return Nothing();
 }

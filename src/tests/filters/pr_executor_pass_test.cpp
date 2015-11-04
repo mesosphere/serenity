@@ -43,11 +43,14 @@ TEST(PrTasksFilterTest, BeTasksFilteredOut) {
 }
 
 
-TEST(PrTasksFilterTest, EmptyAllocatedResources) {
+TEST(PrTasksFilterTest, NoExecutorUsage) {
   // End of pipeline.
   MockSink<ResourceUsage> mockSink;
+  process::Future<ResourceUsage> usage;
   EXPECT_CALL(mockSink, consume(_))
-      .Times(0);
+    .WillOnce(DoAll(
+      FutureArg<0>(&usage),
+      Return(Nothing())));
 
   // Second component in pipeline.
   PrExecutorPassFilter prTasksFilter(&mockSink);
@@ -59,7 +62,10 @@ TEST(PrTasksFilterTest, EmptyAllocatedResources) {
   ASSERT_SOME(jsonSource.RunTests(
       "tests/fixtures/pr_executor_pass/insufficient_metrics_test.json"));
 
-  EXPECT_EQ(0, mockSink.numberOfMessagesConsumed);
+  ASSERT_TRUE(usage.isReady());
+
+  // No executor passed.
+  ASSERT_EQ(0, usage.get().executors().size());
 }
 
 }  // namespace tests
