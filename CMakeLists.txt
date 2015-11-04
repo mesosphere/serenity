@@ -30,24 +30,24 @@ execute_process(
     COMMAND ${CMAKE_COMMAND} -E tar xzf rapidjson-v1.0.2.tar.gz
     COMMAND ${CMAKE_COMMAND} -E tar xzf gmock-1.7.0.tar.gz
     COMMAND ${CMAKE_COMMAND} -E tar xzf pbjson.tar.gz
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/lib
 )
 
 # Curlcpp.
-add_subdirectory(lib/curlcpp)
+add_subdirectory(3rdparty/lib/curlcpp)
 include_directories(${CURLCPP_SOURCE_DIR}/include)
 
 # Rapidjson.
-add_subdirectory(lib/rapidjson-1.0.2)
+add_subdirectory(3rdparty/lib/rapidjson-1.0.2)
 include_directories(lib/rapidjson-1.0.2/include)
 
 # Add gtest.
-add_subdirectory (lib/gmock-1.7.0)
+add_subdirectory (3rdparty/lib/gmock-1.7.0)
 include_directories(${gmock_SOURCE_DIR} include)
 include_directories(${gtest_SOURCE_DIR} include)
 
 # Add pbjson - it doesn't have CMakeList.txt so include it manually.
-set(pbjson_SOURCE_DIR lib/pbjson)
+set(pbjson_SOURCE_DIR 3rdparty/lib/pbjson)
 include_directories(src)
 
 # Protobuf stuff.
@@ -73,10 +73,11 @@ include_directories(
     ./
     ../
     include/
+    3rdparty/lib/
     ${gmock_SOURCE_DIR}/include/
     ${gmock_SOURCE_DIR}/gtest/include/
     ${pbjson_SOURCE_DIR}/src/
-    ${MESOS_INSTALLATION_DIR}/include
+    ${MESOS_INSTALLATION_DIR}/include/
     ${CMAKE_BINARY_DIR}/
 )
 
@@ -94,6 +95,8 @@ set(SERENITY_SOURCES
     src/filters/executor_age.cpp
     src/observers/qos_correction.cpp
     src/observers/slack_resource.cpp
+        src/observers/strategies/kill_all.cpp
+        src/observers/strategies/seniority.cpp
     src/qos_controller/serenity_controller.cpp
     src/qos_controller/serenity_controller_module.cpp
     src/serenity/agent_utils.cpp

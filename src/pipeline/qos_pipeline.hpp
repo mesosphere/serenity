@@ -13,6 +13,7 @@
 #include "pipeline/pipeline.hpp"
 
 #include "observers/qos_correction.hpp"
+#include "observers/strategies/seniority.hpp"
 
 #include "serenity/config.hpp"
 #include "serenity/data_utils.hpp"
@@ -35,8 +36,7 @@ class QoSPipelineConfig : public SerenityConfig {
   }
 
   void initDefaults() {
-    this->sections[DetectorFilter::NAME] =
-      std::make_shared<SerenityConfig>(AssuranceDetectorConfig());
+    // Used sections: QoSCorrectionObserver, Detector
     // TODO(bplotka): Moved EMA conf to separate section.
     this->fields[ema::ALPHA] = ema::DEFAULT_ALPHA;
     this->fields[VALVE_OPENED] = DEFAULT_VALVE_OPENED;
@@ -92,8 +92,12 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       // to the qosCorrectionObserver.
       ageFilter(),
       // Last item in pipeline.
-      qoSCorrectionObserver(this, 1, &ageFilter,
-                            new SeverityBasedSeniorityDecider),
+      qoSCorrectionObserver(
+          this,
+          1,
+          conf["QoSCorrectionObserver"],
+          &ageFilter,
+          new SeniorityStrategy(conf["QoSCorrectionObserver"])),
       ipcDropFilter(
           &qoSCorrectionObserver,
           usage::getEmaIpc,

@@ -38,12 +38,6 @@ Result<Detection> AssuranceDetector::processSample(
     }
   }
 
-  if (this->contentionCooldownCounter > 0) {
-    SERENITY_LOG(INFO) << "Cooldown for: " << contentionCooldownCounter;
-    this->contentionCooldownCounter--;
-    return None();
-  }
-
   // Current drop fraction indicates how much value has drop in relation to
   // base point
   double_t currentDropFraction = 1.0 - (in / basePoint);
@@ -71,8 +65,6 @@ Result<Detection> AssuranceDetector::processSample(
     LOG(INFO) << tag.NAME() << " Created contention with severity = "
               << cpd.severity;
 
-    this->contentionCooldownCounter =
-      this->cfg.getU64(detector::CONTENTION_COOLDOWN);
     this->referencePoint = basePoint;
     this->referencePointCounter = 0;
 

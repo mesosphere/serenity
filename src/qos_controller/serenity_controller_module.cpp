@@ -20,6 +20,7 @@ using namespace mesos;  // NOLINT(build/namespaces)
 using namespace mesos::serenity::ema;  // NOLINT(build/namespaces)
 using namespace mesos::serenity::detector;  // NOLINT(build/namespaces)
 using namespace mesos::serenity::qos_pipeline;  // NOLINT(build/namespaces)
+using namespace mesos::serenity::decider;  // NOLINT(build/namespaces)
 
 using mesos::serenity::AssuranceDetector;
 using mesos::serenity::CpuQoSPipeline;
@@ -42,14 +43,15 @@ static QoSController* createSerenityController(
   // Detector configuration:
   // How far we look back in samples.
   conf["Detector"].set(WINDOW_SIZE, (uint64_t) 10);
-  // How many iterations detector will wait with creating another
-  // contention.
-  conf["Detector"].set(CONTENTION_COOLDOWN, (uint64_t) 10);
   // Defines how much (relatively to base point) value must drop to trigger
   // contention.
   // Most detectors will use that.
   conf["Detector"].set(FRACTIONAL_THRESHOLD, (double_t) 0.3);
   conf["Detector"].set(SEVERITY_FRACTION, (double_t) 2.1);
+
+  // How many iterations detector will wait with creating another
+  // contention.
+  conf["QoSCorrectionObserver"].set(CONTENTION_COOLDOWN, (uint64_t) 10);
 
   conf.set(ALPHA, (double_t) 0.9);
   conf.set(ENABLED_VISUALISATION, false);

@@ -17,7 +17,6 @@ inline SerenityConfig createAssuranceDetectorCfg(
     const double_t nearLvl = detector::DEFAULT_NEAR_FRACTION) {
   SerenityConfig cfg;
   cfg.set(detector::WINDOW_SIZE, windowSize);
-  cfg.set(detector::CONTENTION_COOLDOWN, contentionCooldown);
   cfg.set(detector::FRACTIONAL_THRESHOLD, fractionalThreshold);
   cfg.set(detector::SEVERITY_FRACTION, severityLvl);
   cfg.set(detector::NEAR_FRACTION, nearLvl);

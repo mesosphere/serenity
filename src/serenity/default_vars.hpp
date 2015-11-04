@@ -30,8 +30,6 @@ namespace detector {
 const constexpr char* DETECTOR_TYPE = "DETECTOR_TYPE";
 const constexpr char* WINDOW_SIZE = "WINDOW_SIZE";
 constexpr uint64_t DEFAULT_WINDOW_SIZE = 10;
-const constexpr char* CONTENTION_COOLDOWN = "CONTENTION_COOLDOWN";
-constexpr uint64_t DEFAULT_CONTENTION_COOLDOWN = 10;
 const constexpr char* FRACTIONAL_THRESHOLD = "FRACTIONAL_THRESHOLD";
 constexpr double_t DEFAULT_FRACTIONAL_THRESHOLD = 0.5;
 const constexpr char* SEVERITY_FRACTION = "SEVERITY_FRACTION";
@@ -50,8 +48,13 @@ constexpr double_t DEFAULT_THRESHOLD = 0.95;
 
 
 namespace new_executor {
-constexpr uint32_t DEFAULT_THRESHOLD_SEC = 5 * 60;  //!< Five minutes.
+constexpr uint32_t DEFAULT_THRESHOLD_SEC = 5 * 60;  // !< Five minutes.
 }  // namespace new_executor
+
+namespace decider {
+const constexpr char* CONTENTION_COOLDOWN = "CONTENTION_COOLDOWN";
+constexpr uint64_t DEFAULT_CONTENTION_COOLDOWN = 10;
+}  // namespace decider
 
 }  // namespace serenity
 }  // namespace mesos
