@@ -1,5 +1,5 @@
-#ifndef SERENITY_CONTENTION_DECIDER_BASE_HPP
-#define SERENITY_CONTENTION_DECIDER_BASE_HPP
+#ifndef SERENITY_STRATEGIES_DECIDER_BASE_HPP
+#define SERENITY_STRATEGIES_DECIDER_BASE_HPP
 
 #include <list>
 #include <string>
@@ -21,7 +21,7 @@
 namespace mesos {
 namespace serenity {
 
-using ContentionDeciderFunction = Try<QoSCorrections>
+using RevocationStrategyFunction = Try<QoSCorrections>
     (ExecutorAgeFilter* ageFilter,
     const Contentions& currentContentions,
     const ResourceUsage& currentUsage);
@@ -32,9 +32,9 @@ using ContentionDeciderFunction = Try<QoSCorrections>
  *
  * Convenient for debugging and testing different algorithms.
  */
-class ContentionDecider {
+class RevocationStrategy {
  public:
-  virtual ContentionDeciderFunction decide = 0;
+  virtual RevocationStrategyFunction decide = 0;
 };
 
 
@@ -68,4 +68,4 @@ inline std::list<ResourceUsage_Executor> filterPrExecutors(
 }  // namespace serenity
 }  // namespace mesos
 
-#endif  // SERENITY_CONTENTION_DECIDER_BASE_HPP
+#endif  // SERENITY_STRATEGIES_DECIDER_BASE_HPP

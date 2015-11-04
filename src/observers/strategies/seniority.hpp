@@ -1,9 +1,9 @@
-#ifndef SERENITY_CONTENTION_DECIDER_SENIORITY_HPP
-#define SERENITY_CONTENTION_DECIDER_SENIORITY_HPP
+#ifndef SERENITY_STRATEGIES_DECIDER_SENIORITY_HPP
+#define SERENITY_STRATEGIES_DECIDER_SENIORITY_HPP
 
 #include "glog/logging.h"
 
-#include "observers/deciders/base.hpp"
+#include "observers/strategies/base.hpp"
 
 #include "serenity/wid.hpp"
 
@@ -35,12 +35,12 @@ class SeniorityConfig : public SerenityConfig {
  * Currently it calculates mean contention and based on that estimates how
  * many executors we should kill. Executors are sorted by age.
  */
-class SeniorityDecider : public ContentionDecider {
+class SeniorityStrategy : public RevocationStrategy {
  public:
-  explicit SeniorityDecider(const SerenityConfig& _config)
+  explicit SeniorityStrategy(const SerenityConfig& _config)
       : config(SeniorityConfig(_config))  {}
 
-  ContentionDeciderFunction decide;
+  RevocationStrategyFunction decide;
 
  private:
   const SerenityConfig config;
@@ -49,4 +49,4 @@ class SeniorityDecider : public ContentionDecider {
 }  // namespace serenity
 }  // namespace mesos
 
-#endif  // SERENITY_CONTENTION_DECIDER_SENIORITY_HPP
+#endif  // SERENITY_STRATEGIES_DECIDER_SENIORITY_HPP
