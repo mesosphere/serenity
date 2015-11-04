@@ -72,7 +72,7 @@ static Offer::Operation LAUNCH(const vector<TaskInfo>& tasks)
  */
 class SerenityNoExecutorScheduler : public Scheduler
 {
-public:
+ public:
   SerenityNoExecutorScheduler(
       const FrameworkInfo& _frameworkInfo,
       const list<SmokeJob>& _jobs)
@@ -80,24 +80,10 @@ public:
       tasksLaunched(0u),
       tasksFinished(0u),
       tasksTerminated(0u),
-      jobsScheduled(0u) {
-    foreach (const SmokeJob& job, _jobs) {
-        if(job.isEndless()) {
-          endlessJobs.push_back(SmokeJob(job));
-        } else {
-          // TODO(bplotka): Sort base on priority.
-          limitedJobs.push_back(SmokeJob(job));
-        }
-    }
-
-    if (endlessJobs.size() > 1) {
-      // TODO(bplotka): Add support for > 1 unlimited jobs.
-      LOG(WARNING) << "Currently there is support only for one unlimited"
-        << "job. Only first task (cmd:" << endlessJobs[0].command
-        << " will be scheduled.";
-    }
-
-    LOG(INFO) << "SerenityNoExecutorScheduler initialized.";
+      jobsScheduled(0u),
+      jobs(_jobs) {
+    job = jobs.begin();
+    LOG(INFO) << "SerenityNoExecutorScheduler initialized." << jobs.size();
   }
 
   virtual void registered(
@@ -128,45 +114,36 @@ public:
       SchedulerDriver* driver,
       const vector<Offer>& offers)
   {
-    Filters filters;
-    filters.set_refuse_seconds(Duration::max().secs());
-    foreach (const Offer& offer, offers) {
+    for (const Offer& offer : offers) {
       // Check each offer.
-      if (!this->endlessMode() && this->allLimitedJobsScheduled()) {
+      if (this->allJobsScheduled()) {
         // In case of end of our scheduling - fully resign from any offer.
+        LOG(INFO) << "End of scheduling. Decling offers";
+        Filters filters;
+        filters.set_refuse_seconds(Duration::max().secs());
         driver->declineOffer(offer.id(), filters);
         continue;
       }
-      LOG(INFO) << "Received offer " << offer.id() << " from slave "
+      LOG(INFO) << " ---- Received offer " << offer.id() << " from slave "
                 << offer.slave_id() << " (" << offer.hostname() << ") "
                 << "with " << offer.resources();
 
       Resources remaining = offer.resources();
       vector<TaskInfo> tasks;
+      while(true) {
+        if (job->targetHostname.isSome() &&
+            job->targetHostname.get().compare(offer.hostname()) != 0){
+          // Host don't match.
+          LOG(INFO) << "Offered host " << offer.hostname()
+          << " not matched with target " << job->targetHostname.get()
+          << ". Omitting.";
+          break;
+        }
 
-      SmokeJob* job = nullptr;
-      if (!allLimitedJobsScheduled()) {
-        // Get job from limited job vector.
-        job = &limitedJobs[jobsScheduled];
-      } else {
-        // Get job from unlimited job vector (only first).
-        job = &endlessJobs[0];
-      }
-
-      if (job->targetHostname.isSome() &&
-          job->targetHostname.get().compare(offer.hostname()) != 0){
-        // Host don't match.
-        LOG(INFO) << "Offered host " << offer.hostname()
-        << " not matched with target " << job->targetHostname.get()
-        << ". Omitting.";
-        continue;
-      }
-
-      while (true) {
         // Check if there are still resources for next task.
         if (!remaining.contains(job->taskResources)) {
           LOG(INFO) << "Not enough resources for "
-          << stringify(jobsScheduled) + "_"
+          << stringify(job->id) + "_"
              + stringify(job->tasksLaunched)
           << " job. Needed: " << job->taskResources
           << " Offered: " << remaining;
@@ -175,24 +152,19 @@ public:
 
         remaining -= job->taskResources;
 
-        tasks.push_back(
-          job->createTask(jobsScheduled, offer.slave_id()));
+        tasks.push_back(job->createTask(offer.slave_id()));
 
         this->activeTasks.insert(tasks.back().task_id());
         job->tasksLaunched++;
         tasksLaunched++;
-        LOG(INFO) << "Launching " << tasks.back().task_id();
+        LOG(INFO) << "Prepared " << tasks.back().task_id();
 
-        if (!job->isEndless() &&
-            job->tasksLaunched  >= job->totalTasks.get()) {
-          // In case of limited jobs stop when scheduled totalTasks.
-          job->scheduled = true;
+        this->shiftJob();
 
-          this->jobsScheduled++;
-          break;
-        }
+        if(allJobsScheduled()) break;
       }
 
+      LOG(INFO) << " ---- Launching these " << tasks.size() << " tasks.";
       driver->acceptOffers({offer.id()}, {LAUNCH(tasks)});
     }
   }
@@ -237,8 +209,7 @@ public:
       activeTasks.erase(status.task_id());
     }
 
-    // In Endless Mode we can stop framework only by killing or sigterming it.
-    if (!endlessMode() && allLimitedJobsScheduled() &&
+    if (this->allJobsScheduled() &&
         tasksTerminated >= tasksLaunched) {
       if (tasksTerminated - tasksFinished > 0) {
         EXIT(EXIT_FAILURE)
@@ -288,22 +259,34 @@ public:
 
 private:
   FrameworkInfo frameworkInfo;
-  vector<SmokeJob> limitedJobs;
-  vector<SmokeJob> endlessJobs;
+  list<SmokeJob> jobs;
+  list<SmokeJob>::iterator job;
   size_t tasksLaunched;
   size_t tasksFinished;
   size_t tasksTerminated;
   hashset<TaskID> activeTasks;
   size_t jobsScheduled;
 
-  bool endlessMode() {
-    return (endlessJobs.size() > 0);
+  bool allJobsScheduled() {
+    return jobsScheduled >= jobs.size();
   }
 
-  bool allLimitedJobsScheduled() {
-    return jobsScheduled >= limitedJobs.size();
-  }
+  void shiftJob() {
+    if (job->finished()) {
+      // In case of limited jobs stop when scheduled totalTasks.
+      job->scheduled = true;
+      this->jobsScheduled++;
+    }
 
+    // Iterate over jobs list and find not yet fully scheduled job.
+    while(!allJobsScheduled()) {
+      job++;
+      if (job == jobs.end()) job = jobs.begin();
+      if (job->scheduled) continue;
+
+      break;
+    }
+  }
 };
 
 
@@ -339,7 +322,7 @@ int main(int argc, char** argv)
 
   FrameworkInfo framework;
   framework.set_user(""); // Have Mesos fill in the current user.
-  framework.set_name("Serenity Smoke Test Framework");
+  framework.set_name(flags.name);
   framework.set_checkpoint(flags.checkpoint);
   framework.set_role(flags.role);
 
@@ -383,7 +366,7 @@ int main(int argc, char** argv)
       uri = SmokeURI(flags.uri_value.get());
     }
     jobs.push_back(
-      SmokeJob(flags.command,
+      SmokeJob(0, flags.command,
                taskResources,
                flags.num_tasks,
                flags.target_hostname,
