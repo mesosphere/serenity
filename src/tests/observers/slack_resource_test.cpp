@@ -56,8 +56,8 @@ TEST(SlackResourceObserver, BasicTest) {
       EXPECT_CALL(mockSink, consume(_)).WillOnce(BasicTestAction(param));
     }
   }
-  jsonSource.RunTests("tests/fixtures/slack_estimator/"
-                          "slack_calculation_test.json");
+  jsonSource.RunTests(
+      "tests/fixtures/slack_estimator/slack_calculation_test.json");
 }
 
 
