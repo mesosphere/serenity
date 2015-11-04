@@ -31,6 +31,11 @@ public:
         "Framework role.",
         "*");
 
+    add(&name,
+        "name",
+        "Framework name.",
+        "Serenity Smoke Test Framework");
+
     add(&principal,
         "principal",
         "To enable authentication, both --principal and --secret\n"
@@ -106,6 +111,7 @@ public:
   Option<std::string> target_hostname;
   Option<std::string> uri_value;
   std::string role;
+  std::string name;
 };
 
 

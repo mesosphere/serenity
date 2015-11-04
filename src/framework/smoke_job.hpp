@@ -75,13 +75,15 @@ class SmokeURI {
 class SmokeJob {
  public:
   SmokeJob(
+    const size_t& _id,
     const std::string& _command,
     const mesos::Resources& _taskResources,
     const Option<size_t>& _totalTasks,
     const Option<std::string>& _targetHostname = None(),
     const Option<SmokeURI>& _uri = None(),
     const size_t& _priority = 1)
-    : command(_command),
+    : id(_id),
+      command(_command),
       taskResources(_taskResources),
       totalTasks(_totalTasks),
       targetHostname(_targetHostname),
@@ -93,6 +95,7 @@ class SmokeJob {
 
   }
 
+  const size_t id;
   const std::string command;
   const mesos::Resources taskResources;
   const Option<size_t> totalTasks;
@@ -106,6 +109,11 @@ class SmokeJob {
 
   bool isEndless() const {
     return this->totalTasks.isNone();
+  }
+
+  bool finished() const {
+    return ((!this->isEndless()) &&
+      (this->tasksLaunched  >= this->totalTasks.get()));
   }
 
   void print() {
@@ -123,14 +131,14 @@ class SmokeJob {
   }
 
   // Create new task.
-  mesos::TaskInfo createTask(const size_t jid, mesos::SlaveID slave_id) {
+  mesos::TaskInfo createTask(mesos::SlaveID slave_id) {
     // Create new task.
     mesos::TaskInfo task;
     // Generate Task ID.
     task.mutable_task_id()->set_value(
-      stringify(jid) + "_" + stringify(this->tasksLaunched));
+      stringify(this->id) + "_" + stringify(this->tasksLaunched));
     // Add Name.
-    task.set_name(stringify(jid) + "_" + this->command);
+    task.set_name(stringify(this->id) + "_" + this->command);
     // Add Slave id.
     task.mutable_slave_id()->CopyFrom(slave_id);
     // Add Resources.
@@ -290,7 +298,8 @@ class SmokeJob {
       }
 
       jobs.push_back(
-        SmokeJob(optionCommand.get().value,
+        SmokeJob(i,
+                 optionCommand.get().value,
                  optionResources.get(),
                  optionTotalTasks,
                  optionTargetHostname,
