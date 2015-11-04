@@ -1,7 +1,7 @@
 #include <list>
 #include <utility>
 
-#include "observers/deciders/seniority.hpp"
+#include "observers/strategies/seniority.hpp"
 
 namespace mesos {
 namespace serenity {
@@ -9,7 +9,7 @@ namespace serenity {
 using std::list;
 using std::pair;
 
-Try<QoSCorrections> SeniorityDecider::decide(
+Try<QoSCorrections> SeniorityStrategy::decide(
   ExecutorAgeFilter* ageFilter,
   const Contentions& currentContentions,
   const ResourceUsage& currentUsage) {

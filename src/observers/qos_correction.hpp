@@ -19,8 +19,8 @@
 #include "serenity/config.hpp"
 #include "serenity/serenity.hpp"
 
-#include "observers/deciders/base.hpp"
-#include "observers/deciders/seniority.hpp"
+#include "observers/strategies/base.hpp"
+#include "observers/strategies/seniority.hpp"
 
 namespace mesos {
 namespace serenity {
@@ -40,17 +40,17 @@ class QoSCorrectionObserver : public SyncConsumer<Contentions>,
       uint64_t _contentionProducents,
       const SerenityConfig& _config,
       ExecutorAgeFilter* _ageFilter = new ExecutorAgeFilter(),
-      ContentionDecider* _contentionDecider = nullptr)
+      RevocationStrategy* _revStrategy = nullptr)
     : SyncConsumer<Contentions>(_contentionProducents),
       Producer<QoSCorrections>(_consumer),
       currentContentions(None()),
       currentUsage(None()),
-      contentionDecider(_contentionDecider),
+      revStrategy(_revStrategy),
       ageFilter(_ageFilter),
       config(_config) {
 
-    if (contentionDecider == nullptr) {
-      contentionDecider = new SeniorityDecider(this->config);
+    if (revStrategy == nullptr) {
+      revStrategy = new SeniorityStrategy(this->config);
     }
   }
 
@@ -91,7 +91,7 @@ class QoSCorrectionObserver : public SyncConsumer<Contentions>,
  protected:
   Option<Contentions> currentContentions;
   Option<ResourceUsage> currentUsage;
-  ContentionDecider* contentionDecider;
+  RevocationStrategy* revStrategy;
   ExecutorAgeFilter* ageFilter;
 
   const SerenityConfig config;

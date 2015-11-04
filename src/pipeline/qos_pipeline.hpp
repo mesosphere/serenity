@@ -13,7 +13,7 @@
 #include "pipeline/pipeline.hpp"
 
 #include "observers/qos_correction.hpp"
-#include "observers/deciders/seniority.hpp"
+#include "observers/strategies/seniority.hpp"
 
 #include "serenity/config.hpp"
 #include "serenity/data_utils.hpp"
@@ -97,7 +97,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
           1,
           conf["QoSCorrectionObserver"],
           &ageFilter,
-          new SeniorityDecider(conf["QoSCorrectionObserver"])),
+          new SeniorityStrategy(conf["QoSCorrectionObserver"])),
       ipcDropFilter(
           &qoSCorrectionObserver,
           usage::getEmaIpc,

@@ -1,13 +1,13 @@
 #include <list>
 
-#include "observers/deciders/kill_all.hpp"
+#include "observers/strategies/kill_all.hpp"
 
 namespace mesos {
 namespace serenity {
 
 using std::list;
 
-Try<QoSCorrections> KillAllDecider::decide(
+Try<QoSCorrections> KillAllStrategy::decide(
   ExecutorAgeFilter* ageFilter,
   const Contentions& currentContentions,
   const ResourceUsage& currentUsage) {
