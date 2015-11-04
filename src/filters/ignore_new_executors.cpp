@@ -48,6 +48,8 @@ Try<Nothing> IgnoreNewExecutorsFilter::consume(const ResourceUsage &usage) {
 
   if (0 != product.executors_size()) {
     // Continue pipeline.
+    // Copy total agent's capacity.
+    product.mutable_total()->CopyFrom(usage.total());
     produce(product);
   }
 

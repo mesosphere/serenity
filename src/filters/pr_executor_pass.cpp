@@ -36,9 +36,10 @@ Try<Nothing> PrExecutorPassFilter::consume(const ResourceUsage& in) {
 
   if (0 != product.executors_size()) {
     // Continue pipeline.
+    // Copy total agent's capacity
+    product.mutable_total()->CopyFrom(in.total());
     produce(product);
   }
-
 
   return Nothing();
 }

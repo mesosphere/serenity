@@ -15,7 +15,8 @@ namespace serenity {
 
 Try<Nothing> SlackResourceObserver::consume(const ResourceUsage& usage) {
   std::unique_ptr<ExecutorSet> newSamples(new ExecutorSet());
-  double_t cpuSlack = 0;
+  double_t cpuUsage = 0;
+  double_t slackResources = 0;
 
   for (const auto& executor : usage.executors()) {
     if (executor.has_statistics() && executor.has_executor_info()) {
@@ -23,16 +24,20 @@ Try<Nothing> SlackResourceObserver::consume(const ResourceUsage& usage) {
 
       auto previousSample = this->previousSamples->find(executor);
       if (previousSample != this->previousSamples->end()) {
-        Result<double_t> slackResource = CalculateCpuSlack(
-            (*previousSample), executor);
-        if (slackResource.isSome()) {
-            LOG(INFO) << NAME << "Estimated revocable resources for "
-                      << executor.executor_info().name() << " FrameworkID("
-                      << executor.executor_info().framework_id() << "): "
-                      << slackResource.get();
-            cpuSlack += slackResource.get();
-        } else if (slackResource.isError()) {
-          LOG(ERROR) << slackResource.error();
+        Result<double_t> executorCpuSlack = CalculateCpuSlack(
+            *previousSample, executor);
+        Try<double_t> executorCpuUsage = CountCpuUsage(
+            *previousSample, executor);
+        if (executorCpuSlack.isSome()) {
+          slackResources += executorCpuSlack.get();
+        } else if (executorCpuSlack.isError()) {
+          LOG(ERROR) << executorCpuSlack.error();
+        }
+
+        if (executorCpuUsage.isSome()) {
+          cpuUsage += executorCpuUsage.get();
+        } else if (executorCpuUsage.isError()) {
+          LOG(ERROR) << executorCpuSlack.error();
         }
       }
     }
@@ -42,30 +47,36 @@ Try<Nothing> SlackResourceObserver::consume(const ResourceUsage& usage) {
   Option<double_t> totalAgentCpus = totalAgentResources.cpus();
 
   if (totalAgentCpus.isSome()) {
-    double_t maxSlack = maxOversubscriptionFraction * totalAgentCpus.get();
-    if (cpuSlack > maxSlack) {
-      cpuSlack = maxSlack;
+    const double_t maxSlack =
+        (maxOversubscriptionFraction * totalAgentCpus.get()) - cpuUsage;
+    if (maxSlack < slackResources) {
+      slackResources = maxSlack;
     }
+
+    Resource slackResult;
+    Value_Scalar *cpuSlackScalar = new Value_Scalar();
+    cpuSlackScalar->set_value(slackResources);
+
+    slackResult.set_name("cpus");
+    slackResult.set_role(this->default_role);
+    slackResult.set_type(Value::SCALAR);
+    slackResult.set_allocated_scalar(cpuSlackScalar);
+    slackResult.set_allocated_revocable(new Resource_RevocableInfo());
+
+    Resources result(slackResult);
+
+    produce(result);
+
+    this->previousSamples->clear();
+    this->previousSamples = std::move(newSamples);
+
+    return Nothing();
+  } else {
+    return Error(std::string(NAME) +
+                 "Cannot estimate slack resources. " +
+                 "ResourceUsage does not contain " +
+                 "Agent's total resource information.");
   }
-
-  Resource slackResult;
-  Value_Scalar *cpuSlackScalar = new Value_Scalar();
-  cpuSlackScalar->set_value(cpuSlack);
-
-  slackResult.set_name("cpus");
-  slackResult.set_role(this->default_role);
-  slackResult.set_type(Value::SCALAR);
-  slackResult.set_allocated_scalar(cpuSlackScalar);
-  slackResult.set_allocated_revocable(new Resource_RevocableInfo());
-
-  Resources result(slackResult);
-
-  produce(result);
-
-  this->previousSamples->clear();
-  this->previousSamples = std::move(newSamples);
-
-  return Nothing();
 }
 
 
@@ -85,6 +96,7 @@ Result<double_t> SlackResourceObserver::CalculateCpuSlack(
                  "Cannot count slack. Lack of cpus_limit in statistcs");
   }
 
+  /// cpuLimit - executor allocation
   double_t cpuLimit = current.statistics().cpus_limit();
   double_t cpuSlack = cpuLimit - cpuUsage.get();
 

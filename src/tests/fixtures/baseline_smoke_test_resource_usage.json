@@ -1,6 +1,24 @@
 {
   "resource_usage": [
     {
+      "total": [
+        {
+          "name": "cpus",
+          "role": "*",
+          "scalar": {
+            "value": 200
+          },
+          "type": "SCALAR"
+        },
+        {
+          "name": "mem",
+          "role": "*",
+          "scalar": {
+            "value": 300
+          },
+          "type": "SCALAR"
+        }
+      ],
       "executors": [
         {
           "allocated": [
@@ -67,6 +85,24 @@
     {
       "executors": [
         {
+          "total": [
+            {
+              "name": "cpus",
+              "role": "*",
+              "scalar": {
+                "value": 200
+              },
+              "type": "SCALAR"
+            },
+            {
+              "name": "mem",
+              "role": "*",
+              "scalar": {
+                "value": 300
+              },
+              "type": "SCALAR"
+            }
+          ],
           "allocated": [
             {
               "name": "cpus",
@@ -131,6 +167,24 @@
     {
       "executors": [
         {
+          "total": [
+            {
+              "name": "cpus",
+              "role": "*",
+              "scalar": {
+                "value": 200
+              },
+              "type": "SCALAR"
+            },
+            {
+              "name": "mem",
+              "role": "*",
+              "scalar": {
+                "value": 300
+              },
+              "type": "SCALAR"
+            }
+          ],
           "allocated": [
             {
               "name": "cpus",
@@ -195,6 +249,24 @@
     {
       "executors": [
         {
+          "total": [
+            {
+              "name": "cpus",
+              "role": "*",
+              "scalar": {
+                "value": 200
+              },
+              "type": "SCALAR"
+            },
+            {
+              "name": "mem",
+              "role": "*",
+              "scalar": {
+                "value": 300
+              },
+              "type": "SCALAR"
+            }
+          ],
           "allocated": [
             {
               "name": "cpus",
