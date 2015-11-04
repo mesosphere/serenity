@@ -58,10 +58,6 @@ class SlackResourceObserver : public Consumer<ResourceUsage>,
   Try<Nothing> consume(const ResourceUsage& usage) override;
 
  protected:
-  Result<double_t> CalculateCpuSlack(const ResourceUsage_Executor& prev,
-                                     const ResourceUsage_Executor& current)
-                                     const;
-
   std::unique_ptr<ExecutorSet> previousSamples;
 
   /**
