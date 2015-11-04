@@ -119,6 +119,8 @@ Try<Nothing> EMAFilter::consume(const ResourceUsage& in) {
     SERENITY_LOG(INFO) << "Continuing with "
                        << product.executors_size() << " executor(s).";
     // Continue pipeline.
+    // Copy total agent's capacity.
+    product.mutable_total()->CopyFrom(in.total());
     produce(product);
   }
 
