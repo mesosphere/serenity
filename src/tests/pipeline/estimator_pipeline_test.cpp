@@ -24,6 +24,7 @@ TEST(EstimatorPipelineTest, FiltersNotProperlyFed) {
       JsonUsage::ReadJson("tests/fixtures/pipeline/insufficient_metrics.json");
   if (usages.isError()) {
     LOG(ERROR) << "JsonSource failed: " << usages.error() << std::endl;
+    ASSERT_FALSE(usages.isError());  // test failure.
   }
 
   ResourceUsage usage;
@@ -43,6 +44,7 @@ TEST(EstimatorPipelineTest, NoSlack) {
       JsonUsage::ReadJson("tests/fixtures/pipeline/sufficient_metrics.json");
   if (usages.isError()) {
     LOG(ERROR) << "JsonSource failed: " << usages.error() << std::endl;
+    ASSERT_FALSE(usages.isError());  // test failure.
   }
 
   ResourceUsage usage;
@@ -61,4 +63,5 @@ TEST(EstimatorPipelineTest, NoSlack) {
 }  // namespace tests
 }  // namespace serenity
 }  // namespace mesos
+
 

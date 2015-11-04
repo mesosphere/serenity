@@ -27,6 +27,13 @@ class UtilizationThresholdFilter :
     public Consumer<ResourceUsage>, public Producer<ResourceUsage> {
  public:
   UtilizationThresholdFilter(
+        double_t _utilizationThreshold = utilization::DEFAULT_THRESHOLD,
+        const Tag& _tag = Tag(UNDEFINED, "utilizationFilter"))
+      : tag(_tag),
+        utilizationThreshold(_utilizationThreshold),
+        previousSamples(new ExecutorSet) {}
+
+  UtilizationThresholdFilter(
       Consumer<ResourceUsage>* _consumer,
       double_t _utilizationThreshold = utilization::DEFAULT_THRESHOLD,
       const Tag& _tag = Tag(UNDEFINED, "utilizationFilter"))

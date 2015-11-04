@@ -11,6 +11,7 @@
 
 #include "stout/result.hpp"
 
+#include "serenity/default_vars.hpp"
 #include "serenity/executor_set.hpp"
 #include "serenity/serenity.hpp"
 
@@ -36,17 +37,17 @@ inline std::string getDefaultRole() {
 class SlackResourceObserver : public Consumer<ResourceUsage>,
                               public Producer<Resources> {
  public:
-  SlackResourceObserver(
+  explicit SlackResourceObserver(
       double_t _maxOversubscriptionFraction =
-      DEFAULT_MAX_OVERSUBSCRIPTION_FRACTION)
+        slack_observer::DEFAULT_MAX_OVERSUBSCRIPTION_FRACTION)
       : previousSamples(new ExecutorSet()),
         maxOversubscriptionFraction(_maxOversubscriptionFraction),
         default_role(getDefaultRole()) {}
 
-  explicit SlackResourceObserver(
+  SlackResourceObserver(
       Consumer<Resources>* _consumer,
       double_t _maxOversubscriptionFraction =
-        DEFAULT_MAX_OVERSUBSCRIPTION_FRACTION) :
+        slack_observer::DEFAULT_MAX_OVERSUBSCRIPTION_FRACTION) :
       Producer<Resources>(_consumer),
       maxOversubscriptionFraction(_maxOversubscriptionFraction),
       previousSamples(new ExecutorSet()),
@@ -68,8 +69,6 @@ class SlackResourceObserver : public Consumer<ResourceUsage>,
    * total Agent's CPU resources as slack resources
    */
   double_t maxOversubscriptionFraction;
-
-  static constexpr const double_t DEFAULT_MAX_OVERSUBSCRIPTION_FRACTION = 0.8;
 
   /** Don't report slack when it's less than this value */
   static constexpr const double_t SLACK_EPSILON = 0.001;

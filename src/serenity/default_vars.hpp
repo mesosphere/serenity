@@ -40,6 +40,9 @@ const constexpr char* NEAR_FRACTION = "NEAR_FRACTION";
 constexpr double_t DEFAULT_NEAR_FRACTION = 0.1;
 }  // namespace detector
 
+namespace slack_observer {
+constexpr double_t DEFAULT_MAX_OVERSUBSCRIPTION_FRACTION = 0.8;
+}  // namespace slack_observer
 
 namespace utilization {
 constexpr double_t DEFAULT_THRESHOLD = 0.95;
