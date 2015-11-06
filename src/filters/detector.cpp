@@ -15,6 +15,7 @@ Try<Nothing> DetectorFilter::consume(const ResourceUsage& usage) {
   return Nothing();
 }
 
+
 Try<Nothing> DetectorFilter::consume(const BeResourceUsage& usage) {
   this->currentAggressorsUsage = usage.usage();
 
@@ -25,7 +26,9 @@ Try<Nothing> DetectorFilter::consume(const BeResourceUsage& usage) {
   return Nothing();
 }
 
-
+/**
+ *
+ */
 Try<Nothing> DetectorFilter::__detect() {
   std::unique_ptr<ExecutorSet> newSamples(new ExecutorSet());
   const ResourceUsage currentAggressors = this->currentAggressorsUsage.get();
@@ -78,8 +81,15 @@ Try<Nothing> DetectorFilter::__detect() {
           continue;
         }
 
-        // Detected change point.
+        // Detected contention.
         if (cpDetected.isSome()) {
+          // Check if aggressors jobs are available on host.
+          if (currentAggressors.executors_size() == 0) {
+            SERENITY_LOG(INFO) << "Contention spotted, however there are no "
+                << "aggressor on the host. Assuming false positive.";
+            (cpDetector->second)->reset();
+          }
+
           product.push_back(createCpuContention(
               cpDetected.get().severity,
               WID(inExec.executor_info()).getWorkID(),

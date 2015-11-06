@@ -29,7 +29,6 @@
 namespace mesos {
 namespace serenity {
 
-
 /**
  * DetectorFilter is able to check defined value and trigger some contentions
  * on given thresholds.
