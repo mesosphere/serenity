@@ -11,6 +11,9 @@ namespace serenity {
  */
 class KillAllStrategy : public RevocationStrategy {
  public:
+  KillAllStrategy() :
+    RevocationStrategy(Tag(QOS_CONTROLLER, "KillAllStrategy")) {}
+
   RevocationStrategyFunction decide;
 };
 

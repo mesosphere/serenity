@@ -34,7 +34,14 @@ using RevocationStrategyFunction = Try<QoSCorrections>
  */
 class RevocationStrategy {
  public:
+  RevocationStrategy(const Tag& _tag,
+                     const SerenityConfig& _config = SerenityConfig())
+    : tag(_tag), config(_config) {}
+
   virtual RevocationStrategyFunction decide = 0;
+ protected:
+  SerenityConfig config;
+  const Tag tag;
 };
 
 }  // namespace serenity

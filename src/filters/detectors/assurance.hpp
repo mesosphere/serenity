@@ -40,32 +40,38 @@ class AssuranceDetectorConfig : public SerenityConfig {
 
   void initDefaults() {
     this->fields[detector::DETECTOR_TYPE] = "AssuranceDetector";
+    //! uint64_t
     //! How far in the past we look.
     this->fields[detector::WINDOW_SIZE] =
       detector::DEFAULT_WINDOW_SIZE;
 
+    //! double_t
     //! Defines how much (relatively to base point) value must drop to trigger
     //! contention.
     //! Most detectors will use that.
     this->fields[detector::FRACTIONAL_THRESHOLD] =
       detector::DEFAULT_FRACTIONAL_THRESHOLD;
 
-    //! You can adjust how big severity is created for  a defined drop.
-    this->fields[detector::SEVERITY_FRACTION] =
-      detector::DEFAULT_SEVERITY_FRACTION;
+    //! double_t
+    //! You can adjust how big severity is created for a defined drop.
+    //! if -1 then unknown severity will be reported.
+    this->fields[detector::SEVERITY_FRACTION] = (double_t) -1;
 
+    //! double_t
     //! Tolerance fraction of threshold if signal is accepted as returned to
     //! previous state after drop.
     this->fields[detector::NEAR_FRACTION] =
       detector::DEFAULT_NEAR_FRACTION;
 
-    //! Number of checkpoints we will have in our assurance detector.
+    //! uint64_t
+    //! Maximum number of checkpoints we will have in our assurance detector.
     //! Checkpoints are the reference (base) points which we refer to in the
-    //! past when detecting drop or not. It needs to be 0 < WINDOW_SIZE
-    this->fields[detector::CHECKPOINTS] =
-      detector::DEFAULT_CHECKPOINTS;
+    //! past when detecting drop or not. It needs to be 0 < < WINDOW_SIZE
+    this->fields[detector::MAX_CHECKPOINTS] =
+      detector::DEFAULT_MAX_CHECKPOINTS;
 
-    //! Number of checkpoints' votes that important decision needs to obtain.
+    //! double_t
+    //! Fraction of checkpoints' votes that important decision needs to obtain.
     this->fields[detector::QUORUM] =
       detector::DEFAULT_QUORUM;
   }
@@ -75,13 +81,21 @@ class AssuranceDetectorConfig : public SerenityConfig {
 /**
  * Dynamic implementation of sequential change point detection.
  *
- * There is no warm-up phase - values starts as 0.
- * Algorithm steps: TODO:
- * - fetch base point value from (currentIteration - "windowsSize").
- * - Check if new value drops more than fraction of basePoint specified
- *   in fractionalThreshold option.
- * - When drop appears, check if the value will return after corrections.
- *  If not, trigger more contentions.
+ * There is no warm-up phase - values starts as DEFAULT_START_VALUE.
+ * Algorithm steps:
+ * - Fetch several basePoints depending on parameters e.g T-1, T-2, T-4, T-8.
+ * - Make a voting within all basePoints(checkpoints). Drop will be
+ *    detected when dropVotes will be >= Quorum number. Checkpoint will vote
+ *    on drop when drop will be higher than value specified in
+ *    FRACTIONAL_THRESHOLD.
+ * - There are three checkpoint stats in logging:
+ *   a) [-] vote on drop.
+ *   b) [~] value below checkpoint, but not significant.
+ *   c) [+] value is bigger than checkpoint.
+ * - When drop appears, start tracking mean value of drop from all basePoints
+ *  which voted on drop.
+ * - When tracking is active, create contentions until the signal recover or
+ *   detector is reset externally.
  *
  *  We can use EMA value as input for better results.
  */
@@ -91,45 +105,9 @@ class AssuranceDetector : public BaseDetector {
       const Tag& _tag,
       const SerenityConfig& _config)
     : BaseDetector(_tag, AssuranceDetectorConfig(_config)),
-      valueBeforeDrop(None()) {
-    // Validation phase.
-
-    if (this->cfg.getU64(detector::QUORUM) >
-        this->cfg.getU64(detector::CHECKPOINTS)) {
-      SERENITY_LOG(WARNING) << detector::QUORUM << "param cannot be less "
-                            << "than " << detector::CHECKPOINTS;
-      this->cfg.set(detector::QUORUM, this->cfg.getU64(detector::CHECKPOINTS));
-    }
-
-    // TODO(bplotka): Apply different ways to achieve points.
-    // Eg. T-n, T-2n, T-4n, T-8n..
-    // Currently we base on const checkPointInterval.
-    if (this->cfg.getU64(detector::CHECKPOINTS) == 0) {
-      SERENITY_LOG(WARNING) << detector::CHECKPOINTS << "param cannot be zero.";
-      checkPointInterval = 1;
-    } else {
-      checkPointInterval =
-        this->cfg.getU64(detector::WINDOW_SIZE)/
-        this->cfg.getU64(detector::CHECKPOINTS);
-
-      if (checkPointInterval == 0) {
-        SERENITY_LOG(WARNING) << detector::WINDOW_SIZE << " parameter "
-        << "is required to be higher than " << detector::CHECKPOINTS
-        << "param. Assigning: " << detector::CHECKPOINTS << " = "
-        << detector::WINDOW_SIZE;
-        checkPointInterval = 1;
-      }
-    }
-
-    // Init window with zeros and choose base points.
-    for (int i = 1; i <= this->cfg.getU64(detector::WINDOW_SIZE); i++) {
-      this->window.push_back(0.000001);
-      if (checkPointInterval == 1 || i % checkPointInterval == 1) {
-        if (basePoints.size() < this->cfg.getU64(detector::CHECKPOINTS)) {
-          basePoints.push_back(--this->window.end());
-        }
-      }
-    }
+      valueBeforeDrop(None()),
+      quorumNum(0) {
+    this->recalculateParams();
   }
 
   Result<Detection> _processSample(double_t in);
@@ -148,10 +126,14 @@ class AssuranceDetector : public BaseDetector {
    */
   Detection createContention(double_t severity);
 
+  /**
+   * It is possible to dynamically change detector configuration.
+   */
+  void recalculateParams();
+
   static const constexpr char* NAME = "AssuranceDetector";
 
  protected:
-  int64_t checkPointInterval = 0;
   std::list<double_t> window;
   std::list<std::list<double_t>::iterator> basePoints;
 
@@ -159,6 +141,7 @@ class AssuranceDetector : public BaseDetector {
   Option<double_t> valueBeforeDrop;
 
   int32_t dropVotes;
+  int32_t quorumNum;
 };
 
 

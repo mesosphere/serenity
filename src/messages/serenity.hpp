@@ -19,13 +19,15 @@ using Contentions = std::list<mesos::Contention>;
 using QoSCorrections = std::list<slave::QoSCorrection>;
 
 inline Contention createCpuContention(
-    double_t severity,
+    Option<double_t> severity,
     WorkID victim,
     double_t timestamp,
     Option<WorkID> aggressor = None()) {
   Contention contention;
   contention.set_type(Contention_Type_CPU);
-  contention.set_severity(severity);
+  if (severity.isSome()) {
+    contention.set_severity(severity.get());
+  }
   contention.set_timestamp(timestamp);
   contention.mutable_victim()->CopyFrom(victim);
   if (aggressor.isSome())

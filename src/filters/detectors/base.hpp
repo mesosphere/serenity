@@ -15,7 +15,9 @@ namespace mesos {
 namespace serenity {
 
 struct Detection {
-  double_t severity;
+  Detection() : severity(None()) {}
+
+  Option<double_t> severity;
 };
 
 
@@ -36,10 +38,10 @@ class BaseDetector {
 
   virtual Try<Nothing> reset() { return Nothing(); }
 
+  SerenityConfig cfg;
+
  protected:
   const Tag tag;
-  SerenityConfig cfg;
-  uint64_t contentionCooldownCounter = 0;
 };
 
 
