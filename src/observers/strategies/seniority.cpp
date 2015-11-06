@@ -20,10 +20,9 @@ inline void setOpenEstimatorPipeline(bool opened) {
 }
 
 Try<QoSCorrections> SeniorityStrategy::decide(
-  ExecutorAgeFilter* ageFilter,
-  const Contentions& currentContentions,
-  const ResourceUsage& currentUsage) {
-
+    ExecutorAgeFilter* ageFilter,
+    const Contentions& currentContentions,
+    const ResourceUsage& currentUsage) {
   if (currentContentions.empty()) {
     // No contentions happened.
     // It means that no interference happens or just there are no BE tasks.
