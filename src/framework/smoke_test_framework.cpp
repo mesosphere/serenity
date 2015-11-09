@@ -82,7 +82,7 @@ class SerenityNoExecutorScheduler : public Scheduler
       tasksTerminated(0u),
       jobsScheduled(0u),
       jobs(_jobs) {
-    job = jobs.begin();
+    job = --jobs.end();
     LOG(INFO) << "SerenityNoExecutorScheduler initialized." << jobs.size();
   }
 
@@ -130,15 +130,8 @@ class SerenityNoExecutorScheduler : public Scheduler
 
       Resources remaining = offer.resources();
       vector<TaskInfo> tasks;
-      while(true) {
-        if (job->targetHostname.isSome() &&
-            job->targetHostname.get().compare(offer.hostname()) != 0){
-          // Host don't match.
-          LOG(INFO) << "Offered host " << offer.hostname()
-          << " not matched with target " << job->targetHostname.get()
-          << ". Omitting.";
-          break;
-        }
+      while(!allJobsScheduled()) {
+        if(!this->shiftJob(offer.hostname())) break;
 
         // Check if there are still resources for next task.
         if (!remaining.contains(job->taskResources)) {
@@ -158,13 +151,10 @@ class SerenityNoExecutorScheduler : public Scheduler
         job->tasksLaunched++;
         tasksLaunched++;
         LOG(INFO) << "Prepared " << tasks.back().task_id();
-
-        this->shiftJob();
-
-        if(allJobsScheduled()) break;
       }
 
-      LOG(INFO) << " ---- Launching these " << tasks.size() << " tasks.";
+      if (tasks.size() > 0)
+        LOG(INFO) << " ---- Launching these " << tasks.size() << " tasks.";
       driver->acceptOffers({offer.id()}, {LAUNCH(tasks)});
     }
   }
@@ -271,7 +261,7 @@ private:
     return jobsScheduled >= jobs.size();
   }
 
-  void shiftJob() {
+  bool shiftJob(std::string targetHost) {
     if (job->finished()) {
       // In case of limited jobs stop when scheduled totalTasks.
       job->scheduled = true;
@@ -279,13 +269,26 @@ private:
     }
 
     // Iterate over jobs list and find not yet fully scheduled job.
-    while(!allJobsScheduled()) {
+    for(int i = 0; i < jobs.size(); i++) {
       job++;
       if (job == jobs.end()) job = jobs.begin();
       if (job->scheduled) continue;
 
-      break;
+      if (job->targetHostname.isSome() &&
+          job->targetHostname.get().compare(targetHost) != 0) {
+        // Host don't match.
+        LOG(INFO) << "Offered host " << targetHost
+        << " not matched with job's " <<  job->id
+        << " target: " << job->targetHostname.get()
+        << ". Trying with next job...";
+        continue;
+      }
+
+      // Ready to go.
+      return true;
     }
+    // Not found any.
+    return false;
   }
 };
 
