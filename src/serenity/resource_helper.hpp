@@ -10,8 +10,8 @@ namespace mesos {
 namespace serenity {
 
 class DividedResourceUsage {
-public:
-  DividedResourceUsage(const ResourceUsage& _usage) {
+ public:
+  explicit DividedResourceUsage(const ResourceUsage& _usage) {
     usage.CopyFrom(_usage);
 
     for (ResourceUsage_Executor executor : usage.executors()) {
@@ -37,7 +37,7 @@ public:
     this->usage.total();
   }
 
-protected:
+ protected:
   std::list<ResourceUsage_Executor> pr, be;
   ResourceUsage usage;
 };
