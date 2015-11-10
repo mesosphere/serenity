@@ -61,9 +61,6 @@ using QoSControllerPipeline = Pipeline<ResourceUsage, QoSCorrections>;
  *            |
  *      |ResourceUsage|
  *       /          \
- *       |  {{ OnlyPRTaskFilter }}
- *       |           |
- *       |     |ResourceUsage|
  *       |           |
  *       |    {{ IPC EMA Filter }}
  *       |           |          \
@@ -109,10 +106,9 @@ class CpuQoSPipeline : public QoSControllerPipeline {
           usage::setEmaIpc,
           conf.getD(ema::ALPHA),
           Tag(QOS_CONTROLLER, "emaFilter")),
-      prExecutorPassFilter(&emaFilter),
       // First item in pipeline. For now, close the pipeline for QoS.
       valveFilter(
-          &prExecutorPassFilter,
+          &emaFilter,
           conf.getB(VALVE_OPENED),
           Tag(QOS_CONTROLLER, "valveFilter")) {
     this->ageFilter.addConsumer(&valveFilter);
@@ -121,9 +117,6 @@ class CpuQoSPipeline : public QoSControllerPipeline {
 
     // QoSCorrection needs ResourceUsage as well.
     valveFilter.addConsumer(&qoSCorrectionObserver);
-
-    // ipcDropFilter needs BeResourceUsage as well.
-    prExecutorPassFilter.addConsumer<BeResourceUsage>(&ipcDropFilter);
 
     // Setup Time Series export
     if (conf.getB(ENABLED_VISUALISATION)) {
@@ -144,7 +137,6 @@ class CpuQoSPipeline : public QoSControllerPipeline {
   ExecutorAgeFilter ageFilter;
   EMAFilter emaFilter;
   DetectorFilter ipcDropFilter;
-  PrExecutorPassFilter prExecutorPassFilter;
   ValveFilter valveFilter;
 
   // --- Observers ---

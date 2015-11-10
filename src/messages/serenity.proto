@@ -20,13 +20,6 @@ message OversubscriptionCtrlEventEnvelope {
   optional OversubscriptionCtrlEvent message = 1;
 }
 
-/**
- * Necessary message for separating Be jobs & Pr jobs.
- * TODO(bplotka): Implement more dynamic method for data transitions.
- */
-message BeResourceUsage {
-  required ResourceUsage usage = 1;
-}
 
 /**
  * Necessary union to define job.
