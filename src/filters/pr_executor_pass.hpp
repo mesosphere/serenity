@@ -78,8 +78,7 @@ inline std::list<ResourceUsage_Executor> filterBeExecutors(
  */
 class PrExecutorPassFilter :
     public Consumer<ResourceUsage>,
-    public Producer<ResourceUsage>,
-    public Producer<BeResourceUsage> {
+    public Producer<ResourceUsage> {
  public:
   explicit PrExecutorPassFilter(Consumer<ResourceUsage>* _consumer)
       : Producer<ResourceUsage>(_consumer) {}
@@ -87,11 +86,6 @@ class PrExecutorPassFilter :
   ~PrExecutorPassFilter() {}
 
   Try<Nothing> consume(const ResourceUsage& in);
-
-  template<class T>
-  Try<Nothing> addConsumer(Consumer<T>* consumer) override {
-    return Producer<T>::addConsumer(consumer);
-  }
 
   static constexpr const char* name = "[Serenity] PrExecutorPasFilter: ";
 };

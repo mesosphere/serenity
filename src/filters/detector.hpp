@@ -19,6 +19,7 @@
 #include "serenity/executor_map.hpp"
 #include "serenity/executor_set.hpp"
 #include "serenity/serenity.hpp"
+#include "serenity/resource_helper.hpp"
 #include "serenity/wid.hpp"
 
 #include "stout/lambda.hpp"
@@ -35,7 +36,6 @@ namespace serenity {
  */
 class DetectorFilter :
     public Consumer<ResourceUsage>,
-    public Consumer<BeResourceUsage>,
     public Producer<Contentions> {
  public:
   DetectorFilter(
@@ -54,9 +54,7 @@ class DetectorFilter :
 
   Try<Nothing> consume(const ResourceUsage& in) override;
 
-  Try<Nothing> consume(const BeResourceUsage& in) override;
-
-  Try<Nothing> __detect();
+  Try<Nothing> _detect(const DividedResourceUsage& in);
 
   static const constexpr char* NAME = "Detector";
 
@@ -68,9 +66,6 @@ class DetectorFilter :
   // Detections.
   std::unique_ptr<ExecutorMap<std::shared_ptr<BaseDetector>>> detectors;
   SerenityConfig detectorConf;
-
-  Option<ResourceUsage> currentVictimsUsage;
-  Option<ResourceUsage> currentAggressorsUsage;
 };
 
 }  // namespace serenity

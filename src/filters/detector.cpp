@@ -5,37 +5,15 @@
 namespace mesos {
 namespace serenity {
 
-Try<Nothing> DetectorFilter::consume(const ResourceUsage& usage) {
-  this->currentVictimsUsage = usage;
-
-  if (this->currentAggressorsUsage.isSome()) {
-    this->__detect();
-  }
-
-  return Nothing();
+Try<Nothing> DetectorFilter::consume(const ResourceUsage& in) {
+  return this->_detect(DividedResourceUsage(in));
 }
 
-
-Try<Nothing> DetectorFilter::consume(const BeResourceUsage& usage) {
-  this->currentAggressorsUsage = usage.usage();
-
-  if (this->currentVictimsUsage.isSome()) {
-    this->__detect();
-  }
-
-  return Nothing();
-}
-
-/**
- *
- */
-Try<Nothing> DetectorFilter::__detect() {
+Try<Nothing> DetectorFilter::_detect(const DividedResourceUsage& usage) {
   std::unique_ptr<ExecutorSet> newSamples(new ExecutorSet());
-  const ResourceUsage currentAggressors = this->currentAggressorsUsage.get();
-  const ResourceUsage currentVictims = this->currentVictimsUsage.get();
   Contentions product;
 
-  for (ResourceUsage_Executor inExec : currentVictims.executors()) {
+  for (const ResourceUsage_Executor& inExec : usage.prExecutors()) {
     if (!inExec.has_executor_info()) {
       SERENITY_LOG(ERROR) << "Executor <unknown>"
                  << " does not include executor_info";
@@ -84,9 +62,9 @@ Try<Nothing> DetectorFilter::__detect() {
         // Detected contention.
         if (cpDetected.isSome()) {
           // Check if aggressors jobs are available on host.
-          if (currentAggressors.executors_size() == 0) {
+          if (usage.beExecutors().size() == 0) {
             SERENITY_LOG(INFO) << "Contention spotted, however there are no "
-                << "aggressor on the host. Assuming false positive.";
+                << "Best effort tasks on the host. Assuming false positive.";
             (cpDetector->second)->reset();
           }
 
@@ -104,9 +82,6 @@ Try<Nothing> DetectorFilter::__detect() {
 
   // Continue pipeline.
   produce(product);
-
-  this->currentVictimsUsage = None();
-  this->currentAggressorsUsage = None();
 
   return Nothing();
 }
