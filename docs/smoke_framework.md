@@ -8,6 +8,7 @@ It adds several features and is based on example Mesos NoExecutor framework:
 3. Adding ability to fill all nodes resources with custom tasks.
 4. Targeting task to particular host.
 5. Specifying role of framework.
+6. Specifying shares for each task to customize how often they should be chosen. (shares)
 
 ## Building
 
@@ -34,7 +35,7 @@ Scheme:
       "revocableResources": <[Optional] needed revocable resources>,
       "targetHostname": <[Optional] target host>,
       "totalTasks": <[Optional] number of tasks or if not specified - unlimited>,
-      "priority" : <[Optional] priority of the task>
+      "shares" : <[Optional] share (priority) of the task> 
     }
   ]
 }
@@ -57,7 +58,7 @@ Example (using rkt container):
       "revocableResources": "cpus(serenity):1",
       "targetHostname": "my_super_agent@serenity.com",
       "totalTasks": 5,
-      "priority" : 99
+      "shares" : 99
     }
   ]
 }
