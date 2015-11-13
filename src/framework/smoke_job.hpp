@@ -81,19 +81,17 @@ class SmokeJob {
     const Option<size_t>& _totalTasks,
     const Option<std::string>& _targetHostname = None(),
     const Option<SmokeURI>& _uri = None(),
-    const size_t& _priority = 1)
+    const size_t& _shares = 1)
     : id(_id),
       command(_command),
       taskResources(_taskResources),
       totalTasks(_totalTasks),
       targetHostname(_targetHostname),
       uri(_uri),
-      priority(_priority),
+      shares(_shares),
       tasksLaunched(0u),
-      scheduled(false) {
-
-
-  }
+      probability(1.0),
+      scheduled(false) {}
 
   const size_t id;
   const std::string command;
@@ -101,7 +99,9 @@ class SmokeJob {
   const Option<size_t> totalTasks;
   const Option<std::string> targetHostname;
   const Option<SmokeURI> uri;
-  const size_t priority;
+  const size_t shares;
+
+  double_t probability;
 
   // Stats
   size_t tasksLaunched;
@@ -126,7 +126,7 @@ class SmokeJob {
         std::to_string(this->totalTasks.get()) : "<none>")
     << "; Target hostname: "
     << (this->targetHostname.isSome() ? this->targetHostname.get() : "<all>")
-    << "; Priority: " << this->priority
+    << "; Sharess: " << this->shares
     << "|";
   }
 
@@ -154,9 +154,10 @@ class SmokeJob {
     return task;
   }
 
-  static std::list<SmokeJob> createJobsFromJson(const SmokeFlags flags, bool&
+  static std::list<std::shared_ptr<SmokeJob>> createJobsFromJson(
+    const SmokeFlags flags, bool&
   revocable) {
-    std::list<SmokeJob> jobs;
+    std::list<std::shared_ptr<SmokeJob>> jobs;
     LOG(INFO) << "Loading JSON with tasks from: " << flags.tasks_json_path.get();
 
     Try<std::string> read = os::read(flags.tasks_json_path.get());
@@ -287,25 +288,25 @@ class SmokeJob {
       }
 
       // Get priority.
-      size_t optionPriority = 1;
+      size_t optionShares = 1;
 
-      Result<JSON::Number> _priority =
+      Result<JSON::Number> _shares =
         json.get().find<JSON::Number>(
-          "tasks[" + stringify(i) +"].totalTasks");
+          "tasks[" + stringify(i) +"].shares");
 
-      if (_priority.isSome()) {
-        optionPriority = _priority.get().value;
+      if (_shares.isSome()) {
+        optionShares = _shares.get().value;
       }
 
-      jobs.push_back(
+      jobs.push_back(std::make_shared<SmokeJob>(
         SmokeJob(i,
                  optionCommand.get().value,
                  optionResources.get(),
                  optionTotalTasks,
                  optionTargetHostname,
                  optionUri,
-                 optionPriority));
-      jobs.back().print();
+                 optionShares)));
+      jobs.back()->print();
     }
 
     return jobs;
