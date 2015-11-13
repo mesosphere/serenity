@@ -35,10 +35,6 @@ struct QueueBlock {
   size_t index;
   bool ready;
 
-  void print() {
-
-  }
-
   std::string toString() const {
     std::stringstream result;
     result << "{ id: " << baseJob->id
