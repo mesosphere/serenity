@@ -36,12 +36,19 @@ struct QueueBlock {
   bool ready;
 
   void print() {
-    LOG(INFO) << "{ id: " << baseJob->id
-      << ", baseProbability: " << baseProbability
-      << ", aliasId: "
-      << (aliasJob != nullptr ? std::to_string(aliasJob->id) : "<none>")
-      << "}";
+
   }
+
+  std::string toString() const {
+    std::stringstream result;
+    result << "{ id: " << baseJob->id
+    << ", baseProbability: " << baseProbability
+    << ", aliasId: "
+    << (aliasJob != nullptr ? std::to_string(aliasJob->id) : "<none>")
+    << "}";
+    return result.str();
+  }
+
 };
 
 
@@ -98,7 +105,7 @@ class SmokeAliasQueue {
       underfullBlock->ready = true;
     }
 
-    // Start debug section.
+    // Start debug log section.
     LOG(INFO) << "Alias alghoritm results: [ blockShares = "
       << blockShares << "]";
     for (auto& job : this->jobs)
@@ -111,7 +118,7 @@ class SmokeAliasQueue {
     for (auto& job : this->jobs)
       LOG(INFO) <<"Job(" <<  job.baseJob->id << ") current host probabilty: "
                 << (job.baseJob->probability / totalShares)*100 << " %.";
-    // End debug section.
+    // End debug log section.
 
     initialized = true;
   }
