@@ -3,9 +3,9 @@
 
 #include "bus/event_bus.hpp"
 
-#include "filters/pr_executor_pass.hpp"
-
 #include "observers/strategies/seniority.hpp"
+
+#include "serenity/resource_helper.hpp"
 
 namespace mesos {
 namespace serenity {
@@ -76,7 +76,7 @@ Try<QoSCorrections> SeniorityStrategy::decide(
 
   // List of BE executors.
   list<ResourceUsage_Executor> possibleAggressors =
-    filterPrExecutors(currentUsage);
+    DividedResourceUsage::filterPrExecutors(currentUsage);
 
   // Aggressors to be killed. (empty for now).
   std::list<slave::QoSCorrection_Kill> aggressorsToKill;

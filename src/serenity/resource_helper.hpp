@@ -9,6 +9,10 @@
 namespace mesos {
 namespace serenity {
 
+/**
+ * Useful class for having dividing usage to Production & Best Effort
+ * executors.
+ */
 class DividedResourceUsage {
  public:
   explicit DividedResourceUsage(const ResourceUsage& _usage) {
@@ -23,6 +27,36 @@ class DividedResourceUsage {
         be.push_back(executor);
       }
     }
+  }
+
+  /**
+   * Static helper for filtering Executors.
+   */
+  static inline std::list<ResourceUsage_Executor> filterPrExecutors(
+    const ResourceUsage& usage) {
+    std::list<ResourceUsage_Executor> beExecutors;
+    for (ResourceUsage_Executor inExec : usage.executors()) {
+      if (!inExec.has_executor_info()) {
+        LOG(ERROR) << "Executor <unknown>"
+        << " does not include executor_info";
+        // Filter out these executors.
+        continue;
+      }
+      if (inExec.allocated().size() == 0) {
+        LOG(ERROR) << "Executor "
+        << inExec.executor_info().executor_id().value()
+        << " does not include allocated resources.";
+        // Filter out these executors.
+        continue;
+      }
+
+      Resources allocated(inExec.allocated());
+      // Check if task uses revocable resources.
+      if (!allocated.revocable().empty())
+        beExecutors.push_back(inExec);
+    }
+
+    return beExecutors;
   }
 
   const std::list<ResourceUsage_Executor>& prExecutors() const {
