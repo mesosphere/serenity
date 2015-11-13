@@ -126,7 +126,7 @@ class SmokeJob {
         std::to_string(this->totalTasks.get()) : "<none>")
     << "; Target hostname: "
     << (this->targetHostname.isSome() ? this->targetHostname.get() : "<all>")
-    << "; Sharess: " << this->shares
+    << "; Shares: " << this->shares
     << "|";
   }
 
