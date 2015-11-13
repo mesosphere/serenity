@@ -44,7 +44,6 @@ void AssuranceDetector::recalculateParams() {
 
   // Make sure it does not exceed MAX_CHECKPOINSs option.
   if (checkpoints > this->cfg.getU64(detector::MAX_CHECKPOINTS)) {
-    SERENITY_LOG(WARNING) << "Too wide windowSize.";
     checkpoints = this->cfg.getU64(detector::MAX_CHECKPOINTS);
   }
 
