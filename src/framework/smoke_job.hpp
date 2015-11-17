@@ -155,8 +155,7 @@ class SmokeJob {
   }
 
   static std::list<std::shared_ptr<SmokeJob>> createJobsFromJson(
-    const SmokeFlags flags, bool&
-  revocable) {
+      const SmokeFlags flags, bool& revocable) {
     std::list<std::shared_ptr<SmokeJob>> jobs;
     LOG(INFO) << "Loading JSON with tasks from: " << flags.tasks_json_path.get();
 
