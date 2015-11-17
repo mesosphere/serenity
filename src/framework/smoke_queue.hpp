@@ -82,7 +82,11 @@ class SmokeAliasQueue {
         }
       }
 
-      BOOST_ASSERT(overfullBlock != nullptr);
+      if (overfullBlock == nullptr) {
+        LOG(ERROR) << "Alias alghoritm failed. OverfullBlock == null";
+        return;
+      }
+
 
       for (auto& job : this->jobs) {
         if (overfullBlock->index == job.index || job.ready) continue;
@@ -92,7 +96,10 @@ class SmokeAliasQueue {
         }
       }
 
-      BOOST_ASSERT(underfullBlock != nullptr);
+      if (underfullBlock == nullptr) {
+        LOG(ERROR) << "Alias alghoritm failed. UnderfullBlock == null";
+        return;
+      }
 
       underfullBlock->aliasJob = overfullBlock->baseJob;
       overfullBlock->baseProbability -=
