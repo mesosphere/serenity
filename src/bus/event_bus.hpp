@@ -47,6 +47,31 @@ namespace serenity {
 
 
 /**
+ * Hasher functor for process::UPID. It is required before Mesos 0.25.0.
+ */
+struct UPIDHasher{
+  size_t operator()(const process::UPID& that) const {
+    std::hash<std::string> hashFunc;
+    return hashFunc((std::string) that);
+  }
+};
+
+
+/**
+ * Equals functor for process::UPID. It is required before Mesos 0.25.0
+ */
+struct UPIDEquals {
+  bool operator()(const process::UPID& lhs,
+                  const process::UPID& rhs) const {
+    return ((std::string) lhs == (std::string) rhs);
+  }
+};
+
+
+using UPIDSet = std::unordered_set<process::UPID, UPIDHasher, UPIDEquals>;
+
+
+/**
  *  Lookup Event-based bus made as libprocess actor.
  */
 class EventBus : public ProtobufProcess<EventBus> {
@@ -62,7 +87,7 @@ class EventBus : public ProtobufProcess<EventBus> {
    */
   template <typename T>
   Try<Nothing> publish(const T& in) {
-    std::unordered_set<process::UPID> subscribers;
+    UPIDSet subscribers;
     {
       // Synchronized block of code.
       std::lock_guard<std::mutex> lock(subscribersMapLock);
@@ -102,7 +127,7 @@ class EventBus : public ProtobufProcess<EventBus> {
     auto subscribersForType = this->subscribersMap.find(typeid(T));
     if (subscribersForType == this->subscribersMap.end()) {
       // Nobody has subscribed for this event type before.
-      std::unordered_set<process::UPID> subscribersSet;
+      UPIDSet subscribersSet;
       subscribersSet.insert(_subscriberPID);
 
       this->subscribersMap[typeid(T)] = subscribersSet;
@@ -125,7 +150,7 @@ class EventBus : public ProtobufProcess<EventBus> {
    * TODO: Remove when c++14 & shared_mutex implemented
    */
   std::mutex subscribersMapLock;
-  std::map<std::type_index, std::unordered_set<process::UPID>> subscribersMap;
+  std::map<std::type_index, UPIDSet> subscribersMap;
 };
 
 

@@ -283,7 +283,7 @@ class SmokeJob {
           "tasks[" + stringify(i) +"].totalTasks");
 
       if (_totalTasks.isSome()) {
-        optionTotalTasks = _totalTasks.get().as<size_t>();
+        optionTotalTasks = _totalTasks.get().value;
       }
 
       // Get priority.
@@ -294,7 +294,7 @@ class SmokeJob {
           "tasks[" + stringify(i) +"].totalTasks");
 
       if (_priority.isSome()) {
-        optionPriority = _priority.get().as<size_t>();
+        optionPriority = _priority.get().value;
       }
 
       jobs.push_back(
