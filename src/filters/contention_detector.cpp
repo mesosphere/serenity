@@ -1,15 +1,17 @@
 #include <utility>
 
-#include "filters/detector.hpp"
+#include "contention_detector.hpp"
 
 namespace mesos {
 namespace serenity {
 
-Try<Nothing> DetectorFilter::consume(const ResourceUsage& in) {
+Try<Nothing> ContentionDetectorFilter::consume(const ResourceUsage& in) {
   return this->_detect(DividedResourceUsage(in));
 }
 
-Try<Nothing> DetectorFilter::_detect(const DividedResourceUsage& usage) {
+
+Try<Nothing> ContentionDetectorFilter::_detect(
+    const DividedResourceUsage& usage) {
   std::unique_ptr<ExecutorSet> newSamples(new ExecutorSet());
   Contentions product;
 

@@ -1,7 +1,7 @@
 #ifndef SERENITY_QOS_PIPELINE_HPP
 #define SERENITY_QOS_PIPELINE_HPP
 
-#include "filters/detector.hpp"
+#include "filters/contention_detector.hpp"
 #include "filters/ema.hpp"
 #include "filters/executor_age.hpp"
 #include "filters/pr_executor_pass.hpp"
@@ -98,7 +98,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       ipcDropFilter(
           &qoSCorrectionObserver,
           usage::getEmaIpc,
-          conf[DetectorFilter::NAME],
+          conf[ContentionDetectorFilter::NAME],
           Tag(QOS_CONTROLLER, "IPC detectorFilter")),
       emaFilter(
           &ipcDropFilter,
@@ -136,7 +136,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
   // --- Filters ---
   ExecutorAgeFilter ageFilter;
   EMAFilter emaFilter;
-  DetectorFilter ipcDropFilter;
+  ContentionDetectorFilter ipcDropFilter;
   ValveFilter valveFilter;
 
   // --- Observers ---

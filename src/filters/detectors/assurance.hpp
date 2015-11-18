@@ -29,6 +29,8 @@
 namespace mesos {
 namespace serenity {
 
+#define ASSURANCE_DETECTOR_NAME "AssuranceDetector";
+
 class AssuranceDetectorConfig : public SerenityConfig {
  public:
   AssuranceDetectorConfig() {}
@@ -39,7 +41,7 @@ class AssuranceDetectorConfig : public SerenityConfig {
   }
 
   void initDefaults() {
-    this->fields[detector::DETECTOR_TYPE] = "AssuranceDetector";
+    this->fields[detector::DETECTOR_TYPE] = ASSURANCE_DETECTOR_NAME;
     //! uint64_t
     //! How far in the past we look.
     this->fields[detector::WINDOW_SIZE] =
@@ -104,9 +106,17 @@ class AssuranceDetector : public BaseDetector {
   explicit AssuranceDetector(
       const Tag& _tag,
       const SerenityConfig& _config)
-    : BaseDetector(_tag, AssuranceDetectorConfig(_config)),
+    : BaseDetector(_tag),
       valueBeforeDrop(None()),
       quorumNum(0) {
+    SerenityConfig config = AssuranceDetectorConfig(_config);
+    this->cfgWindowSize = config.getU64(detector::WINDOW_SIZE);
+    this->cfgMaxCheckpoints = config.getU64(detector::MAX_CHECKPOINTS);
+    this->cfgQuroum = config.getD(detector::QUORUM);
+    this->cfgFractionalThreshold = config.getD(detector::FRACTIONAL_THRESHOLD);
+    this->cfgNearFraction = config.getD(detector::NEAR_FRACTION);
+    this->cfgSeverityFraction = config.getD(detector::SEVERITY_FRACTION);
+
     this->recalculateParams();
   }
 
@@ -131,8 +141,6 @@ class AssuranceDetector : public BaseDetector {
    */
   void recalculateParams();
 
-  static const constexpr char* NAME = "AssuranceDetector";
-
  protected:
   std::list<double_t> window;
   std::list<std::list<double_t>::iterator> basePoints;
@@ -140,8 +148,17 @@ class AssuranceDetector : public BaseDetector {
   // If none then there was no drop.
   Option<double_t> valueBeforeDrop;
 
-  int32_t dropVotes;
-  int32_t quorumNum;
+  uint32_t dropVotes;
+  uint32_t quorumNum;
+
+
+  // cfg parameters.
+  uint64_t cfgWindowSize;
+  uint64_t cfgMaxCheckpoints;
+  double_t cfgQuroum;
+  double_t cfgFractionalThreshold;
+  double_t cfgSeverityFraction;
+  double_t cfgNearFraction;
 };
 
 
