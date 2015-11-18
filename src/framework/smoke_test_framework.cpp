@@ -110,7 +110,8 @@ class SerenityNoExecutorScheduler : public Scheduler
       }
     }
 
-    LOG(INFO) << "SerenityNoExecutorScheduler initialized." << jobs.size();
+    LOG(INFO) << "SerenityNoExecutorScheduler initialized. Jobs: "
+              << jobs.size();
   }
 
   virtual void registered(
@@ -306,37 +307,6 @@ private:
 
   bool allJobsScheduled() {
     return jobsScheduled >= jobs.size();
-  }
-
-  bool shiftJob(std::string targetHost) {
-    if (job->finished()) {
-      // In case of limited jobs stop when scheduled totalTasks.
-      job->scheduled = true;
-      this->jobsScheduled++;
-
-    }
-
-    // Iterate over jobs list and find not yet fully scheduled job.
-    for(int i = 0; i < jobs.size(); i++) {
-      job++;
-      if (job == jobs.end()) job = jobs.begin();
-      if (job->scheduled) continue;
-
-      if (job->targetHostname.isSome() &&
-          job->targetHostname.get().compare(targetHost) != 0) {
-        // Host don't match.
-        LOG(INFO) << "Offered host " << targetHost
-        << " not matched with job's " <<  job->id
-        << " target: " << job->targetHostname.get()
-        << ". Trying with next job...";
-        continue;
-      }
-
-      // Ready to go.
-      return true;
-    }
-    // Not found any.
-    return false;
   }
 };
 
