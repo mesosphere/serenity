@@ -43,6 +43,9 @@ See the contents of that Dockerfile
 Building Mesos modules requires system-wide installation of google-protobuf,
 glog, boost and picojson.
 
+Currently it supports 0.24.x Mesos. 
+(since Stout & libprocess changes appeared in newer versions)
+
 ### Build Mesos with some unbundled dependencies
 
 #### Preparing Mesos source code
