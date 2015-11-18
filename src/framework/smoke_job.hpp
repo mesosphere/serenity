@@ -51,22 +51,22 @@ class SmokeURI {
       uri->set_cache(this->cache.get());
     }
   }
-
-  std::string toString() const {
-    std::stringstream result;
-    result  << "{ "
-      << " Value: " << this->value
-      << "; Executable: "
-      <<  (this->executable.isSome() ?
-           std::to_string(this->executable.get()) : "0")
-      << "; Extract: "
-      <<  (this->extract.isSome() ? std::to_string(this->extract.get()): "1")
-      << "; Cache: "
-      <<  (this->cache.isSome() ? std::to_string(this->cache.get()): "0")
-      << "}";
-    return result.str();
-  }
 };
+
+
+std::ostream& operator << (std::ostream& stream, const SmokeURI& uri) {
+  stream  << "{ "
+  << " Value: " << uri.value
+  << "; Executable: "
+  <<  (uri.executable.isSome() ?
+       std::to_string(uri.executable.get()) : "0")
+  << "; Extract: "
+  <<  (uri.extract.isSome() ? std::to_string(uri.extract.get()): "1")
+  << "; Cache: "
+  <<  (uri.cache.isSome() ? std::to_string(uri.cache.get()): "0")
+  << "}";
+  return stream;
+}
 
 
 /**
@@ -116,20 +116,6 @@ class SmokeJob {
       (this->tasksLaunched  >= this->totalTasks.get()));
   }
 
-  void print() {
-    LOG(INFO) << "| Command: " << this->command
-    << "; URI: "
-    << (this->uri.isSome() ? this->uri.get().toString() : "<None>")
-    << "; Resources: " << this->taskResources
-    << "; Tasks to spawn: "
-    << (this->totalTasks.isSome() ?
-        std::to_string(this->totalTasks.get()) : "<none>")
-    << "; Target hostname: "
-    << (this->targetHostname.isSome() ? this->targetHostname.get() : "<all>")
-    << "; Shares: " << this->shares
-    << "|";
-  }
-
   // Create new task.
   mesos::TaskInfo createTask(mesos::SlaveID slave_id) {
     // Create new task.
@@ -152,6 +138,25 @@ class SmokeJob {
     }
 
     return task;
+  }
+
+  friend std::ostream& operator << (std::ostream& stream, SmokeJob const& job) {
+    stream << "| Command: " << job.command
+    << "; URI: ";
+    if (job.uri.isNone()) {
+      stream << "<none>";
+    } else {
+      stream << job.uri.get();
+    }
+    stream << "; Resources: " << job.taskResources
+    << "; Tasks to spawn: "
+    << (job.totalTasks.isSome() ?
+        std::to_string(job.totalTasks.get()) : "<none>")
+    << "; Target hostname: "
+    << (job.targetHostname.isSome() ? job.targetHostname.get() : "<all>")
+    << "; Shares: " << job.shares
+    << "|";
+    return stream;
   }
 
   static std::list<std::shared_ptr<SmokeJob>> createJobsFromJson(
@@ -305,7 +310,7 @@ class SmokeJob {
                  optionTargetHostname,
                  optionUri,
                  optionShares)));
-      jobs.back()->print();
+      LOG(INFO) << (*jobs.back());
     }
 
     return jobs;
