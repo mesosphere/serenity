@@ -1,5 +1,8 @@
 #include <atomic>
 #include <string>
+#include <type_traits>
+#include <typeinfo>
+#include <typeindex>
 
 #include "bus/event_bus.hpp"
 
@@ -84,6 +87,7 @@ Try<string> getFormValue(
   return decodedValue.get();
 }
 
+
 class ValveFilterEndpointProcess
   : public ProtobufProcess<ValveFilterEndpointProcess> {
  public:
@@ -156,8 +160,8 @@ class ValveFilterEndpointProcess
     hashmap<string, string> values = decode.get();
 
     string enabled_param;
-    // Get params via GET method.
     Option<string> pipeline_enable = request.query.get(PIPELINE_ENABLE_KEY);
+
     if (pipeline_enable.isSome()) {
       enabled_param = pipeline_enable.get();
     } else {

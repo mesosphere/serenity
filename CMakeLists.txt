@@ -1,4 +1,20 @@
 cmake_minimum_required(VERSION 3.0.0)
+
+option(USE_CLANG "Build using clang 3.5 compiler" "")
+if (USE_CLANG)
+    message("Using Clang 3.5 as CXX compiler")
+    set(CMAKE_C_COMPILER "/usr/bin/clang-3.5")
+    set(CMAKE_C_FLAGS  "-Wall -std=c99")
+    set(CMAKE_C_FLAGS_DEBUG   "-g")
+    set(CMAKE_C_FLAGS_MINSIZEREL "-Os -DNDEBUG")
+    set(CMAKE_C_FLAGS_RELEASE   "-O4 -DNDEBUG")
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g")
+    set(CMAKE_CXX_COMPILER "/usr/bin/clang-3.5")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS_DEBUG "-g")
+    set(EXTRA_LIBRARIES "stdc++ m")
+endif(USE_CLANG)
+
 project(serenity)
 enable_testing()
 
@@ -23,7 +39,6 @@ if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 endif(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
 
-
 # Untar libs.
 execute_process(
     COMMAND ${CMAKE_COMMAND} -E tar xzf curlcpp.tar.gz
@@ -36,10 +51,6 @@ execute_process(
 # Curlcpp.
 add_subdirectory(3rdparty/lib/curlcpp)
 include_directories(${CURLCPP_SOURCE_DIR}/include)
-
-# Rapidjson.
-add_subdirectory(3rdparty/lib/rapidjson-1.0.2)
-include_directories(lib/rapidjson-1.0.2/include)
 
 # Add gtest.
 add_subdirectory (3rdparty/lib/gmock-1.7.0)
@@ -58,6 +69,7 @@ set(PROTOBUF_IMPORT_DIRS ${MESOS_INSTALLATION_DIR}/include/)
 file(GLOB ProtoFiles "src/messages/serenity.proto")
 PROTOBUF_GENERATE_CPP(ProtoSources ProtoHeaders ${ProtoFiles})
 add_library(messages STATIC ${ProtoSources} ${ProtoHeaders})
+target_link_libraries(messages)
 
 # Add message-test proto files.
 file(GLOB TestProtoFiles "src/tests/common/sources/json_source.proto")
@@ -103,7 +115,8 @@ set(SERENITY_SOURCES
     src/serenity/wid.cpp
     src/time_series_export/resource_usage_ts_export.cpp
     src/time_series_export/slack_ts_export.cpp
-    src/time_series_export/backend/influx_db8.cpp)
+    src/time_series_export/backend/influx_db8.cpp
+)
 
 set(SERENITY_TEST_SOURCES
     src/tests/main.cpp
@@ -153,16 +166,21 @@ add_executable(serenity-tests
     ${SERENITY_TEST_SOURCES}
     ${INTEGRATION_TEST_SOURCES}
 )
+
 target_link_libraries(serenity-tests
+    stdc++
+    m
     gmock
     gmock_main
     gtest
     gtest_main
     mesos
-    glog # Need to be specified after libmesos
     messages-test
     pbjson
     serenity
+    # Clang cannot compile it because of the error.
+    # Without glog ./serenity-tests ends with segmentation fault.
+    glog
 )
 add_test(serenity-tests serenity-tests)
 
@@ -183,7 +201,7 @@ if (MESOS_SOURCE_DIR)
     # Serenity test framework exe.
     add_executable(test-framework
         src/framework/smoke_test_framework.cpp)
-    target_link_libraries(test-framework mesos protobuf glog)
+    target_link_libraries(test-framework mesos protobuf glog stdc++ m)
 
 else(MESOS_SOURCE_DIR)
     message(
