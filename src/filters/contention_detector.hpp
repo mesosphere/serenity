@@ -34,11 +34,11 @@ namespace serenity {
  * DetectorFilter is able to check defined value and trigger some contentions
  * on given thresholds.
  */
-class DetectorFilter :
+class ContentionDetectorFilter :
     public Consumer<ResourceUsage>,
     public Producer<Contentions> {
  public:
-  DetectorFilter(
+  ContentionDetectorFilter(
       Consumer<Contentions>* _consumer,
       const lambda::function<usage::GetterFunction>& _valueGetFunction,
       SerenityConfig _detectorConf,
@@ -50,7 +50,7 @@ class DetectorFilter :
       valueGetFunction(_valueGetFunction),
       detectorConf(_detectorConf) {}
 
-  ~DetectorFilter() {}
+  ~ContentionDetectorFilter() {}
 
   Try<Nothing> consume(const ResourceUsage& in) override;
 

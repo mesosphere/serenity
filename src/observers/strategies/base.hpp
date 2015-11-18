@@ -13,7 +13,6 @@
 
 #include "messages/serenity.hpp"
 
-#include "serenity/config.hpp"
 #include "serenity/serenity.hpp"
 
 #include "stout/try.hpp"
@@ -34,13 +33,10 @@ using RevocationStrategyFunction = Try<QoSCorrections>
  */
 class RevocationStrategy {
  public:
-  RevocationStrategy(const Tag& _tag,
-                     const SerenityConfig& _config = SerenityConfig())
-    : tag(_tag), config(_config) {}
+  explicit RevocationStrategy(const Tag& _tag) : tag(_tag) {}
 
   virtual RevocationStrategyFunction decide = 0;
  protected:
-  SerenityConfig config;
   const Tag tag;
 };
 

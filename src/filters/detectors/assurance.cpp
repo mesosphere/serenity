@@ -29,11 +29,12 @@ Detection AssuranceDetector::createContention(double_t severity = -1) {
 }
 
 
+// In case of parameters change we need to recalculate internal state.
 void AssuranceDetector::recalculateParams() {
   this->window.clear();
   this->basePoints.clear();
 
-  uint64_t windowSize = this->cfg.getU64(detector::WINDOW_SIZE);
+  uint64_t windowSize = this->cfgWindowSize;
 
   // Find the biggest n in the T-2^n which fits within window length.
   uint64_t checkpoints = 0;
@@ -43,12 +44,12 @@ void AssuranceDetector::recalculateParams() {
   }
 
   // Make sure it does not exceed MAX_CHECKPOINSs option.
-  if (checkpoints > this->cfg.getU64(detector::MAX_CHECKPOINTS)) {
-    checkpoints = this->cfg.getU64(detector::MAX_CHECKPOINTS);
+  if (checkpoints > this->cfgMaxCheckpoints) {
+    checkpoints = this->cfgMaxCheckpoints;
   }
 
   // Get the Quorum number from QUORUM fraction parameter.
-  this->quorumNum = this->cfg.getD(detector::QUORUM) * checkpoints;
+  this->quorumNum = this->cfgQuroum * checkpoints;
   if (this->quorumNum == 0 || this->quorumNum > checkpoints) {
     SERENITY_LOG(WARNING) << "Bad value for Quorum parameter. Creating 100%"
                           << " quorum.";
@@ -62,7 +63,7 @@ void AssuranceDetector::recalculateParams() {
   // Iterate over window and initialize it. Choose proper base points starting
   // from the end of window.
   uint64_t choosenNum = pow(2, (--checkpoints));
-  for (uint64_t i = this->cfg.getU64(detector::WINDOW_SIZE); i > 0 ; i--) {
+  for (uint64_t i = this->cfgWindowSize; i > 0 ; i--) {
     this->window.push_back(detector::DEFAULT_START_VALUE);
 
     if (choosenNum == i) {
@@ -111,7 +112,7 @@ Result<Detection> AssuranceDetector::_processSample(
   if (this->valueBeforeDrop.isSome()) {
     // Check if the signal returned to normal state. (!)
     double_t nearValue =
-      this->cfg.getD(detector::NEAR_FRACTION) * this->valueBeforeDrop.get();
+      this->cfgNearFraction * this->valueBeforeDrop.get();
     SERENITY_LOG(INFO) << "Waiting for signal: "
                        << in << " to return to: "
                        << (this->valueBeforeDrop.get() - nearValue)
@@ -124,7 +125,7 @@ Result<Detection> AssuranceDetector::_processSample(
       // Create contention.
       return this->createContention(
         ((this->valueBeforeDrop.get() - nearValue) - in) *
-          this->cfg.getD(detector::SEVERITY_FRACTION));
+          this->cfgSeverityFraction);
     }
   }
 
@@ -140,8 +141,7 @@ Result<Detection> AssuranceDetector::_processSample(
 
     // Check if drop happened for this basePoint.
     double_t dropFraction = 1.0 - (in / (*basePoint));
-    if (dropFraction >=
-        this->cfg.getD(detector::FRACTIONAL_THRESHOLD)) {
+    if (dropFraction >= this->cfgFractionalThreshold) {
       // Vote on drop.
       this->dropVotes++;
       currentDropFraction += dropFraction;
@@ -164,8 +164,7 @@ Result<Detection> AssuranceDetector::_processSample(
   << "{inValue: " << in
   << " |baseValues:" << basePointValues.str()
   << " |currentDrop %: " << currentDropFraction * 100
-  << " |threshold %: "
-  << this->cfg.getD(detector::FRACTIONAL_THRESHOLD) * 100
+  << " |threshold %: " << this->cfgFractionalThreshold * 100
   << " |dropVotes/quorum: " << this->dropVotes
   << "/" << this->quorumNum
   << "}";
@@ -176,7 +175,7 @@ Result<Detection> AssuranceDetector::_processSample(
     this->valueBeforeDrop = meanValueBeforeDrop;
     // TODO(bplotka): Ensure proper severity.
     return this->createContention(
-      currentDropFraction * this->cfg.getD(detector::SEVERITY_FRACTION));
+      currentDropFraction * this->cfgSeverityFraction);
   }
 
   return None();

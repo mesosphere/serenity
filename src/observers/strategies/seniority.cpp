@@ -64,7 +64,7 @@ Try<QoSCorrections> SeniorityStrategy::decide(
 
   // ---!!!--- Contention spotted - start new cooldown. ---!!!---
   // TODO(bplotka): Change cooldownTime dynamically (learninig).
-  cooldownCounter = cooldownTime;
+  cooldownCounter = this->cfgCooldownTime;
   // Disable Estimator pipeline.
   if (!estimatorDisabled) {
     setOpenEstimatorPipeline(false);
@@ -106,7 +106,7 @@ Try<QoSCorrections> SeniorityStrategy::decide(
     if (contention.has_severity()) {
       meanSeverity += contention.severity();
     } else {
-      meanSeverity += this->defaultSeverity;
+      meanSeverity += this->cfgDefaultSeverity;
     }
   }
 

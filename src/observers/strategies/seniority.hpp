@@ -5,6 +5,7 @@
 
 #include "observers/strategies/base.hpp"
 
+#include "serenity/config.hpp"
 #include "serenity/wid.hpp"
 
 namespace mesos {
@@ -45,13 +46,13 @@ class SeniorityConfig : public SerenityConfig {
 class SeniorityStrategy : public RevocationStrategy {
  public:
   explicit SeniorityStrategy(const SerenityConfig& _config)
-      : RevocationStrategy(
-          Tag(QOS_CONTROLLER, "SeniorityStrategy"),
-          SeniorityConfig(_config)),
+      : RevocationStrategy(Tag(QOS_CONTROLLER, "SeniorityStrategy")),
         cooldownCounter(None()),
-        cooldownTime(config.getU64(decider::CONTENTION_COOLDOWN)),
-        defaultSeverity(config.getD(decider::STARTING_SEVERITY)),
-        estimatorDisabled(false) {}
+        estimatorDisabled(false) {
+    SerenityConfig config = SeniorityConfig(_config);
+    this->cfgCooldownTime = config.getU64(decider::CONTENTION_COOLDOWN);
+    this->cfgDefaultSeverity = config.getD(decider::STARTING_SEVERITY);
+  }
 
   RevocationStrategyFunction decide;
 
@@ -59,9 +60,10 @@ class SeniorityStrategy : public RevocationStrategy {
   bool estimatorDisabled;
 
   Option<uint64_t> cooldownCounter;
-  uint64_t cooldownTime;
 
-  double_t defaultSeverity;
+  // cfg parameters.
+  uint64_t cfgCooldownTime;
+  double_t cfgDefaultSeverity;
 };
 
 }  // namespace serenity

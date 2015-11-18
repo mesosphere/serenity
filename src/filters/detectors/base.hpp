@@ -4,7 +4,6 @@
 #include <memory>
 #include <string>
 
-#include "serenity/config.hpp"
 #include "serenity/serenity.hpp"
 
 #include "stout/nothing.hpp"
@@ -27,9 +26,7 @@ struct Detection {
  */
 class BaseDetector {
  public:
-  explicit BaseDetector(const Tag& _tag,
-                        const SerenityConfig _config)
-    : tag(_tag), cfg(_config) {
+  explicit BaseDetector(const Tag& _tag) : tag(_tag) {
   }
 
   static std::shared_ptr<BaseDetector> makeDetector(std::string);
@@ -37,8 +34,6 @@ class BaseDetector {
   virtual Result<Detection> processSample(double_t in) { return None(); }
 
   virtual Try<Nothing> reset() { return Nothing(); }
-
-  SerenityConfig cfg;
 
  protected:
   const Tag tag;
