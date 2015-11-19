@@ -100,6 +100,7 @@ set(SERENITY_SOURCES
     src/filters/contention_detector.cpp
     src/filters/cumulative.cpp
     src/filters/detectors/assurance.cpp
+    src/filters/detectors/utilization.cpp
     src/filters/ema.cpp
     src/filters/ignore_new_executors.cpp
     src/filters/pr_executor_pass.cpp

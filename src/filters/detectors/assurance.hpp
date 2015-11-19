@@ -29,7 +29,7 @@
 namespace mesos {
 namespace serenity {
 
-#define ASSURANCE_DETECTOR_NAME "AssuranceDetector";
+#define ASSURANCE_DETECTOR_NAME "AssuranceDetector"
 
 class AssuranceDetectorConfig : public SerenityConfig {
  public:
@@ -130,11 +130,6 @@ class AssuranceDetector : public BaseDetector {
    * Move each base point to next iterator.
    */
   void shiftBasePoints();
-
-  /**
-   * Contention Factory.
-   */
-  Detection createContention(double_t severity);
 
   /**
    * It is possible to dynamically change detector configuration.

@@ -17,18 +17,6 @@ void AssuranceDetector::shiftBasePoints() {
 }
 
 
-Detection AssuranceDetector::createContention(double_t severity = -1) {
-  Detection cpd;
-  if (severity > 0) {
-    cpd.severity = severity;
-  }
-
-  SERENITY_LOG(INFO) << " Created contention with severity = "
-    << (cpd.severity.isSome() ? std::to_string(cpd.severity.get()) : "<none>");
-  return cpd;
-}
-
-
 // In case of parameters change we need to recalculate internal state.
 void AssuranceDetector::recalculateParams() {
   this->window.clear();

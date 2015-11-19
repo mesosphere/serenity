@@ -8,6 +8,8 @@
 #include "filters/pr_executor_pass.hpp"
 #include "filters/utilization_threshold.hpp"
 #include "filters/valve.hpp"
+#include "filters/detectors/assurance.hpp"
+#include "filters/detectors/utilization.hpp"
 
 #include "messages/serenity.hpp"
 
@@ -37,8 +39,9 @@ class QoSPipelineConfig : public SerenityConfig {
   }
 
   void initDefaults() {
-    // Used sections: QoSCorrectionObserver, Detector
-    // TODO(bplotka): Moved EMA conf to separate section.
+    // Used sections: QoSCorrectionObserver, AssuranceDetector,
+    // UtilizationDetector
+    // TODO(bplotka): Move EMA conf to separate section.
     this->fields[ema::ALPHA] = ema::DEFAULT_ALPHA;
     this->fields[VALVE_OPENED] = DEFAULT_VALVE_OPENED;
     this->fields[ENABLED_VISUALISATION] = DEFAULT_ENABLED_VISUALISATION;
@@ -101,8 +104,13 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       ipcDropFilter(
           &qoSCorrectionObserver,
           usage::getEmaIpc,
-          conf[ContentionDetectorFilter::NAME],
+          conf[ASSURANCE_DETECTOR_NAME],
           Tag(QOS_CONTROLLER, "IPC detectorFilter")),
+      cpuUtilizationFilter(
+          &qoSCorrectionObserver,
+          usage::getCpuUsage,
+          conf[UTILIZATION_DETECTOR_NAME],
+          Tag(QOS_CONTROLLER, "CPU-Usage detectorFilter")),
       emaFilter(
           &ipcDropFilter,
           usage::getIpc,
@@ -124,6 +132,8 @@ class CpuQoSPipeline : public QoSControllerPipeline {
     // QoSCorrection needs ResourceUsage as well.
     cumulativeFilter.addConsumer(&qoSCorrectionObserver);
 
+    emaFilter.addConsumer(&cpuUtilizationFilter);
+
     // Setup Time Series export
     if (conf.getB(ENABLED_VISUALISATION)) {
       this->addConsumer(&rawResourcesExporter);
@@ -144,6 +154,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
   CumulativeFilter cumulativeFilter;
   EMAFilter emaFilter;
   ContentionDetectorFilter ipcDropFilter;
+  ContentionDetectorFilter cpuUtilizationFilter;
   ValveFilter valveFilter;
 
   // --- Observers ---
