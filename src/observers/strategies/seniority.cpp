@@ -13,12 +13,6 @@ namespace serenity {
 using std::list;
 using std::pair;
 
-inline void setOpenEstimatorPipeline(bool opened) {
-  OversubscriptionCtrlEventEnvelope envelope;
-  envelope.mutable_message()->set_enable(opened);
-  StaticEventBus::publish<OversubscriptionCtrlEventEnvelope>(envelope);
-}
-
 Try<QoSCorrections> SeniorityStrategy::decide(
     ExecutorAgeFilter* ageFilter,
     const Contentions& currentContentions,
@@ -34,7 +28,7 @@ Try<QoSCorrections> SeniorityStrategy::decide(
 
     // Open Estimator Pipeline.
     if (estimatorDisabled) {
-      setOpenEstimatorPipeline(true);
+      StaticEventBus::publishOversubscriptionCtrlEvent(true);
       estimatorDisabled = false;
     }
 
@@ -67,7 +61,7 @@ Try<QoSCorrections> SeniorityStrategy::decide(
   cooldownCounter = this->cfgCooldownTime;
   // Disable Estimator pipeline.
   if (!estimatorDisabled) {
-    setOpenEstimatorPipeline(false);
+    StaticEventBus::publishOversubscriptionCtrlEvent(false);
     estimatorDisabled = true;
   }
 
