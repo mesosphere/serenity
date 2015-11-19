@@ -12,7 +12,7 @@
       "revocableResources": "cpus(serenity):1",
       "targetHostname": "kp9.intelsdi.com",
       "totalTasks": 5,
-      "priority" : 99
+      "shares" : 99
     }
   ]
 }

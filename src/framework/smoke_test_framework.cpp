@@ -19,6 +19,8 @@
 #define PICOJSON_USE_INT64
 
 #include <list>
+#include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -44,16 +46,19 @@
 
 #include "smoke_flags.hpp"
 #include "smoke_job.hpp"
+#include "smoke_queue.hpp"
 
 using namespace mesos;
 using namespace mesos::internal;
 
 using std::list;
+using std::map;
 using std::string;
 using std::vector;
 
 using mesos::Resources;
 
+const constexpr char* const ANY_HOSTNAME = "ANY_HOSTNAME";
 
 static Offer::Operation LAUNCH(const vector<TaskInfo>& tasks)
 {
@@ -76,15 +81,37 @@ class SerenityNoExecutorScheduler : public Scheduler
  public:
   SerenityNoExecutorScheduler(
       const FrameworkInfo& _frameworkInfo,
-      const list<SmokeJob>& _jobs)
+      const list<std::shared_ptr<SmokeJob>>& _jobs)
     : frameworkInfo(_frameworkInfo),
       tasksLaunched(0u),
       tasksFinished(0u),
       tasksTerminated(0u),
       jobsScheduled(0u),
       jobs(_jobs) {
-    job = --jobs.end();
-    LOG(INFO) << "SerenityNoExecutorScheduler initialized." << jobs.size();
+    this->queue[ANY_HOSTNAME] = SmokeAliasQueue();
+
+    for (auto& job : this->jobs) {
+      if (job->targetHostname.isNone()) continue;
+
+      auto jobQueue = this->queue.find(job->targetHostname.get());
+      if (jobQueue == this->queue.end()) {
+        this->queue[job->targetHostname.get()] = SmokeAliasQueue();
+      }
+
+      this->queue[job->targetHostname.get()]
+        .add(job);
+    }
+
+    for (auto& job : this->jobs) {
+      if (job->targetHostname.isSome()) continue;
+
+      for (std::pair<string, SmokeAliasQueue> jobQueue : this->queue) {
+        this->queue[jobQueue.first].add(job);
+      }
+    }
+
+    LOG(INFO) << "SerenityNoExecutorScheduler initialized. Jobs: "
+              << jobs.size();
   }
 
   virtual void registered(
@@ -132,7 +159,19 @@ class SerenityNoExecutorScheduler : public Scheduler
       Resources remaining = offer.resources();
       vector<TaskInfo> tasks;
       while(!allJobsScheduled()) {
-        if(!this->shiftJob(offer.hostname())) break;
+        auto jobQueue = this->queue.find(offer.hostname());
+        if (jobQueue == this->queue.end()) {
+          jobQueue = this->queue.find(ANY_HOSTNAME);
+          if (jobQueue == this->queue.end()) break;
+        }
+
+        if (jobQueue->second.finished) break;
+        std::shared_ptr<SmokeJob> job = jobQueue->second.selectJob();
+        if (job == nullptr) break;
+        if (job->finished()) {
+          jobQueue->second.removeAndReset(job);
+          continue;
+        }
 
         // Check if there are still resources for next task.
         if (!remaining.contains(job->taskResources)) {
@@ -152,6 +191,14 @@ class SerenityNoExecutorScheduler : public Scheduler
         job->tasksLaunched++;
         tasksLaunched++;
         LOG(INFO) << "Prepared " << tasks.back().task_id();
+
+        if (job->finished()) {
+          // In case of limited jobs stop when scheduled totalTasks.
+          job->scheduled = true;
+          this->jobsScheduled++;
+          // Recalculate Alias alghoritm.
+          jobQueue->second.removeAndReset(job);
+        }
       }
 
       if (tasks.size() > 0)
@@ -250,8 +297,8 @@ class SerenityNoExecutorScheduler : public Scheduler
 
 private:
   FrameworkInfo frameworkInfo;
-  list<SmokeJob> jobs;
-  list<SmokeJob>::iterator job;
+  list<std::shared_ptr<SmokeJob>> jobs;
+  map<string, SmokeAliasQueue> queue;
   size_t tasksLaunched;
   size_t tasksFinished;
   size_t tasksTerminated;
@@ -260,37 +307,6 @@ private:
 
   bool allJobsScheduled() {
     return jobsScheduled >= jobs.size();
-  }
-
-  bool shiftJob(std::string targetHost) {
-    if (job->finished()) {
-      // In case of limited jobs stop when scheduled totalTasks.
-      job->scheduled = true;
-      this->jobsScheduled++;
-
-    }
-
-    // Iterate over jobs list and find not yet fully scheduled job.
-    for(int i = 0; i < jobs.size(); i++) {
-      job++;
-      if (job == jobs.end()) job = jobs.begin();
-      if (job->scheduled) continue;
-
-      if (job->targetHostname.isSome() &&
-          job->targetHostname.get().compare(targetHost) != 0) {
-        // Host don't match.
-        LOG(INFO) << "Offered host " << targetHost
-        << " not matched with job's " <<  job->id
-        << " target: " << job->targetHostname.get()
-        << ". Trying with next job...";
-        continue;
-      }
-
-      // Ready to go.
-      return true;
-    }
-    // Not found any.
-    return false;
   }
 };
 
@@ -331,7 +347,7 @@ int main(int argc, char** argv)
   framework.set_checkpoint(flags.checkpoint);
   framework.set_role(flags.role);
 
-  list<SmokeJob> jobs;
+  list<std::shared_ptr<SmokeJob>> jobs;
   if (flags.tasks_json_path.isSome())
   {
     jobs = SmokeJob::createJobsFromJson(flags, enableRevocable);
@@ -370,12 +386,12 @@ int main(int argc, char** argv)
     if (flags.uri_value.isSome()) {
       uri = SmokeURI(flags.uri_value.get());
     }
-    jobs.push_back(
+    jobs.push_back(std::make_shared<SmokeJob>(
       SmokeJob(0, flags.command,
                taskResources,
                flags.num_tasks,
                flags.target_hostname,
-               uri));
+               uri)));
   }
 
   if (enableRevocable) {
