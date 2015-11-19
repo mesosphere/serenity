@@ -1,15 +1,21 @@
 #include <utility>
 
-#include "filters/detector.hpp"
+#include "contention_detector.hpp"
 
 namespace mesos {
 namespace serenity {
 
-Try<Nothing> DetectorFilter::consume(const ResourceUsage& in) {
+Try<Nothing> ContentionDetectorFilter::consume(const ResourceUsage& in) {
+  return this->_detect(DividedResourceUsage(in));
+}
+
+
+Try<Nothing> ContentionDetectorFilter::_detect(
+    const DividedResourceUsage& usage) {
   std::unique_ptr<ExecutorSet> newSamples(new ExecutorSet());
   Contentions product;
 
-  for (ResourceUsage_Executor inExec : in.executors()) {
+  for (const ResourceUsage_Executor& inExec : usage.prExecutors()) {
     if (!inExec.has_executor_info()) {
       SERENITY_LOG(ERROR) << "Executor <unknown>"
                  << " does not include executor_info";
@@ -55,8 +61,15 @@ Try<Nothing> DetectorFilter::consume(const ResourceUsage& in) {
           continue;
         }
 
-        // Detected change point.
+        // Detected contention.
         if (cpDetected.isSome()) {
+          // Check if aggressors jobs are available on host.
+          if (usage.beExecutors().size() == 0) {
+            SERENITY_LOG(INFO) << "Contention spotted, however there are no "
+                << "Best effort tasks on the host. Assuming false positive.";
+            (cpDetector->second)->reset();
+          }
+
           product.push_back(createCpuContention(
               cpDetected.get().severity,
               WID(inExec.executor_info()).getWorkID(),

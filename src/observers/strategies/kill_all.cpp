@@ -2,6 +2,8 @@
 
 #include "observers/strategies/kill_all.hpp"
 
+#include "serenity/resource_helper.hpp"
+
 namespace mesos {
 namespace serenity {
 
@@ -16,7 +18,7 @@ Try<QoSCorrections> KillAllStrategy::decide(
 
   // List of BE executors.
   list<ResourceUsage_Executor> aggressors =
-    filterPrExecutors(currentUsage);
+    DividedResourceUsage::filterPrExecutors(currentUsage);
 
   // Create QoSCorrection from aggressors list.
   for (auto aggressorToKill : aggressors) {

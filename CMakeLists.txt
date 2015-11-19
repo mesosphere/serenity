@@ -97,7 +97,7 @@ set(SERENITY_SOURCES
     src/bus/event_bus.cpp
     src/estimator/serenity_estimator.cpp
     src/estimator/serenity_estimator_module.cpp
-    src/filters/detector.cpp
+    src/filters/contention_detector.cpp
     src/filters/detectors/assurance.cpp
     src/filters/ema.cpp
     src/filters/ignore_new_executors.cpp
@@ -107,8 +107,8 @@ set(SERENITY_SOURCES
     src/filters/executor_age.cpp
     src/observers/qos_correction.cpp
     src/observers/slack_resource.cpp
-        src/observers/strategies/kill_all.cpp
-        src/observers/strategies/seniority.cpp
+    src/observers/strategies/kill_all.cpp
+    src/observers/strategies/seniority.cpp
     src/qos_controller/serenity_controller.cpp
     src/qos_controller/serenity_controller_module.cpp
     src/serenity/agent_utils.cpp
@@ -124,17 +124,13 @@ set(SERENITY_TEST_SOURCES
     src/tests/common/sources/json_source.cpp
     src/tests/controllers/qos_controller_test.cpp
     src/tests/estimators/estimator_test.cpp
-    # Detectors tests WIP.
-    # src/tests/filters/detector_test.cpp
-    # src/tests/filters/detectors/assurance_test.cpp
+    src/tests/filters/detectors/assurance_test.cpp
     src/tests/filters/ema_test.cpp
     src/tests/filters/ignore_new_executors_test.cpp
     src/tests/filters/pr_executor_pass_test.cpp
     src/tests/filters/utilization_threshold_test.cpp
     src/tests/filters/valve_test.cpp
     src/tests/pipeline/estimator_pipeline_test.cpp
-    # Detectors tests WIP.
-    # src/tests/pipeline/qos_pipeline_test.cpp
     src/tests/observers/slack_resource_test.cpp
     src/tests/observers/qos_correction_test.cpp
     src/tests/serenity/config_test.cpp

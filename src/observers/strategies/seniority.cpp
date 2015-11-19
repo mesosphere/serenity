@@ -1,7 +1,11 @@
 #include <list>
 #include <utility>
 
+#include "bus/event_bus.hpp"
+
 #include "observers/strategies/seniority.hpp"
+
+#include "serenity/resource_helper.hpp"
 
 namespace mesos {
 namespace serenity {
@@ -10,20 +14,68 @@ using std::list;
 using std::pair;
 
 Try<QoSCorrections> SeniorityStrategy::decide(
-  ExecutorAgeFilter* ageFilter,
-  const Contentions& currentContentions,
-  const ResourceUsage& currentUsage) {
+    ExecutorAgeFilter* ageFilter,
+    const Contentions& currentContentions,
+    const ResourceUsage& currentUsage) {
+  if (currentContentions.empty()) {
+    // No contentions happened.
+    // It means that no interference happens or just there are no BE tasks.
+
+    // Reset cooldownCounter.
+    if (cooldownCounter.isSome()) {
+      cooldownCounter = None();
+    }
+
+    // Open Estimator Pipeline.
+    if (estimatorDisabled) {
+      StaticEventBus::publishOversubscriptionCtrlEvent(true);
+      estimatorDisabled = false;
+    }
+
+    // Return empty corrections;
+    return QoSCorrections();
+  }
+
+  // Check if cooldown is enabled.
+  if (cooldownCounter.isSome()) {
+    // TODO(bplotka): Make a separate util cooldown timer.
+    uint64_t cooldownCounterValue = cooldownCounter.get();
+    cooldownCounterValue--;
+
+    if (cooldownCounterValue > 0) {
+      // Cooldown phase - nothing to correct.
+      cooldownCounter = cooldownCounterValue;
+
+      // Return empty corrections;
+      return QoSCorrections();
+    } else {
+      SERENITY_LOG(INFO) << "Cooldown ended, but we have still contention"
+        "situation! Starting new revocations.";
+      // TODO(bplotka): Change defaultSeverity to steer the revocation number.
+      // this->defaultSeverity++; ?
+    }
+  }
+
+  // ---!!!--- Contention spotted - start new cooldown. ---!!!---
+  // TODO(bplotka): Change cooldownTime dynamically (learninig).
+  cooldownCounter = this->cfgCooldownTime;
+  // Disable Estimator pipeline.
+  if (!estimatorDisabled) {
+    StaticEventBus::publishOversubscriptionCtrlEvent(false);
+    estimatorDisabled = true;
+  }
+
   // Product.
   QoSCorrections corrections;
 
   // List of BE executors.
   list<ResourceUsage_Executor> possibleAggressors =
-    filterPrExecutors(currentUsage);
+    DividedResourceUsage::filterPrExecutors(currentUsage);
 
-  // Agressors to be killed.
+  // Aggressors to be killed. (empty for now).
   std::list<slave::QoSCorrection_Kill> aggressorsToKill;
 
-  double meanSeverity = 0.0;
+  double_t meanSeverity = 0;
   for (const Contention contention : currentContentions) {
     if (contention.has_aggressor()) {
       // Find specified aggressor and push it to the aggressors list.
@@ -43,25 +95,26 @@ Try<QoSCorrections> SeniorityStrategy::decide(
       continue;
     }
 
+    // Most of contention will not have severity specified since it's
+    // difficult to match severity with number aggressors to kill!
     if (contention.has_severity()) {
       meanSeverity += contention.severity();
+    } else {
+      meanSeverity += this->cfgDefaultSeverity;
     }
   }
 
-  if (!currentContentions.empty()) {
-    meanSeverity /= currentContentions.size();
-  }
-  LOG(INFO) << "MeanSeverity: " << meanSeverity;
+  meanSeverity /= currentContentions.size();
+
+  SERENITY_LOG(INFO) << "MeanSeverity: " << meanSeverity;
   // TODO(nnielsen): Made gross assumption about homogenous best-effort tasks.
-  // TODO(nnielsen): Instead of severity, we need taget values (corrections may
-  // not have the desired effect). Keep correcting until we have 0 BE tasks.
   size_t killCount = possibleAggressors.size() * meanSeverity;
   if (killCount == 0 && (possibleAggressors.size() * meanSeverity) > 0) {
     killCount++;
   }
 
-  LOG(INFO) << "Decided to kill " << killCount << "/"
-  << possibleAggressors.size() << "executors";
+  SERENITY_LOG(INFO) << "Decided to kill " << killCount << "/"
+                     << possibleAggressors.size() << "executors";
   // Get ages for executors.
   list<pair<double_t, ResourceUsage_Executor>> executors;
   for (const ResourceUsage_Executor& executor : possibleAggressors) {
@@ -71,8 +124,8 @@ Try<QoSCorrections> SeniorityStrategy::decide(
       continue;
     }
 
-    executors.push_back(pair<double_t, ResourceUsage_Executor>(age.get(),
-                                                               executor));
+    executors.push_back(
+      pair<double_t, ResourceUsage_Executor>(age.get(), executor));
   }
 
   // TODO(nielsen): Actual time delta should be factored in i.e. not only work
@@ -94,7 +147,7 @@ Try<QoSCorrections> SeniorityStrategy::decide(
     const ExecutorInfo& executorInfo =
       (executorIterator->second).executor_info();
 
-    LOG(INFO) << "Marked executor '" << executorInfo.executor_id()
+    SERENITY_LOG(INFO) << "Marked executor '" << executorInfo.executor_id()
     << "' of framework '" << executorInfo.framework_id()
     << "' age " << executorIterator->first << "s for removal";
 

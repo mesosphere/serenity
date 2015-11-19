@@ -7,6 +7,7 @@ namespace serenity {
 
 Try<Nothing> PrExecutorPassFilter::consume(const ResourceUsage& in) {
   ResourceUsage product;
+  product.mutable_total()->CopyFrom(in.total());
   for (ResourceUsage_Executor inExec : in.executors()) {
     if (!inExec.has_executor_info()) {
       LOG(ERROR) << name << "Executor <unknown>"
@@ -25,21 +26,15 @@ Try<Nothing> PrExecutorPassFilter::consume(const ResourceUsage& in) {
     Resources allocated(inExec.allocated());
     // Check if task uses revocable resources.
     if (!allocated.revocable().empty()) {
-      // Filter out BE tasks.
       continue;
     }
 
-    // Add an executor only when there was no error.
+    // Add an PR executor.
     ResourceUsage_Executor* outExec = product.mutable_executors()->Add();
     outExec->CopyFrom(inExec);
   }
 
-  if (0 != product.executors_size()) {
-    // Continue pipeline.
-    // Copy total agent's capacity
-    product.mutable_total()->CopyFrom(in.total());
-    produce(product);
-  }
+  produce(product);
 
   return Nothing();
 }

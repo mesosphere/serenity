@@ -1,7 +1,7 @@
 #ifndef SERENITY_QOS_PIPELINE_HPP
 #define SERENITY_QOS_PIPELINE_HPP
 
-#include "filters/detector.hpp"
+#include "filters/contention_detector.hpp"
 #include "filters/ema.hpp"
 #include "filters/executor_age.hpp"
 #include "filters/pr_executor_pass.hpp"
@@ -61,9 +61,6 @@ using QoSControllerPipeline = Pipeline<ResourceUsage, QoSCorrections>;
  *            |
  *      |ResourceUsage|
  *       /          \
- *       |  {{ OnlyPRTaskFilter }}
- *       |           |
- *       |     |ResourceUsage|
  *       |           |
  *       |    {{ IPC EMA Filter }}
  *       |           |          \
@@ -101,7 +98,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       ipcDropFilter(
           &qoSCorrectionObserver,
           usage::getEmaIpc,
-          conf[DetectorFilter::NAME],
+          conf[ContentionDetectorFilter::NAME],
           Tag(QOS_CONTROLLER, "IPC detectorFilter")),
       emaFilter(
           &ipcDropFilter,
@@ -109,10 +106,9 @@ class CpuQoSPipeline : public QoSControllerPipeline {
           usage::setEmaIpc,
           conf.getD(ema::ALPHA),
           Tag(QOS_CONTROLLER, "emaFilter")),
-      prExecutorPassFilter(&emaFilter),
       // First item in pipeline. For now, close the pipeline for QoS.
       valveFilter(
-          &prExecutorPassFilter,
+          &emaFilter,
           conf.getB(VALVE_OPENED),
           Tag(QOS_CONTROLLER, "valveFilter")) {
     this->ageFilter.addConsumer(&valveFilter);
@@ -140,8 +136,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
   // --- Filters ---
   ExecutorAgeFilter ageFilter;
   EMAFilter emaFilter;
-  DetectorFilter ipcDropFilter;
-  PrExecutorPassFilter prExecutorPassFilter;
+  ContentionDetectorFilter ipcDropFilter;
   ValveFilter valveFilter;
 
   // --- Observers ---

@@ -13,6 +13,7 @@
 
 #include "observers/qos_correction.hpp"
 
+#include "serenity/resource_helper.hpp"
 #include "serenity/wid.hpp"
 
 #include "tests/common/usage_helper.hpp"
@@ -51,7 +52,8 @@ TEST(HelperFunctionsTest, filterPrExecutorsEval) {
   ResourceUsage usage;
   usage.CopyFrom(usages.get().resource_usage(0));
 
-  std::list<ResourceUsage_Executor> ret = filterPrExecutors(usage);
+  std::list<ResourceUsage_Executor> ret =
+    DividedResourceUsage::filterPrExecutors(usage);
 
   ASSERT_EQ(3u, ret.size());
 

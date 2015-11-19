@@ -192,6 +192,15 @@ class StaticEventBus {
     }
   }
 
+  /**
+   * Useful functions for publishing.
+   */
+  static inline void publishOversubscriptionCtrlEvent(bool opened) {
+    OversubscriptionCtrlEventEnvelope envelope;
+    envelope.mutable_message()->set_enable(opened);
+    StaticEventBus::publish<OversubscriptionCtrlEventEnvelope>(envelope);
+  }
+
  private:
   // Private constructor.
   StaticEventBus() {}

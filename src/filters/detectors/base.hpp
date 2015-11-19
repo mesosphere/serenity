@@ -4,7 +4,6 @@
 #include <memory>
 #include <string>
 
-#include "serenity/config.hpp"
 #include "serenity/serenity.hpp"
 
 #include "stout/nothing.hpp"
@@ -15,7 +14,9 @@ namespace mesos {
 namespace serenity {
 
 struct Detection {
-  double_t severity;
+  Detection() : severity(None()) {}
+
+  Option<double_t> severity;
 };
 
 
@@ -25,19 +26,17 @@ struct Detection {
  */
 class BaseDetector {
  public:
-  explicit BaseDetector(const Tag& _tag,
-                        const SerenityConfig _config)
-    : tag(_tag), cfg(_config) {
+  explicit BaseDetector(const Tag& _tag) : tag(_tag) {
   }
 
   static std::shared_ptr<BaseDetector> makeDetector(std::string);
 
   virtual Result<Detection> processSample(double_t in) { return None(); }
 
+  virtual Try<Nothing> reset() { return Nothing(); }
+
  protected:
   const Tag tag;
-  SerenityConfig cfg;
-  uint64_t contentionCooldownCounter = 0;
 };
 
 

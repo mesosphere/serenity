@@ -1,7 +1,12 @@
 #ifndef SERENITY_PR_EXECUTOR_PASS_FILTER_HPP
 #define SERENITY_PR_EXECUTOR_PASS_FILTER_HPP
 
+#include <list>
 #include <string>
+
+#include "mesos/resources.hpp"
+
+#include "messages/serenity.hpp"
 
 #include "serenity/serenity.hpp"
 
@@ -12,10 +17,11 @@ namespace mesos {
 namespace serenity {
 
 /**
- * Filter which retain ResourceUsage for production executors only.
+ * Filter retaining ResourceUsage for production executors only.
  */
 class PrExecutorPassFilter :
-    public Consumer<ResourceUsage>, public Producer<ResourceUsage> {
+    public Consumer<ResourceUsage>,
+    public Producer<ResourceUsage> {
  public:
   explicit PrExecutorPassFilter(Consumer<ResourceUsage>* _consumer)
       : Producer<ResourceUsage>(_consumer) {}

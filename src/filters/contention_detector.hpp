@@ -19,6 +19,7 @@
 #include "serenity/executor_map.hpp"
 #include "serenity/executor_set.hpp"
 #include "serenity/serenity.hpp"
+#include "serenity/resource_helper.hpp"
 #include "serenity/wid.hpp"
 
 #include "stout/lambda.hpp"
@@ -29,15 +30,15 @@
 namespace mesos {
 namespace serenity {
 
-
 /**
  * DetectorFilter is able to check defined value and trigger some contentions
  * on given thresholds.
  */
-class DetectorFilter :
-    public Consumer<ResourceUsage>, public Producer<Contentions> {
+class ContentionDetectorFilter :
+    public Consumer<ResourceUsage>,
+    public Producer<Contentions> {
  public:
-  DetectorFilter(
+  ContentionDetectorFilter(
       Consumer<Contentions>* _consumer,
       const lambda::function<usage::GetterFunction>& _valueGetFunction,
       SerenityConfig _detectorConf,
@@ -49,9 +50,11 @@ class DetectorFilter :
       valueGetFunction(_valueGetFunction),
       detectorConf(_detectorConf) {}
 
-  ~DetectorFilter() {}
+  ~ContentionDetectorFilter() {}
 
   Try<Nothing> consume(const ResourceUsage& in) override;
+
+  Try<Nothing> _detect(const DividedResourceUsage& in);
 
   static const constexpr char* NAME = "Detector";
 
