@@ -17,7 +17,7 @@ void AssuranceDetector::shiftBasePoints() {
 }
 
 
-// In case of parameters change we need to recalculate internal state.
+// In case of parameters modification we need to recalculate internal state.
 void AssuranceDetector::recalculateParams() {
   this->window.clear();
   this->basePoints.clear();
