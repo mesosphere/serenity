@@ -10,12 +10,10 @@ namespace usage {
 
 //! Resource Usage getters.
 using GetterFunction = Try<double_t>(
-    const ResourceUsage_Executor& previousExec,
     const ResourceUsage_Executor& currentExec);
 
 
 inline Try<double_t> getIpc(
-    const ResourceUsage_Executor& previousExec,
     const ResourceUsage_Executor& currentExec) {
   Try<double_t> ipc = CountIpc(currentExec);
   if (ipc.isError()) return Error(ipc.error());
@@ -29,7 +27,6 @@ inline Try<double_t> getIpc(
  * in ResourceUsage.
  */
 inline Try<double_t> getEmaIpc(
-    const ResourceUsage_Executor& previousExec,
     const ResourceUsage_Executor& currentExec) {
   if (!currentExec.statistics().has_net_tcp_active_connections())
     return Error("Ema IPC is not filled");
@@ -39,7 +36,6 @@ inline Try<double_t> getEmaIpc(
 
 
 inline Try<double_t> getIps(
-    const ResourceUsage_Executor& previousExec,
     const ResourceUsage_Executor& currentExec) {
   Try<double_t> ips = CountIps(currentExec);
   if (ips.isError()) return Error(ips.error());
@@ -53,7 +49,6 @@ inline Try<double_t> getIps(
  * in ResourceUsage.
  */
 inline Try<double_t> getEmaIps(
-    const ResourceUsage_Executor& previousExec,
     const ResourceUsage_Executor& currentExec) {
   if (!currentExec.statistics().has_net_tcp_active_connections())
     return Error("Ema IPS is not filled");
@@ -63,10 +58,9 @@ inline Try<double_t> getEmaIps(
 
 
 inline Try<double_t> getCpuUsage(
-    const ResourceUsage_Executor& previousExec,
     const ResourceUsage_Executor& currentExec) {
   Try<double_t> cpuUsage =
-      CountCpuUsage(previousExec, currentExec);
+      CountSampledCpuUsage(currentExec);
   if (cpuUsage.isError()) return Error(cpuUsage.error());
 
   return cpuUsage;
@@ -78,7 +72,6 @@ inline Try<double_t> getCpuUsage(
  * in ResourceUsage.
  */
 inline Try<double_t> getEmaCpuUsage(
-    const ResourceUsage_Executor& previousExec,
     const ResourceUsage_Executor& currentExec) {
   if (!currentExec.statistics().has_net_tcp_time_wait_connections())
     return Error("Ema CpuUsage is not filled");

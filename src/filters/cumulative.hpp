@@ -9,7 +9,7 @@
 #include "mesos/mesos.hpp"
 
 #include "serenity/serenity.hpp"
-
+#include "serenity/executor_set.hpp"
 
 namespace mesos {
 namespace serenity {
@@ -17,13 +17,20 @@ namespace serenity {
 class CumulativeFilter :
     public Consumer<ResourceUsage>, public Producer<ResourceUsage> {
  public:
-  CumulativeFilter();
-
-  explicit CumulativeFilter(Consumer<ResourceUsage>* _consumer);
+  explicit CumulativeFilter(
+     Consumer<ResourceUsage>* _consumer,
+     const Tag& _tag = Tag(UNDEFINED, "CumulativeFilter"))
+     : Producer<ResourceUsage>(_consumer),
+       previousSamples(new ExecutorSet()),
+       tag(_tag) {}
 
   ~CumulativeFilter();
 
   Try<Nothing> consume(const ResourceUsage& in);
+
+ protected:
+  const Tag tag;
+  std::unique_ptr<ExecutorSet> previousSamples;
 };
 
 }  // namespace serenity

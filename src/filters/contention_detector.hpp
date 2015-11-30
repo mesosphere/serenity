@@ -45,7 +45,6 @@ class ContentionDetectorFilter :
       const Tag& _tag = Tag(QOS_CONTROLLER, "detectorFilter"))
     : tag(_tag),
       Producer<Contentions>(_consumer),
-      previousSamples(new ExecutorSet),
       detectors(new ExecutorMap<std::shared_ptr<BaseDetector>>()),
       valueGetFunction(_valueGetFunction),
       detectorConf(_detectorConf) {}
@@ -61,7 +60,6 @@ class ContentionDetectorFilter :
  protected:
   const Tag tag;
   const lambda::function<usage::GetterFunction> valueGetFunction;
-  std::unique_ptr<ExecutorSet> previousSamples;
 
   // Detections.
   std::unique_ptr<ExecutorMap<std::shared_ptr<BaseDetector>>> detectors;

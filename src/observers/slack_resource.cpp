@@ -56,7 +56,6 @@ Try<Nothing> SlackResourceObserver::consume(const ResourceUsage& usage) {
     }
   }
 
-
   const double_t maxSlack =
       (maxOversubscriptionFraction * totalAgentCpus.get()) - cpuUsage;
   if (maxSlack < slackResources) {

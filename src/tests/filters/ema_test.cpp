@@ -2,6 +2,7 @@
 
 #include <gtest/gtest.h>
 
+#include "filters/cumulative.hpp"
 #include "filters/ema.hpp"
 
 #include "process/future.hpp"
@@ -268,12 +269,17 @@ TEST(EMATest, CpuUsageEMATest) {
           FutureArg<0>(&usage),
           InvokeConsumePrintCPuUsageEma(&mockSink)));
 
-  // Second component in pipeline.
+  // Third component in pipeline.
   EMAFilter cpuUsageEMAFilter(
-      &mockSink, usage::getCpuUsage, usage::setEmaCpuUsage, 0.2);
+    &mockSink, usage::getCpuUsage, usage::setEmaCpuUsage, 0.2);
+
+  // Second component in pipeline.
+  // We need that for cumulative metrics.
+  CumulativeFilter cumulativeFilter(
+    &cpuUsageEMAFilter);
 
   // First component in pipeline.
-  JsonSource jsonSource(&cpuUsageEMAFilter);
+  JsonSource jsonSource(&cumulativeFilter);
 
   // Start test.
   ASSERT_SOME(jsonSource.RunTests("tests/fixtures/ema/test.json"));
@@ -298,13 +304,17 @@ TEST(EMATest, CpuUsageEMATestNoCpuStatistics) {
   EXPECT_CALL(mockSink, consume(_))
       .Times(0);
 
-  // Second component in pipeline.
+  // Third component in pipeline.
   EMAFilter cpuUsageEMAFilter(
-      &mockSink, usage::getCpuUsage, usage::setEmaCpuUsage, 0.2);
+    &mockSink, usage::getCpuUsage, usage::setEmaCpuUsage, 0.2);
+
+  // Second component in pipeline.
+  // We need that for cumulative metrics.
+  CumulativeFilter cumulativeFilter(
+    &cpuUsageEMAFilter);
 
   // First component in pipeline.
-  JsonSource jsonSource(&cpuUsageEMAFilter);
-
+  JsonSource jsonSource(&cumulativeFilter);
   // Start test.
   ASSERT_SOME(jsonSource.RunTests(
       "tests/fixtures/ema/insufficient_metrics_test.json"));
@@ -321,12 +331,17 @@ TEST(EMATest, CpuUsageEMATestNoisyConstSample) {
   // End of pipeline.
   MockSink<ResourceUsage> mockSink;
 
-  // Second component in pipeline.
+  // Third component in pipeline.
   EMAFilter cpuUsageEMAFilter(
-      &mockSink, usage::getCpuUsage, usage::setEmaCpuUsage, 0.2);
+    &mockSink, usage::getCpuUsage, usage::setEmaCpuUsage, 0.2);
+
+  // Second component in pipeline.
+  // We need that for cumulative metrics.
+  CumulativeFilter cumulativeFilter(
+    &cpuUsageEMAFilter);
 
   // First component in pipeline.
-  MockSource<ResourceUsage> source(&cpuUsageEMAFilter);
+  MockSource<ResourceUsage> source(&cumulativeFilter);
 
   Try<mesos::FixtureResourceUsage> usages =
       JsonUsage::ReadJson("tests/fixtures/start_json_test.json");

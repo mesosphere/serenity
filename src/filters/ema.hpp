@@ -106,7 +106,6 @@ class EMAFilter :
       double_t _alpha = ema::DEFAULT_ALPHA,
       const Tag& _tag = Tag(UNDEFINED, "emaFilter"))
     : tag(_tag), Producer<ResourceUsage>(_consumer),
-      previousSamples(new ExecutorSet),
       emaSamples(new ExecutorMap<ExponentialMovingAverage>()),
       valueGetFunction(_valueGetFunction),
       valueSetFunction(_valueSetFunction),
@@ -121,7 +120,6 @@ class EMAFilter :
   double_t alpha;
   const lambda::function<usage::GetterFunction> valueGetFunction;
   const lambda::function<usage::SetterFunction> valueSetFunction;
-  std::unique_ptr<ExecutorSet> previousSamples;
   std::unique_ptr<ExecutorMap<ExponentialMovingAverage>> emaSamples;
 };
 
