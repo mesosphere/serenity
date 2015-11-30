@@ -98,6 +98,7 @@ set(SERENITY_SOURCES
     src/estimator/serenity_estimator.cpp
     src/estimator/serenity_estimator_module.cpp
     src/filters/contention_detector.cpp
+    src/filters/cumulative.cpp
     src/filters/detectors/assurance.cpp
     src/filters/ema.cpp
     src/filters/ignore_new_executors.cpp

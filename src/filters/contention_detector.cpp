@@ -12,7 +12,6 @@ Try<Nothing> ContentionDetectorFilter::consume(const ResourceUsage& in) {
 
 Try<Nothing> ContentionDetectorFilter::_detect(
     const DividedResourceUsage& usage) {
-  std::unique_ptr<ExecutorSet> newSamples(new ExecutorSet());
   Contentions product;
 
   for (const ResourceUsage_Executor& inExec : usage.prExecutors()) {
@@ -29,7 +28,6 @@ Try<Nothing> ContentionDetectorFilter::_detect(
       // Filter out these executors.
       continue;
     }
-    newSamples->insert(inExec);
 
     // Check if change point Detector for given executor exists.
     auto cpDetector = this->detectors->find(inExec.executor_info());
@@ -44,43 +42,37 @@ Try<Nothing> ContentionDetectorFilter::_detect(
 
     } else {
       // Check if previousSample for given executor exists.
-      auto previousSample = this->previousSamples->find(inExec);
-      if (previousSample != this->previousSamples->end()) {
-        // Get proper value.
-        Try<double_t> value = this->valueGetFunction((*previousSample), inExec);
-        if (value.isError()) {
-          SERENITY_LOG(ERROR)  << value.error();
-          continue;
+      // Get proper value.
+      Try<double_t> value = this->valueGetFunction(inExec);
+      if (value.isError()) {
+        SERENITY_LOG(ERROR)  << value.error();
+        continue;
+      }
+
+      // Perform change point detection.
+      Result<Detection> cpDetected =
+          (cpDetector->second)->processSample(value.get());
+      if (cpDetected.isError()) {
+        SERENITY_LOG(ERROR)  << cpDetected.error();
+        continue;
+      }
+
+      // Detected contention.
+      if (cpDetected.isSome()) {
+        // Check if aggressors jobs are available on host.
+        if (usage.beExecutors().size() == 0) {
+          SERENITY_LOG(INFO) << "Contention spotted, however there are no "
+              << "Best effort tasks on the host. Assuming false positive.";
+          (cpDetector->second)->reset();
         }
 
-        // Perform change point detection.
-        Result<Detection> cpDetected =
-            (cpDetector->second)->processSample(value.get());
-        if (cpDetected.isError()) {
-          SERENITY_LOG(ERROR)  << cpDetected.error();
-          continue;
-        }
-
-        // Detected contention.
-        if (cpDetected.isSome()) {
-          // Check if aggressors jobs are available on host.
-          if (usage.beExecutors().size() == 0) {
-            SERENITY_LOG(INFO) << "Contention spotted, however there are no "
-                << "Best effort tasks on the host. Assuming false positive.";
-            (cpDetector->second)->reset();
-          }
-
-          product.push_back(createCpuContention(
-              cpDetected.get().severity,
-              WID(inExec.executor_info()).getWorkID(),
-              inExec.statistics().timestamp()));
-        }
+        product.push_back(createCpuContention(
+            cpDetected.get().severity,
+            WID(inExec.executor_info()).getWorkID(),
+            inExec.statistics().timestamp()));
       }
     }
   }
-
-  this->previousSamples->clear();
-  this->previousSamples = std::move(newSamples);
 
   // Continue pipeline.
   produce(product);

@@ -72,6 +72,28 @@ inline Try<double_t> CountCpuUsage(const ResourceUsage_Executor& previous,
 }
 
 
+inline Try<double_t> CountSampledCpuUsage(
+    const ResourceUsage_Executor& current) {
+  if (!current.has_statistics() ||
+      !current.statistics().has_timestamp() ||
+      !current.statistics().has_cpus_user_time_secs() ||
+      !current.statistics().has_cpus_system_time_secs()) {
+    return Error("Cannot count CPU usage, Parameter does not have required "
+                   "statistics");
+  }
+
+  double_t samplingDuration = current.statistics().timestamp();
+
+  if (samplingDuration == 0)
+    return 0;
+
+  double_t cpuTimeUsage = (current.statistics().cpus_system_time_secs() +
+                           current.statistics().cpus_user_time_secs());
+
+  return cpuTimeUsage / samplingDuration;
+}
+
+
 inline Try<double_t> CountIpc(const ResourceUsage_Executor& current) {
   if (!current.has_statistics())
     return Error("Cannot count IPC, Parameter does not have required "

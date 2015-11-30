@@ -51,7 +51,6 @@ double_t ExponentialMovingAverage::exponentialMovingAverageRegular(
 
 
 Try<Nothing> EMAFilter::consume(const ResourceUsage& in) {
-  std::unique_ptr<ExecutorSet> newSamples(new ExecutorSet());
   ResourceUsage product;
 
   for (ResourceUsage_Executor inExec : in.executors()) {
@@ -68,7 +67,6 @@ Try<Nothing> EMAFilter::consume(const ResourceUsage& in) {
       // Filter out these executors.
       continue;
     }
-    newSamples->insert(inExec);
 
     // Check if EMA for given executor exists.
     auto emaSample = this->emaSamples->find(inExec.executor_info());
@@ -81,39 +79,32 @@ Try<Nothing> EMAFilter::consume(const ResourceUsage& in) {
           inExec.executor_info(), ema));
 
     } else {
-      // Check if previousSample for given executor exists.
-      auto previousSample = this->previousSamples->find(inExec);
-      if (previousSample != this->previousSamples->end()) {
-        // Get proper value.
-        Try<double_t> value = this->valueGetFunction((*previousSample), inExec);
-        if (value.isError()) {
-          SERENITY_LOG(ERROR) << value.error();
-          continue;
-        }
-
-        // Perform EMA filtering.
-        double_t emaValue =
-          (emaSample->second).calculateEMA(
-              value.get(),
-              inExec.statistics().perf().timestamp());
-
-        // Store EMA value.
-        ResourceUsage_Executor* outExec = new ResourceUsage_Executor(inExec);
-        Try<Nothing> result = this->valueSetFunction(emaValue, outExec);
-        if (result.isError()) {
-          SERENITY_LOG(ERROR) << result.error();
-          delete outExec;
-          continue;
-        }
-
-        // Add an executor only when there was no error.
-        product.mutable_executors()->AddAllocated(outExec);
+      // Get proper value.
+      Try<double_t> value = this->valueGetFunction(inExec);
+      if (value.isError()) {
+        SERENITY_LOG(ERROR) << value.error();
+        continue;
       }
+
+      // Perform EMA filtering.
+      double_t emaValue =
+        (emaSample->second).calculateEMA(
+            value.get(),
+            inExec.statistics().perf().timestamp());
+
+      // Store EMA value.
+      ResourceUsage_Executor* outExec = new ResourceUsage_Executor(inExec);
+      Try<Nothing> result = this->valueSetFunction(emaValue, outExec);
+      if (result.isError()) {
+        SERENITY_LOG(ERROR) << result.error();
+        delete outExec;
+        continue;
+      }
+
+      // Add an executor only when there was no error.
+      product.mutable_executors()->AddAllocated(outExec);
     }
   }
-
-  this->previousSamples->clear();
-  this->previousSamples = std::move(newSamples);
 
   if (0 != product.executors_size()) {
     SERENITY_LOG(INFO) << "Continuing with "
