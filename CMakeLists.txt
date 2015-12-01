@@ -100,7 +100,7 @@ set(SERENITY_SOURCES
     src/filters/contention_detector.cpp
     src/filters/cumulative.cpp
     src/filters/detectors/assurance.cpp
-    src/filters/detectors/utilization.cpp
+    src/filters/detectors/threshold.cpp
     src/filters/ema.cpp
     src/filters/ignore_new_executors.cpp
     src/filters/pr_executor_pass.cpp
@@ -127,6 +127,7 @@ set(SERENITY_TEST_SOURCES
     src/tests/controllers/qos_controller_test.cpp
     src/tests/estimators/estimator_test.cpp
     src/tests/filters/detectors/assurance_test.cpp
+    src/tests/filters/detectors/threshold_test.cpp
     src/tests/filters/ema_test.cpp
     src/tests/filters/ignore_new_executors_test.cpp
     src/tests/filters/pr_executor_pass_test.cpp

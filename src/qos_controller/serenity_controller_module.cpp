@@ -23,7 +23,7 @@ using namespace mesos::serenity::qos_pipeline;  // NOLINT(build/namespaces)
 using namespace mesos::serenity::decider;  // NOLINT(build/namespaces)
 
 using mesos::serenity::AssuranceDetector;
-using mesos::serenity::UtilizationDetector;
+using mesos::serenity::ThresholdDetector;
 using mesos::serenity::CpuQoSPipeline;
 using mesos::serenity::SerenityConfig;
 using mesos::serenity::SerenityController;
@@ -56,7 +56,7 @@ static QoSController* createSerenityController(
 
   // UtilizationDetector configuration:
   // Cpu utilization threshold.
-  conf[UTILIZATION_DETECTOR_NAME].set(UTILIZATION_THRESHOLD, (double_t) 0.85);
+  conf[THRESHOLD_DETECTOR_NAME].set(THRESHOLD, (double_t) 0.85);
 
   conf.set(ALPHA, (double_t) 0.9);
   conf.set(ENABLED_VISUALISATION, false);

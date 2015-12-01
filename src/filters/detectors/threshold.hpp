@@ -1,5 +1,5 @@
-#ifndef SERENITY_HIGH_UTILIZATION_DETECTOR_HPP
-#define SERENITY_HIGH_UTILIZATION_DETECTOR_HPP
+#ifndef SERENITY_THRESHOLD_DETECTOR_HPP
+#define SERENITY_THRESHOLD_DETECTOR_HPP
 
 #include <list>
 #include <memory>
@@ -29,40 +29,40 @@
 namespace mesos {
 namespace serenity {
 
-#define UTILIZATION_DETECTOR_NAME "UtilizationDetector"
+#define THRESHOLD_DETECTOR_NAME "ThresholdDetector"
 
-class UtilizationDetectorConfig : public SerenityConfig {
+class ThresholdDetectorConfig : public SerenityConfig {
  public:
-  UtilizationDetectorConfig() {}
+  ThresholdDetectorConfig() {}
 
-  explicit UtilizationDetectorConfig(const SerenityConfig& customCfg) {
+  explicit ThresholdDetectorConfig(const SerenityConfig& customCfg) {
     this->initDefaults();
     this->applyConfig(customCfg);
   }
 
   void initDefaults() {
-    this->fields[detector::DETECTOR_TYPE] = UTILIZATION_DETECTOR_NAME;
+    this->fields[detector::DETECTOR_TYPE] = THRESHOLD_DETECTOR_NAME;
     //! double_t
-    //! CPU utilization threshold.
-    this->fields[detector::UTILIZATION_THRESHOLD] =
+    //! Configurable threshold.
+    this->fields[detector::THRESHOLD] =
       detector::DEFAULT_UTILIZATION_THRESHOLD;
   }
 };
 
 
 /**
- * In case of high utilization trigger a contention.
- * Utilization threshold value is configurable.
+ * In case of high value trigger a contention.
+ * Threshold value is configurable.
  */
-class UtilizationDetector : public BaseDetector {
+class ThresholdDetector : public BaseDetector {
  public:
-  explicit UtilizationDetector(
+  explicit ThresholdDetector(
       const Tag& _tag,
       const SerenityConfig& _config)
       : BaseDetector(_tag) {
-    SerenityConfig config = UtilizationDetectorConfig(_config);
-    this->cfgUtilizationThreshold =
-      config.getD(detector::UTILIZATION_THRESHOLD);
+    SerenityConfig config = ThresholdDetectorConfig(_config);
+    this->cfgThreshold =
+      config.getD(detector::THRESHOLD);
   }
 
   virtual Result<Detection> processSample(double_t in);
@@ -73,11 +73,11 @@ class UtilizationDetector : public BaseDetector {
   std::list<double_t> window;
 
   // cfg parameters.
-  double_t cfgUtilizationThreshold;
+  double_t cfgThreshold;
 };
 
 
 }  // namespace serenity
 }  // namespace mesos
 
-#endif  // SERENITY_HIGH_UTILIZATION_DETECTOR_HPP
+#endif  // SERENITY_THRESHOLD_DETECTOR_HPP
