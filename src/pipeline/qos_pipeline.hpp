@@ -9,7 +9,7 @@
 #include "filters/utilization_threshold.hpp"
 #include "filters/valve.hpp"
 #include "filters/detectors/assurance.hpp"
-#include "filters/detectors/utilization.hpp"
+#include "filters/detectors/threshold.hpp"
 
 #include "messages/serenity.hpp"
 
@@ -109,7 +109,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       cpuUtilizationFilter(
           &qoSCorrectionObserver,
           usage::getCpuUsage,
-          conf[UTILIZATION_DETECTOR_NAME],
+          conf[THRESHOLD_DETECTOR_NAME],
           Tag(QOS_CONTROLLER, "CPU-Usage detectorFilter")),
       emaFilter(
           &ipcDropFilter,
@@ -131,8 +131,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
 
     // QoSCorrection needs ResourceUsage as well.
     cumulativeFilter.addConsumer(&qoSCorrectionObserver);
-
-    emaFilter.addConsumer(&cpuUtilizationFilter);
+    cumulativeFilter.addConsumer(&cpuUtilizationFilter);
 
     // Setup Time Series export
     if (conf.getB(ENABLED_VISUALISATION)) {

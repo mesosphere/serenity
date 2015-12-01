@@ -19,6 +19,7 @@ struct Detection {
   Option<double_t> severity;
 };
 
+#define KILL_ALL_SEVERITY 999999
 
 /**
  * Sequential point detection interface.

@@ -42,7 +42,7 @@ constexpr double_t DEFAULT_QUORUM = 0.70;
 
 constexpr double_t DEFAULT_START_VALUE = 0.00001;
 
-const constexpr char* UTILIZATION_THRESHOLD = "UTILIZATION_THRESHOLD";
+const constexpr char* THRESHOLD = "THRESHOLD";
 constexpr double_t DEFAULT_UTILIZATION_THRESHOLD = 0.85;
 }  // namespace detector
 
