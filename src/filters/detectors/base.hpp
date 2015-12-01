@@ -19,6 +19,7 @@ struct Detection {
   Option<double_t> severity;
 };
 
+#define KILL_ALL_SEVERITY 999999
 
 /**
  * Sequential point detection interface.
@@ -37,6 +38,20 @@ class BaseDetector {
 
  protected:
   const Tag tag;
+
+  /**
+   * Contention Factory.
+   */
+  Detection createContention(double_t severity) {
+    Detection cpd;
+    if (severity > 0) {
+      cpd.severity = severity;
+    }
+
+    SERENITY_LOG(INFO) << " Created contention with severity = "
+    << (cpd.severity.isSome() ? std::to_string(cpd.severity.get()) : "<none>");
+    return cpd;
+  }
 };
 
 

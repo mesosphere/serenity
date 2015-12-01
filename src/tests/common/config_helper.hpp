@@ -27,6 +27,15 @@ inline SerenityConfig createAssuranceDetectorCfg(
   return cfg;
 }
 
+
+inline SerenityConfig createThresholdDetectorCfg(
+    const double_t threshold = detector::DEFAULT_UTILIZATION_THRESHOLD) {
+  SerenityConfig cfg;
+  cfg.set(detector::THRESHOLD, threshold);
+
+  return cfg;
+}
+
 }  // namespace tests
 }  // namespace serenity
 }  // namespace mesos
