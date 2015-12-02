@@ -15,27 +15,10 @@
 namespace mesos {
 namespace serenity {
 
+#define KILL_ALL_SEVERITY 999999
+
 using Contentions = std::list<mesos::Contention>;
 using QoSCorrections = std::list<slave::QoSCorrection>;
-
-inline Contention createCpuContention(
-    Option<double_t> severity,
-    WorkID victim,
-    double_t timestamp,
-    Option<WorkID> aggressor = None()) {
-  Contention contention;
-  contention.set_type(Contention_Type_CPU);
-  if (severity.isSome()) {
-    contention.set_severity(severity.get());
-  }
-  contention.set_timestamp(timestamp);
-  contention.mutable_victim()->CopyFrom(victim);
-  if (aggressor.isSome())
-    contention.mutable_aggressor()->CopyFrom(aggressor.get());
-
-  return contention;
-}
-
 
 inline slave::QoSCorrection createKillQoSCorrection(
     slave::QoSCorrection_Kill kill_msg,
@@ -45,6 +28,32 @@ inline slave::QoSCorrection createKillQoSCorrection(
   correction.mutable_kill()->CopyFrom(kill_msg);
 
   return correction;
+}
+
+
+inline Contention createCpuContention(
+  Option<double_t> severity,
+  Option<WorkID> victim = None(),
+  Option<double_t> timestamp = None(),
+  Option<WorkID> aggressor = None()) {
+  Contention contention;
+  contention.set_type(Contention_Type_CPU);
+  if (severity.isSome()) {
+    contention.set_severity(severity.get());
+  }
+
+  if (timestamp.isSome()) {
+    contention.set_timestamp(timestamp.get());
+  }
+
+  if (victim.isSome()) {
+    contention.mutable_victim()->CopyFrom(victim.get());
+  }
+
+  if (aggressor.isSome())
+    contention.mutable_aggressor()->CopyFrom(aggressor.get());
+
+  return contention;
 }
 
 

@@ -4,6 +4,8 @@
 #include "serenity/metrics_helper.hpp"
 #include "serenity/serenity.hpp"
 
+#include "stout/try.hpp"
+
 namespace mesos {
 namespace serenity {
 namespace usage {
@@ -126,6 +128,7 @@ inline Try<Nothing> setEmaCpuUsage(
 
   return Nothing();
 }
+
 
 }  // namespace usage
 }  // namespace serenity

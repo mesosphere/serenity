@@ -1,5 +1,5 @@
-#ifndef SERENITY_ASSURANCE_FR_DROP_DETECTOR_HPP
-#define SERENITY_ASSURANCE_FR_DROP_DETECTOR_HPP
+#ifndef SERENITY_ASSURANCE_DROP_ANALYZER_HPP
+#define SERENITY_ASSURANCE_DROP_ANALYZER_HPP
 
 #include <list>
 #include <memory>
@@ -7,8 +7,7 @@
 #include <iostream>
 #include <type_traits>
 
-#include "filters/detectors/base.hpp"
-#include "filters/ema.hpp"
+#include "detectors/signal_analyzers/base.hpp"
 
 #include "glog/logging.h"
 
@@ -29,19 +28,19 @@
 namespace mesos {
 namespace serenity {
 
-#define ASSURANCE_DETECTOR_NAME "AssuranceDetector"
+#define ASSURANCE_DROP_ANALYZER_NAME "AssuranceDropAnalyzer"
 
-class AssuranceDetectorConfig : public SerenityConfig {
+class AssuranceDropAnalyzerConfig : public SerenityConfig {
  public:
-  AssuranceDetectorConfig() {}
+  AssuranceDropAnalyzerConfig() {}
 
-  explicit AssuranceDetectorConfig(const SerenityConfig& customCfg) {
+  explicit AssuranceDropAnalyzerConfig(const SerenityConfig& customCfg) {
     this->initDefaults();
     this->applyConfig(customCfg);
   }
 
   void initDefaults() {
-    this->fields[detector::DETECTOR_TYPE] = ASSURANCE_DETECTOR_NAME;
+    this->fields[detector::ANALYZER_TYPE] = ASSURANCE_DROP_ANALYZER_NAME;
     //! uint64_t
     //! How far in the past we look.
     this->fields[detector::WINDOW_SIZE] =
@@ -50,7 +49,7 @@ class AssuranceDetectorConfig : public SerenityConfig {
     //! double_t
     //! Defines how much (relatively to base point) value must drop to trigger
     //! contention.
-    //! Most detectors will use that.
+    //! Most signal_analyzer will use that.
     this->fields[detector::FRACTIONAL_THRESHOLD] =
       detector::DEFAULT_FRACTIONAL_THRESHOLD;
 
@@ -67,8 +66,9 @@ class AssuranceDetectorConfig : public SerenityConfig {
 
     //! uint64_t
     //! Maximum number of checkpoints we will have in our assurance detector.
-    //! Checkpoints are the reference (base) points which we refer to in the
-    //! past when detecting drop or not. It needs to be 0 < < WINDOW_SIZE
+    //! Checkpoints are the reference assurance_test(base) points which we refer
+    //! to in the past when detecting drop or not.
+    //! It needs to be 0 < < WINDOW_SIZE
     this->fields[detector::MAX_CHECKPOINTS] =
       detector::DEFAULT_MAX_CHECKPOINTS;
 
@@ -97,19 +97,19 @@ class AssuranceDetectorConfig : public SerenityConfig {
  * - When drop appears, start tracking mean value of drop from all basePoints
  *  which voted on drop.
  * - When tracking is active, create contentions until the signal recover or
- *   detector is reset externally.
+ *   analyzer is reset externally.
  *
  *  We can use EMA value as input for better results.
  */
-class AssuranceDetector : public BaseDetector {
+class AssuranceDropAnalyzer : public SignalAnalyzer {
  public:
-  explicit AssuranceDetector(
+  explicit AssuranceDropAnalyzer(
       const Tag& _tag,
       const SerenityConfig& _config)
-    : BaseDetector(_tag),
+    : SignalAnalyzer(_tag),
       valueBeforeDrop(None()),
       quorumNum(0) {
-    SerenityConfig config = AssuranceDetectorConfig(_config);
+    SerenityConfig config = AssuranceDropAnalyzerConfig(_config);
     this->cfgWindowSize = config.getU64(detector::WINDOW_SIZE);
     this->cfgMaxCheckpoints = config.getU64(detector::MAX_CHECKPOINTS);
     this->cfgQuroum = config.getD(detector::QUORUM);
@@ -132,7 +132,7 @@ class AssuranceDetector : public BaseDetector {
   void shiftBasePoints();
 
   /**
-   * It is possible to dynamically change detector configuration.
+   * It is possible to dynamically change analyzer configuration.
    */
   void recalculateParams();
 
@@ -145,7 +145,6 @@ class AssuranceDetector : public BaseDetector {
 
   uint32_t dropVotes;
   uint32_t quorumNum;
-
 
   // cfg parameters.
   uint64_t cfgWindowSize;
@@ -160,4 +159,4 @@ class AssuranceDetector : public BaseDetector {
 }  // namespace serenity
 }  // namespace mesos
 
-#endif  // SERENITY_ASSURANCE_FR_DROP_DETECTOR_HPP
+#endif  // SERENITY_ASSURANCE_DROP_ANALYZER_HPP
