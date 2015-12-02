@@ -26,7 +26,7 @@ constexpr double_t DEFAULT_ALPHA = 0.2;
 }  // namespace ema
 
 namespace detector {
-const constexpr char* DETECTOR_TYPE = "DETECTOR_TYPE";
+const constexpr char* ANALYZER_TYPE = "ANALYZER_TYPE";
 const constexpr char* WINDOW_SIZE = "WINDOW_SIZE";
 constexpr uint64_t DEFAULT_WINDOW_SIZE = 10;
 const constexpr char* FRACTIONAL_THRESHOLD = "FRACTIONAL_THRESHOLD";

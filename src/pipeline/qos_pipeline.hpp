@@ -1,15 +1,16 @@
 #ifndef SERENITY_QOS_PIPELINE_HPP
 #define SERENITY_QOS_PIPELINE_HPP
 
-#include "filters/contention_detector.hpp"
+#include "detectors/signal_based.hpp"
+#include "detectors/too_high_cpu.hpp"
+#include "detectors/signal_analyzers/assurance.hpp"
+
 #include "filters/cumulative.hpp"
 #include "filters/ema.hpp"
 #include "filters/executor_age.hpp"
 #include "filters/pr_executor_pass.hpp"
 #include "filters/utilization_threshold.hpp"
 #include "filters/valve.hpp"
-#include "filters/detectors/assurance.hpp"
-#include "filters/detectors/threshold.hpp"
 
 #include "messages/serenity.hpp"
 
@@ -66,21 +67,29 @@ using QoSControllerPipeline = Pipeline<ResourceUsage, QoSCorrections>;
  *   {{ Cumulative Filter }}
  *            |
  *      |ResourceUsage|
- *       /           \
- *       |           |
- *       |    {{ IPC EMA Filter }}
- *       |           |          \
- *       |     |ResourceUsage|  |ResourceUsage| - {{EMA Resource Usage Export}}
- *       |           |
- *       |     {{ IPC Drop<ChangePointDetector> }}
- *       |           |
- *       |      |Contentions|
- *       |           |
- * {{ QoS Correction Observer }} // Last item.
- *            |
- *      |Corrections|
- *            |
- *    {{ PIPELINE SINK }}
+ *       /           \______________________
+ *       |           |                      \
+ *       |           |                      |
+ *       |    {{ IPC EMA Filter }}          |
+ *       |           |          \           |
+ * |ResourceUsage|   |      |ResourceUsage| - {{EMA Resource Usage Export}}
+ *       |           |                      |
+ *       |           |            {{ Cpu Usage EMA Filter }}
+ *       |           |                      |
+ *       |     |ResourceUsage|        |ResourceUsage|
+ *       |           |                      |
+ *       |           |   {{ Utilization Contention<ChangePointDetector> }}
+ *       |           |                      |
+ *       |    {{ IPC Drop<Assurance> }}     |
+ *       |           |                      |
+ *       |      |Contentions|          |Contentions|
+ *       |           |                      |
+ *       \___________\______________________/
+ *              {{ QoS Correction Observer }} // Last item.
+ *                          |
+ *                     |Corrections|
+ *                          |
+ *                  {{ PIPELINE SINK }}
  *
  * For detailed schema please see: docs/pipeline.md
  */
@@ -97,28 +106,34 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       // Last item in pipeline.
       qoSCorrectionObserver(
           this,
-          1,
+          2,  // Two contention producers for sync consmuing.
           conf["QoSCorrectionObserver"],
           &ageFilter,
           new SeniorityStrategy(conf["QoSCorrectionObserver"])),
-      ipcDropFilter(
+      ipcDropDetector(
           &qoSCorrectionObserver,
           usage::getEmaIpc,
-          conf[ASSURANCE_DETECTOR_NAME],
+          conf[ASSURANCE_DROP_ANALYZER_NAME],
           Tag(QOS_CONTROLLER, "IPC detectorFilter")),
-      cpuUtilizationFilter(
+      ipcEMAFilter(
+        &ipcDropDetector,
+        usage::getIpc,
+        usage::setEmaIpc,
+        conf.getD(ema::ALPHA),
+        Tag(QOS_CONTROLLER, "ipcEMAFilter")),
+      cpuUtilizationDetector(
           &qoSCorrectionObserver,
-          usage::getCpuUsage,
-          conf[THRESHOLD_DETECTOR_NAME],
-          Tag(QOS_CONTROLLER, "CPU-Usage detectorFilter")),
-      emaFilter(
-          &ipcDropFilter,
-          usage::getIpc,
-          usage::setEmaIpc,
-          conf.getD(ema::ALPHA),
-          Tag(QOS_CONTROLLER, "emaFilter")),
+          usage::getEmaCpuUsage,
+          conf[TooHighCpuUsageDetector::NAME],
+          Tag(QOS_CONTROLLER, "CPU Usage utilization detector")),
+      cpuEMAFilter(
+        &cpuUtilizationDetector,
+        usage::getCpuUsage,
+        usage::setEmaCpuUsage,
+        conf.getD(ema::ALPHA),
+        Tag(QOS_CONTROLLER, "cpuEMAFilter")),
       cumulativeFilter(
-        &emaFilter,
+        &ipcEMAFilter,
         Tag(QOS_CONTROLLER, "cumulativeFilter")),
       // First item in pipeline. For now, close the pipeline for QoS.
       valveFilter(
@@ -131,12 +146,12 @@ class CpuQoSPipeline : public QoSControllerPipeline {
 
     // QoSCorrection needs ResourceUsage as well.
     cumulativeFilter.addConsumer(&qoSCorrectionObserver);
-    cumulativeFilter.addConsumer(&cpuUtilizationFilter);
+    cumulativeFilter.addConsumer(&cpuUtilizationDetector);
 
     // Setup Time Series export
     if (conf.getB(ENABLED_VISUALISATION)) {
       this->addConsumer(&rawResourcesExporter);
-      emaFilter.addConsumer(&emaFilteredResourcesExporter);
+      ipcEMAFilter.addConsumer(&emaFilteredResourcesExporter);
     }
   }
 
@@ -151,9 +166,10 @@ class CpuQoSPipeline : public QoSControllerPipeline {
   // --- Filters ---
   ExecutorAgeFilter ageFilter;
   CumulativeFilter cumulativeFilter;
-  EMAFilter emaFilter;
-  ContentionDetectorFilter ipcDropFilter;
-  ContentionDetectorFilter cpuUtilizationFilter;
+  EMAFilter cpuEMAFilter;
+  EMAFilter ipcEMAFilter;
+  SignalBasedDetector ipcDropDetector;
+  TooHighCpuUsageDetector cpuUtilizationDetector;
   ValveFilter valveFilter;
 
   // --- Observers ---

@@ -1,5 +1,5 @@
-#ifndef SERENITY_BASE_DETECTOR_HPP
-#define SERENITY_BASE_DETECTOR_HPP
+#ifndef SERENITY_SIGNAL_ANALYZER_HPP
+#define SERENITY_SIGNAL_ANALYZER_HPP
 
 #include <memory>
 #include <string>
@@ -19,18 +19,14 @@ struct Detection {
   Option<double_t> severity;
 };
 
-#define KILL_ALL_SEVERITY 999999
-
 /**
- * Sequential point detection interface.
+ * Sequential signal analyzer interface.
  * It can receive and process observations sequentially over time.
  */
-class BaseDetector {
+class SignalAnalyzer {
  public:
-  explicit BaseDetector(const Tag& _tag) : tag(_tag) {
+  explicit SignalAnalyzer(const Tag& _tag) : tag(_tag) {
   }
-
-  static std::shared_ptr<BaseDetector> makeDetector(std::string);
 
   virtual Result<Detection> processSample(double_t in) { return None(); }
 
@@ -58,4 +54,4 @@ class BaseDetector {
 }  // namespace serenity
 }  // namespace mesos
 
-#endif  // SERENITY_BASE_DETECTOR_HPP
+#endif  // SERENITY_SIGNAL_ANALYZER_HPP

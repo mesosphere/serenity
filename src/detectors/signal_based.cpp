@@ -1,16 +1,16 @@
 #include <utility>
 
-#include "contention_detector.hpp"
+#include "detectors/signal_based.hpp"
 
 namespace mesos {
 namespace serenity {
 
-Try<Nothing> ContentionDetectorFilter::consume(const ResourceUsage& in) {
+Try<Nothing> SignalBasedDetector::consume(const ResourceUsage& in) {
   return this->_detect(DividedResourceUsage(in));
 }
 
 
-Try<Nothing> ContentionDetectorFilter::_detect(
+Try<Nothing> SignalBasedDetector::_detect(
     const DividedResourceUsage& usage) {
   Contentions product;
 
@@ -33,9 +33,10 @@ Try<Nothing> ContentionDetectorFilter::_detect(
     auto cpDetector = this->detectors->find(inExec.executor_info());
     if (cpDetector == this->detectors->end()) {
       // If not insert new detector using detector factory..
-      auto pair = std::pair<ExecutorInfo, std::shared_ptr<BaseDetector>>(
+      // TODO(bplotka): Construct such factory. For now take Assurance.
+      auto pair = std::pair<ExecutorInfo, std::shared_ptr<SignalAnalyzer>>(
         inExec.executor_info(),
-        std::make_shared<BaseDetector>(AssuranceDetector(tag,
+        std::make_shared<SignalAnalyzer>(AssuranceDropAnalyzer(tag,
                                                          this->detectorConf)));
 
       this->detectors->insert(pair);

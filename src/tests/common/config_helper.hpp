@@ -9,7 +9,7 @@ namespace mesos {
 namespace serenity {
 namespace tests {
 
-inline SerenityConfig createAssuranceDetectorCfg(
+inline SerenityConfig createAssuranceAnalyzerCfg(
     const uint64_t windowSize,
     const uint64_t maxCheckpoints,
     const double_t fractionalThreshold,
@@ -27,11 +27,10 @@ inline SerenityConfig createAssuranceDetectorCfg(
   return cfg;
 }
 
-
 inline SerenityConfig createThresholdDetectorCfg(
-    const double_t threshold = detector::DEFAULT_UTILIZATION_THRESHOLD) {
+  const double_t utilization = detector::DEFAULT_UTILIZATION_THRESHOLD) {
   SerenityConfig cfg;
-  cfg.set(detector::THRESHOLD, threshold);
+  cfg.set(detector::THRESHOLD, utilization);
 
   return cfg;
 }
