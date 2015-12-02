@@ -1,5 +1,5 @@
-#ifndef SERENITY_THRESHOLD_DETECTOR_HPP
-#define SERENITY_THRESHOLD_DETECTOR_HPP
+#ifndef SERENITY_TOO_HIGH_CPU_USAGE_DETECTOR_HPP
+#define SERENITY_TOO_HIGH_CPU_USAGE_DETECTOR_HPP
 
 #include <list>
 #include <string>
@@ -75,4 +75,4 @@ class TooHighCpuUsageDetector :
 }  // namespace serenity
 }  // namespace mesos
 
-#endif  // SERENITY_THRESHOLD_DETECTOR_HPP
+#endif  // SERENITY_TOO_HIGH_CPU_USAGE_DETECTOR_HPP
