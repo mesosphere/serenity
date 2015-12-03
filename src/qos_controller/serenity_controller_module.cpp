@@ -18,12 +18,14 @@
 // TODO(nnielsen): Should be explicit using-directives.
 using namespace mesos;  // NOLINT(build/namespaces)
 using namespace mesos::serenity::ema;  // NOLINT(build/namespaces)
-using namespace mesos::serenity::detector;  // NOLINT(build/namespaces)
-using namespace mesos::serenity::qos_pipeline;  // NOLINT(build/namespaces)
 using namespace mesos::serenity::decider;  // NOLINT(build/namespaces)
+using namespace mesos::serenity::detector;  // NOLINT(build/namespaces)
+using namespace mesos::serenity::too_low_usage;  // NOLINT(build/namespaces)
+using namespace mesos::serenity::qos_pipeline;  // NOLINT(build/namespaces)
 
 using mesos::serenity::AssuranceDropAnalyzer;
 using mesos::serenity::TooHighCpuUsageDetector;
+using mesos::serenity::TooLowUsageFilter;
 using mesos::serenity::CpuQoSPipeline;
 using mesos::serenity::SerenityConfig;
 using mesos::serenity::SerenityController;
@@ -55,8 +57,10 @@ static QoSController* createSerenityController(
   conf[ASSURANCE_DROP_ANALYZER_NAME].set(CONTENTION_COOLDOWN, (uint64_t) 10);
 
   // UtilizationDetector configuration:
-  // Cpu utilization threshold.
+  // CPU utilization threshold.
   conf[THRESHOLD].set(THRESHOLD, (double_t) 0.85);
+
+  conf[TooLowUsageFilter::NAME].set(MINIMAL_CPU_USAGE, (double_t) 0.25);
 
   conf.set(ALPHA, (double_t) 0.9);
   conf.set(ENABLED_VISUALISATION, false);

@@ -9,6 +9,7 @@
 #include "filters/ema.hpp"
 #include "filters/executor_age.hpp"
 #include "filters/pr_executor_pass.hpp"
+#include "filters/too_low_usage.hpp"
 #include "filters/utilization_threshold.hpp"
 #include "filters/valve.hpp"
 
@@ -69,6 +70,9 @@ using QoSControllerPipeline = Pipeline<ResourceUsage, QoSCorrections>;
  *      |ResourceUsage|
  *       /           \______________________
  *       |           |                      \
+ *       | {{ Too Low Usage Filter }}       |
+ *       |           |                      |
+ *       |    |ResourceUsage|               |
  *       |           |                      |
  *       |    {{ IPC EMA Filter }}          |
  *       |           |          \           |
@@ -121,6 +125,10 @@ class CpuQoSPipeline : public QoSControllerPipeline {
         usage::setEmaIpc,
         conf.getD(ema::ALPHA),
         Tag(QOS_CONTROLLER, "ipcEMAFilter")),
+      tooLowUsageFilter(
+        &ipcEMAFilter,
+        conf[TooLowUsageFilter::NAME],
+        Tag(QOS_CONTROLLER, "tooLowCPUUsageFilter")),
       cpuUtilizationDetector(
           &qoSCorrectionObserver,
           usage::getEmaCpuUsage,
@@ -133,7 +141,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
         conf.getD(ema::ALPHA),
         Tag(QOS_CONTROLLER, "cpuEMAFilter")),
       cumulativeFilter(
-        &ipcEMAFilter,
+        &tooLowUsageFilter,
         Tag(QOS_CONTROLLER, "cumulativeFilter")),
       // First item in pipeline. For now, close the pipeline for QoS.
       valveFilter(
@@ -170,6 +178,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
   EMAFilter ipcEMAFilter;
   SignalBasedDetector ipcDropDetector;
   TooHighCpuUsageDetector cpuUtilizationDetector;
+  TooLowUsageFilter tooLowUsageFilter;
   ValveFilter valveFilter;
 
   // --- Observers ---

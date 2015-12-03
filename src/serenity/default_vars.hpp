@@ -59,6 +59,11 @@ namespace new_executor {
 constexpr uint32_t DEFAULT_THRESHOLD_SEC = 5 * 60;  // !< Five minutes.
 }  // namespace new_executor
 
+namespace too_low_usage {
+const constexpr char* MINIMAL_CPU_USAGE = "MINIMAL_CPU_USAGE";
+constexpr double_t DEFAULT_MINIMAL_CPU_USAGE = 0.25;  // !< per sec.
+}  // namespace too_low_usage
+
 namespace decider {
 const constexpr char* CONTENTION_COOLDOWN = "CONTENTION_COOLDOWN";
 constexpr uint64_t DEFAULT_CONTENTION_COOLDOWN = 10;
