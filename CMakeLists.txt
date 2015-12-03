@@ -102,11 +102,12 @@ set(SERENITY_SOURCES
     src/detectors/too_high_cpu.cpp
     src/filters/cumulative.cpp
     src/filters/ema.cpp
+    src/filters/executor_age.cpp
     src/filters/ignore_new_executors.cpp
     src/filters/pr_executor_pass.cpp
+    src/filters/too_low_usage.cpp
     src/filters/utilization_threshold.cpp
     src/filters/valve.cpp
-    src/filters/executor_age.cpp
     src/observers/qos_correction.cpp
     src/observers/slack_resource.cpp
     src/observers/strategies/kill_all.cpp
