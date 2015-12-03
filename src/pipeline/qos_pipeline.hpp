@@ -78,9 +78,9 @@ using QoSControllerPipeline = Pipeline<ResourceUsage, QoSCorrections>;
  *       |           |                      |
  *       |     |ResourceUsage|        |ResourceUsage|
  *       |           |                      |
- *       |           |   {{ Utilization Contention<ChangePointDetector> }}
+ *       |           |        {{ Too High Utilization Detector }}
  *       |           |                      |
- *       |    {{ IPC Drop<Assurance> }}     |
+ *       |  {{ IPC Drop<Assurance> Det. }}  |
  *       |           |                      |
  *       |      |Contentions|          |Contentions|
  *       |           |                      |
