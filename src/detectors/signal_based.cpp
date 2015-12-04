@@ -34,12 +34,11 @@ Try<Nothing> SignalBasedDetector::_detect(
     if (cpDetector == this->detectors->end()) {
       // If not insert new detector using detector factory..
       // TODO(bplotka): Construct such factory. For now take Assurance.
-      auto pair = std::pair<ExecutorInfo, std::shared_ptr<SignalAnalyzer>>(
+      this->detectors->insert(std::pair<ExecutorInfo,
+        std::unique_ptr<SignalAnalyzer>>(
         inExec.executor_info(),
-        std::make_shared<SignalAnalyzer>(AssuranceDropAnalyzer(tag,
-                                                         this->detectorConf)));
-
-      this->detectors->insert(pair);
+        std::unique_ptr<SignalAnalyzer>(new AssuranceDropAnalyzer(
+          tag, this->detectorConf))));
 
     } else {
       // Check if previousSample for given executor exists.

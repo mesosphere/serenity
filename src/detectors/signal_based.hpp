@@ -41,10 +41,10 @@ class SignalBasedDetector :
       Consumer<Contentions>* _consumer,
       const lambda::function<usage::GetterFunction>& _valueGetFunction,
       SerenityConfig _detectorConf,
-      const Tag& _tag = Tag(QOS_CONTROLLER, "detectorFilter"))
+      const Tag& _tag = Tag(QOS_CONTROLLER, "SignalBasedDetector"))
     : tag(_tag),
       Producer<Contentions>(_consumer),
-      detectors(new ExecutorMap<std::shared_ptr<SignalAnalyzer>>()),
+      detectors(new ExecutorMap<std::unique_ptr<SignalAnalyzer>>()),
       valueGetFunction(_valueGetFunction),
       detectorConf(_detectorConf) {}
 
@@ -61,7 +61,7 @@ class SignalBasedDetector :
   const lambda::function<usage::GetterFunction> valueGetFunction;
 
   // Detections.
-  std::unique_ptr<ExecutorMap<std::shared_ptr<SignalAnalyzer>>> detectors;
+  std::unique_ptr<ExecutorMap<std::unique_ptr<SignalAnalyzer>>> detectors;
   SerenityConfig detectorConf;
 };
 

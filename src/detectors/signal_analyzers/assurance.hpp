@@ -131,11 +131,6 @@ class AssuranceDropAnalyzer : public SignalAnalyzer {
    */
   void shiftBasePoints();
 
-  /**
-   * It is possible to dynamically change analyzer configuration.
-   */
-  void recalculateParams();
-
  protected:
   std::list<double_t> window;
   std::list<std::list<double_t>::iterator> basePoints;
@@ -153,6 +148,11 @@ class AssuranceDropAnalyzer : public SignalAnalyzer {
   double_t cfgFractionalThreshold;
   double_t cfgSeverityFraction;
   double_t cfgNearFraction;
+
+  /**
+  * It is possible to dynamically change analyzer configuration.
+  */
+  void recalculateParams();
 };
 
 
