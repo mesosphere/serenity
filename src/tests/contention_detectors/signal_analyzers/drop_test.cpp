@@ -1,7 +1,7 @@
 #include <list>
 #include <string>
 
-#include "detectors/signal_analyzers/assurance.hpp"
+#include "contention_detectors/signal_analyzers/drop.hpp"
 
 #include "gtest/gtest.h"
 
@@ -22,10 +22,10 @@ using namespace pwave;  // NOLINT(build/namespaces)
 using std::string;
 
 /**
- * Check if AssuranceDropAnalyzer won't detect any change point
+ * Check if SignalDropAnalyzer won't detect any change point
  * under stable load.
  */
-TEST(AssuranceDropAnalyzerTest, StableSignal) {
+TEST(SignalDropAnalyzerTest, StableSignal) {
   const uint64_t WINDOWS_SIZE = 8;
   const uint64_t MAX_CHECKPOINTS = 4;
   const double_t FRACTION_THRESHOLD = 0.5;
@@ -33,8 +33,8 @@ TEST(AssuranceDropAnalyzerTest, StableSignal) {
   const double_t NEAR_FRACTION = 0;
   const uint64_t ITERATIONS = 30;
 
-  AssuranceDropAnalyzer AssuranceDropAnalyzer(
-    Tag(QOS_CONTROLLER, "AssuranceDropAnalyzer"),
+  SignalDropAnalyzer signalDropAnalyzer(
+    Tag(QOS_CONTROLLER, "SignalDropAnalyzer"),
     createAssuranceAnalyzerCfg(
         WINDOWS_SIZE,
         MAX_CHECKPOINTS,
@@ -49,14 +49,14 @@ TEST(AssuranceDropAnalyzerTest, StableSignal) {
 
   ITERATE_SIGNAL(signalGen) {
     Result<Detection> result =
-      AssuranceDropAnalyzer.processSample((*signalGen)());
+      signalDropAnalyzer.processSample((*signalGen)());
 
     EXPECT_NONE(result);
   }
 }
 
 
-TEST(AssuranceDropAnalyzerTest, StableLoadOneBigDrop) {
+TEST(SignalDropAnalyzerTest, StableLoadOneBigDrop) {
   const uint64_t WINDOWS_SIZE = 8;
   const uint64_t MAX_CHECKPOINTS = 4;
   const double_t FRACTION_THRESHOLD = 0.5;
@@ -65,8 +65,8 @@ TEST(AssuranceDropAnalyzerTest, StableLoadOneBigDrop) {
   const double_t QUORUM = 0.5;
   const uint64_t ITERATIONS = 30;
 
-  AssuranceDropAnalyzer AssuranceDropAnalyzer(
-    Tag(QOS_CONTROLLER, "AssuranceDropAnalyzer"),
+  SignalDropAnalyzer signalDropAnalyzer(
+    Tag(QOS_CONTROLLER, "SignalDropAnalyzer"),
     createAssuranceAnalyzerCfg(
       WINDOWS_SIZE,
       MAX_CHECKPOINTS,
@@ -83,7 +83,7 @@ TEST(AssuranceDropAnalyzerTest, StableLoadOneBigDrop) {
 
   ITERATE_SIGNAL(signalGen) {
     Result<Detection> result =
-      AssuranceDropAnalyzer.processSample((*signalGen)());
+      signalDropAnalyzer.processSample((*signalGen)());
 
     if (signalGen.iteration >= 10) {
       EXPECT_SOME(result);
@@ -94,7 +94,7 @@ TEST(AssuranceDropAnalyzerTest, StableLoadOneBigDrop) {
 }
 
 
-TEST(AssuranceDropAnalyzerTest, StableLoadOneBigDropWithReset) {
+TEST(SignalDropAnalyzerTest, StableLoadOneBigDropWithReset) {
   const uint64_t WINDOWS_SIZE = 8;
   const uint64_t MAX_CHECKPOINTS = 4;
   const double_t FRACTION_THRESHOLD = 0.5;
@@ -103,8 +103,8 @@ TEST(AssuranceDropAnalyzerTest, StableLoadOneBigDropWithReset) {
   const double_t QUORUM = 0.50;
   const uint64_t ITERATIONS = 30;
 
-  AssuranceDropAnalyzer AssuranceDropAnalyzer(
-    Tag(QOS_CONTROLLER, "AssuranceDropAnalyzer"),
+  SignalDropAnalyzer signalDropAnalyzer(
+    Tag(QOS_CONTROLLER, "SignalDropAnalyzer"),
     createAssuranceAnalyzerCfg(
       WINDOWS_SIZE,
       MAX_CHECKPOINTS,
@@ -121,13 +121,13 @@ TEST(AssuranceDropAnalyzerTest, StableLoadOneBigDropWithReset) {
 
   ITERATE_SIGNAL(signalGen) {
     Result<Detection> result =
-      AssuranceDropAnalyzer.processSample((*signalGen)());
+      signalDropAnalyzer.processSample((*signalGen)());
 
     // Detector should stop detecting after 4 iterations, since there are
     // 4 checkpoints with quorum 3 (so we look in the past T-4 iterations).
     if (signalGen.iteration >= 10 && signalGen.iteration < (10+4)) {
       EXPECT_SOME(result);
-      AssuranceDropAnalyzer.reset();
+      signalDropAnalyzer.reset();
     } else {
       EXPECT_NONE(result);
     }
@@ -135,7 +135,7 @@ TEST(AssuranceDropAnalyzerTest, StableLoadOneBigDropWithReset) {
 }
 
 
-TEST(AssuranceDropAnalyzerTest, StableLoadOneProgressiveDrop) {
+TEST(SignalDropAnalyzerTest, StableLoadOneProgressiveDrop) {
   const uint64_t WINDOWS_SIZE = 8;
   const uint64_t MAX_CHECKPOINTS = 4;
   const double_t FRACTION_THRESHOLD = 0.5;
@@ -144,8 +144,8 @@ TEST(AssuranceDropAnalyzerTest, StableLoadOneProgressiveDrop) {
   const double_t QUORUM = 0.5;
   const uint64_t ITERATIONS = 30;
 
-  AssuranceDropAnalyzer AssuranceDropAnalyzer(
-    Tag(QOS_CONTROLLER, "AssuranceDropAnalyzer"),
+  SignalDropAnalyzer signalDropAnalyzer(
+    Tag(QOS_CONTROLLER, "SignalDropAnalyzer"),
     createAssuranceAnalyzerCfg(
       WINDOWS_SIZE,
       MAX_CHECKPOINTS,
@@ -162,7 +162,7 @@ TEST(AssuranceDropAnalyzerTest, StableLoadOneProgressiveDrop) {
 
   ITERATE_SIGNAL(signalGen) {
     Result<Detection> result =
-      AssuranceDropAnalyzer.processSample((*signalGen)());
+      signalDropAnalyzer.processSample((*signalGen)());
 
     if (signalGen.iteration >= 15) {
       EXPECT_SOME(result);
@@ -173,7 +173,7 @@ TEST(AssuranceDropAnalyzerTest, StableLoadOneProgressiveDrop) {
 }
 
 
-TEST(AssuranceDropAnalyzerTest, StableLoadOneBigDropAndRecovery) {
+TEST(SignalDropAnalyzerTest, StableLoadOneBigDropAndRecovery) {
   const uint64_t WINDOWS_SIZE = 8;
   const uint64_t MAX_CHECKPOINTS = 4;
   const double_t FRACTION_THRESHOLD = 0.5;
@@ -182,8 +182,8 @@ TEST(AssuranceDropAnalyzerTest, StableLoadOneBigDropAndRecovery) {
   const double_t QUORUM = 0.5;
   const uint64_t ITERATIONS = 30;
 
-  AssuranceDropAnalyzer AssuranceDropAnalyzer(
-    Tag(QOS_CONTROLLER, "AssuranceDropAnalyzer"),
+  SignalDropAnalyzer signalDropAnalyzer(
+    Tag(QOS_CONTROLLER, "SignalDropAnalyzer"),
     createAssuranceAnalyzerCfg(
       WINDOWS_SIZE,
       MAX_CHECKPOINTS,
@@ -201,7 +201,7 @@ TEST(AssuranceDropAnalyzerTest, StableLoadOneBigDropAndRecovery) {
 
   ITERATE_SIGNAL(signalGen) {
     Result<Detection> result =
-      AssuranceDropAnalyzer.processSample((*signalGen)());
+      signalDropAnalyzer.processSample((*signalGen)());
 
     if (signalGen.iteration >= 10 && signalGen.iteration < 18) {
       EXPECT_SOME(result);
@@ -212,7 +212,7 @@ TEST(AssuranceDropAnalyzerTest, StableLoadOneBigDropAndRecovery) {
 }
 
 
-TEST(AssuranceDropAnalyzerTest, NoisyLoadOneBigDropLessCheckpoints) {
+TEST(SignalDropAnalyzerTest, NoisyLoadOneBigDropLessCheckpoints) {
   const uint64_t WINDOWS_SIZE = 8;
   const double_t QUORUM = 0.70;
   const uint64_t MAX_CHECKPOINTS = 4;
@@ -223,8 +223,8 @@ TEST(AssuranceDropAnalyzerTest, NoisyLoadOneBigDropLessCheckpoints) {
   const uint64_t ITERATIONS = 30;
   const uint64_t MAX_NOISE = 4;
 
-  AssuranceDropAnalyzer AssuranceDropAnalyzer(
-    Tag(QOS_CONTROLLER, "AssuranceDropAnalyzer"),
+  SignalDropAnalyzer signalDropAnalyzer(
+    Tag(QOS_CONTROLLER, "SignalDropAnalyzer"),
     createAssuranceAnalyzerCfg(
       WINDOWS_SIZE,
       MAX_CHECKPOINTS,
@@ -241,7 +241,7 @@ TEST(AssuranceDropAnalyzerTest, NoisyLoadOneBigDropLessCheckpoints) {
 
   ITERATE_SIGNAL(signalGen) {
     Result<Detection> result =
-      AssuranceDropAnalyzer.processSample((*signalGen)());
+      signalDropAnalyzer.processSample((*signalGen)());
 
     if (signalGen.iteration >= 11) {
       EXPECT_SOME(result);
@@ -252,7 +252,7 @@ TEST(AssuranceDropAnalyzerTest, NoisyLoadOneBigDropLessCheckpoints) {
 }
 
 
-TEST(AssuranceDropAnalyzerTest, NoisyLoadOneBigDropMoreCheckpoints) {
+TEST(SignalDropAnalyzerTest, NoisyLoadOneBigDropMoreCheckpoints) {
   const uint64_t WINDOWS_SIZE = 16;
   const uint64_t MAX_CHECKPOINTS = 5;
   const double_t QUORUM = 0.70;
@@ -263,8 +263,8 @@ TEST(AssuranceDropAnalyzerTest, NoisyLoadOneBigDropMoreCheckpoints) {
   const uint64_t ITERATIONS = 30;
   const uint64_t MAX_NOISE = 4;
 
-  AssuranceDropAnalyzer AssuranceDropAnalyzer(
-    Tag(QOS_CONTROLLER, "AssuranceDropAnalyzer"),
+  SignalDropAnalyzer signalDropAnalyzer(
+    Tag(QOS_CONTROLLER, "SignalDropAnalyzer"),
     createAssuranceAnalyzerCfg(
       WINDOWS_SIZE,
       MAX_CHECKPOINTS,
@@ -281,7 +281,7 @@ TEST(AssuranceDropAnalyzerTest, NoisyLoadOneBigDropMoreCheckpoints) {
 
   ITERATE_SIGNAL(signalGen) {
     Result<Detection> result =
-      AssuranceDropAnalyzer.processSample((*signalGen)());
+      signalDropAnalyzer.processSample((*signalGen)());
 
     if (signalGen.iteration >= 11) {
       EXPECT_SOME(result);

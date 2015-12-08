@@ -8,8 +8,8 @@
 
 #include "glog/logging.h"
 
-#include "detectors/signal_analyzers/assurance.hpp"
-#include "detectors/signal_analyzers/base.hpp"
+#include "contention_detectors/signal_analyzers/drop.hpp"
+#include "contention_detectors/signal_analyzers/base.hpp"
 
 #include "messages/serenity.hpp"
 
@@ -54,7 +54,7 @@ class SignalBasedDetector :
 
   Try<Nothing> _detect(const DividedResourceUsage& in);
 
-  static const constexpr char* NAME = "Detector";
+  static const constexpr char* NAME = "SignalBasedDetector";
 
  protected:
   const Tag tag;
