@@ -18,11 +18,14 @@
 // TODO(nnielsen): Should be explicit using-directives.
 using namespace mesos;  // NOLINT(build/namespaces)
 using namespace mesos::serenity::ema;  // NOLINT(build/namespaces)
-using namespace mesos::serenity::detector;  // NOLINT(build/namespaces)
-using namespace mesos::serenity::qos_pipeline;  // NOLINT(build/namespaces)
 using namespace mesos::serenity::decider;  // NOLINT(build/namespaces)
+using namespace mesos::serenity::detector;  // NOLINT(build/namespaces)
+using namespace mesos::serenity::too_low_usage;  // NOLINT(build/namespaces)
+using namespace mesos::serenity::qos_pipeline;  // NOLINT(build/namespaces)
 
-using mesos::serenity::AssuranceDetector;
+using mesos::serenity::SignalBasedDetector;
+using mesos::serenity::TooHighCpuUsageDetector;
+using mesos::serenity::TooLowUsageFilter;
 using mesos::serenity::CpuQoSPipeline;
 using mesos::serenity::SerenityConfig;
 using mesos::serenity::SerenityController;
@@ -40,18 +43,24 @@ static QoSController* createSerenityController(
   // --Hardcoded configuration for Serenity QoS Controller---
 
   SerenityConfig conf;
-  // Detector configuration:
+  // AssuranceDropAnalyzer configuration:
   // How far we look back in samples.
-  conf["Detector"].set(WINDOW_SIZE, (uint64_t) 10);
+  conf[SIGNAL_DROP_ANALYZER_NAME].set(WINDOW_SIZE, (uint64_t) 10);
   // Defines how much (relatively to base point) value must drop to trigger
   // contention.
-  // Most detectors will use that.
-  conf["Detector"].set(FRACTIONAL_THRESHOLD, (double_t) 0.3);
-  conf["Detector"].set(SEVERITY_FRACTION, (double_t) 2.1);
+  // Most signal_analyzer will use that.
+  conf[SIGNAL_DROP_ANALYZER_NAME].set(FRACTIONAL_THRESHOLD, (double_t) 0.3);
+  conf[SIGNAL_DROP_ANALYZER_NAME].set(SEVERITY_FRACTION, (double_t) 2.1);
 
   // How many iterations detector will wait with creating another
   // contention.
-  conf["QoSCorrectionObserver"].set(CONTENTION_COOLDOWN, (uint64_t) 10);
+  conf[SIGNAL_DROP_ANALYZER_NAME].set(CONTENTION_COOLDOWN, (uint64_t) 10);
+
+  // UtilizationDetector configuration:
+  // CPU utilization threshold.
+  conf[THRESHOLD].set(THRESHOLD, (double_t) 0.85);
+
+  conf[TooLowUsageFilter::NAME].set(MINIMAL_CPU_USAGE, (double_t) 0.25);
 
   conf.set(ALPHA, (double_t) 0.9);
   conf.set(ENABLED_VISUALISATION, false);

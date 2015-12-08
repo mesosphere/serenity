@@ -26,7 +26,7 @@ constexpr double_t DEFAULT_ALPHA = 0.2;
 }  // namespace ema
 
 namespace detector {
-const constexpr char* DETECTOR_TYPE = "DETECTOR_TYPE";
+const constexpr char* ANALYZER_TYPE = "ANALYZER_TYPE";
 const constexpr char* WINDOW_SIZE = "WINDOW_SIZE";
 constexpr uint64_t DEFAULT_WINDOW_SIZE = 10;
 const constexpr char* FRACTIONAL_THRESHOLD = "FRACTIONAL_THRESHOLD";
@@ -41,6 +41,9 @@ const constexpr char* QUORUM = "QUORUM";
 constexpr double_t DEFAULT_QUORUM = 0.70;
 
 constexpr double_t DEFAULT_START_VALUE = 0.00001;
+
+const constexpr char* THRESHOLD = "THRESHOLD";
+constexpr double_t DEFAULT_UTILIZATION_THRESHOLD = 0.85;
 }  // namespace detector
 
 namespace slack_observer {
@@ -55,6 +58,11 @@ constexpr double_t DEFAULT_THRESHOLD = 0.95;
 namespace new_executor {
 constexpr uint32_t DEFAULT_THRESHOLD_SEC = 5 * 60;  // !< Five minutes.
 }  // namespace new_executor
+
+namespace too_low_usage {
+const constexpr char* MINIMAL_CPU_USAGE = "MINIMAL_CPU_USAGE";
+constexpr double_t DEFAULT_MINIMAL_CPU_USAGE = 0.25;  // !< per sec.
+}  // namespace too_low_usage
 
 namespace decider {
 const constexpr char* CONTENTION_COOLDOWN = "CONTENTION_COOLDOWN";

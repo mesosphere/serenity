@@ -97,14 +97,17 @@ set(SERENITY_SOURCES
     src/bus/event_bus.cpp
     src/estimator/serenity_estimator.cpp
     src/estimator/serenity_estimator_module.cpp
-    src/filters/contention_detector.cpp
-    src/filters/detectors/assurance.cpp
+    src/contention_detectors/signal_based.cpp
+    src/contention_detectors/signal_analyzers/drop.cpp
+    src/contention_detectors/too_high_cpu.cpp
+    src/filters/cumulative.cpp
     src/filters/ema.cpp
+    src/filters/executor_age.cpp
     src/filters/ignore_new_executors.cpp
     src/filters/pr_executor_pass.cpp
+    src/filters/too_low_usage.cpp
     src/filters/utilization_threshold.cpp
     src/filters/valve.cpp
-    src/filters/executor_age.cpp
     src/observers/qos_correction.cpp
     src/observers/slack_resource.cpp
     src/observers/strategies/kill_all.cpp
@@ -123,8 +126,9 @@ set(SERENITY_TEST_SOURCES
     src/tests/bus/event_bus_tests.cpp
     src/tests/common/sources/json_source.cpp
     src/tests/controllers/qos_controller_test.cpp
+    src/tests/contention_detectors/signal_analyzers/drop_test.cpp
+    #src/tests/filters/contention_detectors/threshold_test.cpp
     src/tests/estimators/estimator_test.cpp
-    src/tests/filters/detectors/assurance_test.cpp
     src/tests/filters/ema_test.cpp
     src/tests/filters/ignore_new_executors_test.cpp
     src/tests/filters/pr_executor_pass_test.cpp

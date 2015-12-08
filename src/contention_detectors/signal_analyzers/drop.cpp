@@ -1,7 +1,7 @@
 #include <list>
 #include <utility>
 
-#include "filters/detectors/assurance.hpp"
+#include "contention_detectors/signal_analyzers/drop.hpp"
 
 #include "messages/serenity.hpp"
 
@@ -10,27 +10,15 @@
 namespace mesos {
 namespace serenity {
 
-void AssuranceDetector::shiftBasePoints() {
+void SignalDropAnalyzer::shiftBasePoints() {
   for (std::list<double_t>::iterator& basePoint : this->basePoints) {
     basePoint++;
   }
 }
 
 
-Detection AssuranceDetector::createContention(double_t severity = -1) {
-  Detection cpd;
-  if (severity > 0) {
-    cpd.severity = severity;
-  }
-
-  SERENITY_LOG(INFO) << " Created contention with severity = "
-    << (cpd.severity.isSome() ? std::to_string(cpd.severity.get()) : "<none>");
-  return cpd;
-}
-
-
-// In case of parameters change we need to recalculate internal state.
-void AssuranceDetector::recalculateParams() {
+// In case of parameters modification we need to recalculate internal state.
+void SignalDropAnalyzer::recalculateParams() {
   this->window.clear();
   this->basePoints.clear();
 
@@ -79,7 +67,7 @@ void AssuranceDetector::recalculateParams() {
 }
 
 
-Result<Detection> AssuranceDetector::processSample(double_t in) {
+Result<Detection> SignalDropAnalyzer::processSample(double_t in) {
   // Fill window.
   if (in < 0.1)
     in = 0.1;
@@ -96,7 +84,7 @@ Result<Detection> AssuranceDetector::processSample(double_t in) {
 }
 
 
-Try<Nothing> AssuranceDetector::reset() {
+Try<Nothing> SignalDropAnalyzer::reset() {
   // Return detector to normal state.
   SERENITY_LOG(INFO) << "Resetting any drop tracking if exists.";
   this->valueBeforeDrop = None();
@@ -105,9 +93,7 @@ Try<Nothing> AssuranceDetector::reset() {
 }
 
 
-Result<Detection> AssuranceDetector::_processSample(
-    double_t in) {
-
+Result<Detection> SignalDropAnalyzer::_processSample(double_t in) {
   // Check if we track some contention.
   if (this->valueBeforeDrop.isSome()) {
     // Check if the signal returned to normal state. (!)

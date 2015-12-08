@@ -1,5 +1,5 @@
-#ifndef SERENITY_DETECTOR_FILTER_HPP
-#define SERENITY_DETECTOR_FILTER_HPP
+#ifndef SERENITY_SIGNAL_BASED_DETECTOR_FILTER_HPP
+#define SERENITY_SIGNAL_BASED_DETECTOR_FILTER_HPP
 
 #include <list>
 #include <memory>
@@ -8,9 +8,8 @@
 
 #include "glog/logging.h"
 
-#include "filters/detectors/assurance.hpp"
-#include "filters/detectors/base.hpp"
-#include "filters/ema.hpp"
+#include "contention_detectors/signal_analyzers/drop.hpp"
+#include "contention_detectors/signal_analyzers/base.hpp"
 
 #include "messages/serenity.hpp"
 
@@ -31,44 +30,42 @@ namespace mesos {
 namespace serenity {
 
 /**
- * DetectorFilter is able to check defined value and trigger some contentions
+ * SignalBasedDetector is able to check defined value and trigger some contentions
  * on given thresholds.
  */
-class ContentionDetectorFilter :
+class SignalBasedDetector :
     public Consumer<ResourceUsage>,
     public Producer<Contentions> {
  public:
-  ContentionDetectorFilter(
+  SignalBasedDetector(
       Consumer<Contentions>* _consumer,
       const lambda::function<usage::GetterFunction>& _valueGetFunction,
       SerenityConfig _detectorConf,
-      const Tag& _tag = Tag(QOS_CONTROLLER, "detectorFilter"))
+      const Tag& _tag = Tag(QOS_CONTROLLER, "SignalBasedDetector"))
     : tag(_tag),
       Producer<Contentions>(_consumer),
-      previousSamples(new ExecutorSet),
-      detectors(new ExecutorMap<std::shared_ptr<BaseDetector>>()),
+      detectors(new ExecutorMap<std::unique_ptr<SignalAnalyzer>>()),
       valueGetFunction(_valueGetFunction),
       detectorConf(_detectorConf) {}
 
-  ~ContentionDetectorFilter() {}
+  ~SignalBasedDetector() {}
 
   Try<Nothing> consume(const ResourceUsage& in) override;
 
   Try<Nothing> _detect(const DividedResourceUsage& in);
 
-  static const constexpr char* NAME = "Detector";
+  static const constexpr char* NAME = "SignalBasedDetector";
 
  protected:
   const Tag tag;
   const lambda::function<usage::GetterFunction> valueGetFunction;
-  std::unique_ptr<ExecutorSet> previousSamples;
 
   // Detections.
-  std::unique_ptr<ExecutorMap<std::shared_ptr<BaseDetector>>> detectors;
+  std::unique_ptr<ExecutorMap<std::unique_ptr<SignalAnalyzer>>> detectors;
   SerenityConfig detectorConf;
 };
 
 }  // namespace serenity
 }  // namespace mesos
 
-#endif  // SERENITY_DETECTOR_FILTER_HPP
+#endif  // SERENITY_SIGNAL_BASED_DETECTOR_FILTER_HPP
