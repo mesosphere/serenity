@@ -1,9 +1,9 @@
 #ifndef SERENITY_QOS_PIPELINE_HPP
 #define SERENITY_QOS_PIPELINE_HPP
 
-#include "detectors/signal_based.hpp"
-#include "detectors/too_high_cpu.hpp"
-#include "detectors/signal_analyzers/assurance.hpp"
+#include "contention_detectors/signal_based.hpp"
+#include "contention_detectors/too_high_cpu.hpp"
+#include "contention_detectors/signal_analyzers/drop.hpp"
 
 #include "filters/cumulative.hpp"
 #include "filters/ema.hpp"
@@ -84,7 +84,7 @@ using QoSControllerPipeline = Pipeline<ResourceUsage, QoSCorrections>;
  *       |           |                      |
  *       |           |        {{ Too High Utilization Detector }}
  *       |           |                      |
- *       |  {{ IPC Drop<Assurance> Det. }}  |
+ *       |  {{ IPC Signal Detector<Drop> Det. }}  |
  *       |           |                      |
  *       |      |Contentions|          |Contentions|
  *       |           |                      |
@@ -117,7 +117,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       ipcDropDetector(
           &qoSCorrectionObserver,
           usage::getEmaIpc,
-          conf[ASSURANCE_DROP_ANALYZER_NAME],
+          conf[SIGNAL_DROP_ANALYZER_NAME],
           Tag(QOS_CONTROLLER, "IPC detectorFilter")),
       ipcEMAFilter(
         &ipcDropDetector,

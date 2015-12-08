@@ -1,5 +1,5 @@
-#ifndef SERENITY_ASSURANCE_DROP_ANALYZER_HPP
-#define SERENITY_ASSURANCE_DROP_ANALYZER_HPP
+#ifndef SERENITY_SIGNAL_DROP_ANALYZER_HPP
+#define SERENITY_SIGNAL_DROP_ANALYZER_HPP
 
 #include <list>
 #include <memory>
@@ -7,7 +7,7 @@
 #include <iostream>
 #include <type_traits>
 
-#include "detectors/signal_analyzers/base.hpp"
+#include "contention_detectors/signal_analyzers/base.hpp"
 
 #include "glog/logging.h"
 
@@ -28,19 +28,19 @@
 namespace mesos {
 namespace serenity {
 
-#define ASSURANCE_DROP_ANALYZER_NAME "AssuranceDropAnalyzer"
+#define SIGNAL_DROP_ANALYZER_NAME "AssuranceDropAnalyzer"
 
-class AssuranceDropAnalyzerConfig : public SerenityConfig {
+class SignalDropAnalyzerConfig : public SerenityConfig {
  public:
-  AssuranceDropAnalyzerConfig() {}
+  SignalDropAnalyzerConfig() {}
 
-  explicit AssuranceDropAnalyzerConfig(const SerenityConfig& customCfg) {
+  explicit SignalDropAnalyzerConfig(const SerenityConfig& customCfg) {
     this->initDefaults();
     this->applyConfig(customCfg);
   }
 
   void initDefaults() {
-    this->fields[detector::ANALYZER_TYPE] = ASSURANCE_DROP_ANALYZER_NAME;
+    this->fields[detector::ANALYZER_TYPE] = SIGNAL_DROP_ANALYZER_NAME;
     //! uint64_t
     //! How far in the past we look.
     this->fields[detector::WINDOW_SIZE] =
@@ -101,15 +101,15 @@ class AssuranceDropAnalyzerConfig : public SerenityConfig {
  *
  *  We can use EMA value as input for better results.
  */
-class AssuranceDropAnalyzer : public SignalAnalyzer {
+class SignalDropAnalyzer : public SignalAnalyzer {
  public:
-  explicit AssuranceDropAnalyzer(
+  explicit SignalDropAnalyzer(
       const Tag& _tag,
       const SerenityConfig& _config)
     : SignalAnalyzer(_tag),
       valueBeforeDrop(None()),
       quorumNum(0) {
-    SerenityConfig config = AssuranceDropAnalyzerConfig(_config);
+    SerenityConfig config = SignalDropAnalyzerConfig(_config);
     this->cfgWindowSize = config.getU64(detector::WINDOW_SIZE);
     this->cfgMaxCheckpoints = config.getU64(detector::MAX_CHECKPOINTS);
     this->cfgQuroum = config.getD(detector::QUORUM);
@@ -159,4 +159,4 @@ class AssuranceDropAnalyzer : public SignalAnalyzer {
 }  // namespace serenity
 }  // namespace mesos
 
-#endif  // SERENITY_ASSURANCE_DROP_ANALYZER_HPP
+#endif  // SERENITY_SIGNAL_DROP_ANALYZER_HPP

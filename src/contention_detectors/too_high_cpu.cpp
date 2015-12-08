@@ -1,7 +1,7 @@
 #include <string>
 #include <utility>
 
-#include "detectors/too_high_cpu.hpp"
+#include "contention_detectors/too_high_cpu.hpp"
 
 #include "mesos/resources.hpp"
 

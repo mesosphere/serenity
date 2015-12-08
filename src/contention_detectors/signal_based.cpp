@@ -1,6 +1,6 @@
 #include <utility>
 
-#include "detectors/signal_based.hpp"
+#include "contention_detectors/signal_based.hpp"
 
 namespace mesos {
 namespace serenity {
@@ -37,7 +37,7 @@ Try<Nothing> SignalBasedDetector::_detect(
       this->detectors->insert(std::pair<ExecutorInfo,
         std::unique_ptr<SignalAnalyzer>>(
         inExec.executor_info(),
-        std::unique_ptr<SignalAnalyzer>(new AssuranceDropAnalyzer(
+        std::unique_ptr<SignalAnalyzer>(new SignalDropAnalyzer(
           tag, this->detectorConf))));
 
     } else {
