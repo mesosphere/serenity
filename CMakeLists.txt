@@ -197,11 +197,13 @@ if (MESOS_SOURCE_DIR)
         ${MESOS_SOURCE_DIR}/build/src/
         ${MESOS_SOURCE_DIR}/src/
         src/framework/
+        src/time_series_export/
     )
     # Serenity test framework exe.
     add_executable(test-framework
-        src/framework/smoke_test_framework.cpp)
-    target_link_libraries(test-framework mesos protobuf glog stdc++ m)
+        src/framework/smoke_test_framework.cpp
+        src/time_series_export/backend/influx_db8.cpp)
+    target_link_libraries(test-framework mesos protobuf glog stdc++ m curlcpp)
 
 else(MESOS_SOURCE_DIR)
     message(

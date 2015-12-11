@@ -22,13 +22,13 @@ enum class Series : uint8_t {
   CPU_USAGE_SYS,
   CPU_USAGE_USR,
   CPU_USAGE_SUM,
-
   CPU_ALLOC,
   CYCLES,
   INSTRUCTIONS,
   CPI,
   IPC,
-  CACHE_MISSES
+  CACHE_MISSES,
+  REVOKATED_TASKS
 };
 
 
@@ -52,6 +52,7 @@ static std::string SeriesString(Series series) {
  * Enum of commonly used column names for storing serenity data
  */
 enum class TsTag : uint8_t {
+  TASK_ID,
   EXECUTOR_ID,
   FRAMEWORK_ID,
   HOSTNAME,
@@ -62,6 +63,7 @@ enum class TsTag : uint8_t {
 
 static std::string TagString(TsTag tag) {
   switch (tag) {
+    case TsTag::TASK_ID:      return "taskId";
     case TsTag::EXECUTOR_ID:  return "executorId";
     case TsTag::FRAMEWORK_ID: return "frameworkId";
     case TsTag::HOSTNAME:     return "node";
