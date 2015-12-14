@@ -247,7 +247,7 @@ class SerenityNoExecutorScheduler : public Scheduler
       if (status.state() == TASK_LOST &&
           status.reason() ==  TaskStatus::REASON_EXECUTOR_PREEMPTED) {
         // Executor was preempted.
-        TimeSeriesRecord record(Series::REVOKATED_TASKS);
+        TimeSeriesRecord record(Series::REVOCATED_TASKS);
         record.setTag(TsTag::TASK_ID, status.task_id().value());
         record.setTag(TsTag::EXECUTOR_ID, status.executor_id().value());
         record.setTag(TsTag::HOSTNAME, task->second); //get hostname

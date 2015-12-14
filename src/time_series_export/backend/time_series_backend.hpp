@@ -28,7 +28,7 @@ enum class Series : uint8_t {
   CPI,
   IPC,
   CACHE_MISSES,
-  REVOKATED_TASKS
+  REVOCATED_TASKS
 };
 
 
