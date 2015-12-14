@@ -44,17 +44,23 @@
 
 #include "logging/logging.hpp"
 
+#include "time_series_export/backend/influx_db8.hpp"
+#include "time_series_export/backend/time_series_backend.hpp"
+
 #include "smoke_flags.hpp"
 #include "smoke_job.hpp"
 #include "smoke_queue.hpp"
 
 using namespace mesos;
 using namespace mesos::internal;
+using namespace mesos::serenity;
 
 using std::list;
 using std::map;
+using std::pair;
 using std::string;
 using std::vector;
+
 
 using mesos::Resources;
 
@@ -87,7 +93,8 @@ class SerenityNoExecutorScheduler : public Scheduler
       tasksFinished(0u),
       tasksTerminated(0u),
       jobsScheduled(0u),
-      jobs(_jobs) {
+      jobs(_jobs),
+      dbBackend(new InfluxDb8Backend()) {
     this->queue[ANY_HOSTNAME] = SmokeAliasQueue();
 
     for (auto& job : this->jobs) {
@@ -187,7 +194,9 @@ class SerenityNoExecutorScheduler : public Scheduler
 
         tasks.push_back(job->createTask(offer.slave_id()));
 
-        this->activeTasks.insert(tasks.back().task_id());
+        this->activeTasks.insert(std::pair<TaskID, string>(
+            tasks.back().task_id(), offer.hostname()));
+
         job->tasksLaunched++;
         tasksLaunched++;
         LOG(INFO) << "Prepared " << tasks.back().task_id();
@@ -218,7 +227,8 @@ class SerenityNoExecutorScheduler : public Scheduler
       SchedulerDriver* driver,
       const TaskStatus& status)
   {
-    if (!activeTasks.contains(status.task_id())) {
+    auto task = activeTasks.find(status.task_id());
+    if (task == activeTasks.end()) {
       LOG(WARNING) << "Unknown task '" << status.task_id() << "'"
                    << " is in state " << status.state();
       return;
@@ -233,6 +243,19 @@ class SerenityNoExecutorScheduler : public Scheduler
                      ? " with reason " + stringify(status.reason()) : "")
                  << " from source " << status.source()
                  << " with message '" << status.message() << "'";
+
+      if (status.state() == TASK_LOST &&
+          status.reason() ==  TaskStatus::REASON_EXECUTOR_PREEMPTED) {
+        // Executor was preempted.
+        TimeSeriesRecord record(Series::REVOKATED_TASKS);
+        record.setTag(TsTag::TASK_ID, status.task_id().value());
+        record.setTag(TsTag::EXECUTOR_ID, status.executor_id().value());
+        record.setTag(TsTag::HOSTNAME, task->second); //get hostname
+
+        dbBackend->PutMetric(record);
+        LOG(INFO) << "Sending data about preempted task to InfluxDB.";
+      }
+
     } else {
       LOG(INFO) << "Task '" << status.task_id() << "'"
                 << " is in state " << status.state();
@@ -302,8 +325,9 @@ private:
   size_t tasksLaunched;
   size_t tasksFinished;
   size_t tasksTerminated;
-  hashset<TaskID> activeTasks;
+  hashmap<TaskID, string> activeTasks;
   size_t jobsScheduled;
+  std::shared_ptr<TimeSeriesBackend> dbBackend;
 
   bool allJobsScheduled() {
     return jobsScheduled >= jobs.size();
