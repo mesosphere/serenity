@@ -95,27 +95,33 @@ class SerenityNoExecutorScheduler : public Scheduler
       jobsScheduled(0u),
       jobs(_jobs),
       dbBackend(new InfluxDb8Backend()) {
-    this->queue[ANY_HOSTNAME] = SmokeAliasQueue();
+    anyHostnameQueue = SmokeAliasQueue();
 
-    for (auto& job : this->jobs) {
+    // For all jobs with specified target hostname.
+    for (auto& job : jobs) {
       if (job->targetHostname.isNone()) continue;
 
-      auto jobQueue = this->queue.find(job->targetHostname.get());
-      if (jobQueue == this->queue.end()) {
-        this->queue[job->targetHostname.get()] = SmokeAliasQueue();
+      // Add job for targeted queue.
+      auto jobQueue = queue.find(job->targetHostname.get());
+      if (jobQueue == queue.end()) {
+        queue[job->targetHostname.get()] = SmokeAliasQueue();
       }
 
-      // Add job for targeted queue.
-      this->queue[job->targetHostname.get()]
+      queue[job->targetHostname.get()]
         .add(job);
     }
 
-    for (auto& job : this->jobs) {
+    // For all jobs with not specified target hostname.
+    for (auto& job : jobs) {
       if (job->targetHostname.isSome()) continue;
 
-      for (std::pair<string, SmokeAliasQueue> jobQueue : this->queue) {
-        this->queue[jobQueue.first].add(job);
+      // Add job to all targeted queues.
+      for (std::pair<string, SmokeAliasQueue> jobQueue : queue) {
+        queue[jobQueue.first].add(job);
       }
+
+      // Additionaly add job to anyHostname queue.
+      anyHostnameQueue.add(job);
     }
 
     LOG(INFO) << "SerenityNoExecutorScheduler initialized. Jobs: "
@@ -152,7 +158,7 @@ class SerenityNoExecutorScheduler : public Scheduler
   {
     for (const Offer& offer : offers) {
       // Check each offer.
-      if (this->allJobsScheduled()) {
+      if (allJobsScheduled()) {
         // In case of end of our scheduling - fully resign from any offer.
         LOG(INFO) << "End of scheduling. Decling offers";
         Filters filters;
@@ -167,16 +173,17 @@ class SerenityNoExecutorScheduler : public Scheduler
       Resources remaining = offer.resources();
       vector<TaskInfo> tasks;
       while(!allJobsScheduled()) {
-        auto jobQueue = this->queue.find(offer.hostname());
-        if (jobQueue == this->queue.end()) {
-          break;
+        auto jobQueuePair = queue.find(offer.hostname());
+        auto jobQueue = anyHostnameQueue;
+        if (jobQueuePair != queue.end()) {
+          jobQueue = jobQueuePair->second;
         }
 
-        if (jobQueue->second.finished) break;
-        std::shared_ptr<SmokeJob> job = jobQueue->second.selectJob();
+        if (jobQueue.finished) break;
+        std::shared_ptr<SmokeJob> job = jobQueue.selectJob();
         if (job == nullptr) break;
         if (job->finished()) {
-          jobQueue->second.removeAndReset(job);
+          jobQueue.removeAndReset(job);
           continue;
         }
 
@@ -206,7 +213,7 @@ class SerenityNoExecutorScheduler : public Scheduler
           job->scheduled = true;
           this->jobsScheduled++;
           // Recalculate Alias alghoritm.
-          jobQueue->second.removeAndReset(job);
+          jobQueue.removeAndReset(job);
         }
       }
 
@@ -322,6 +329,7 @@ private:
   FrameworkInfo frameworkInfo;
   list<std::shared_ptr<SmokeJob>> jobs;
   map<string, SmokeAliasQueue> queue;
+  SmokeAliasQueue anyHostnameQueue;
   size_t tasksLaunched;
   size_t tasksFinished;
   size_t tasksTerminated;

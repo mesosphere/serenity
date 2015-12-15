@@ -50,15 +50,20 @@ std::ostream& operator << (std::ostream& stream, const QueueBlock& job) {
 class SmokeAliasQueue {
  public:
   SmokeAliasQueue() : totalShares(0), initialized(false),
-                 localIndex(0), finished(false) {}
+                 localIndex(0), finished(true) {}
 
   void add(std::shared_ptr<SmokeJob> job) {
+    finished = false;
     this->jobs.push_back(QueueBlock(job, job->shares, localIndex));
     localIndex++;
   }
 
   // Seleting is O(1)
   std::shared_ptr<SmokeJob> selectJob() {
+    if (jobs.size() == 0) {
+      LOG(ERROR) << "Cannot select job when there is no job in queue";
+      return nullptr;
+    }
     if (!initialized) this->runAliasAlgorithm();
     uint32_t chosenBlock = intRand(generator);
     double_t chosenProbability = doubleRand(generator);
@@ -97,7 +102,7 @@ class SmokeAliasQueue {
   */
   void runAliasAlgorithm() {
     totalShares = 0;
-    for (auto& job : this->jobs) {
+    for (auto& job : jobs) {
       // Reset default values.
       job.baseProbability = job.originalProbability;
       totalShares += job.baseJob->shares;
@@ -105,8 +110,8 @@ class SmokeAliasQueue {
     }
 
 
-    double_t blockShares = totalShares / (double_t) this->jobs.size();
-    intRand = std::uniform_int_distribution<uint32_t>(0, this->jobs.size() - 1);
+    double_t blockShares = totalShares / (double_t) jobs.size();
+    intRand = std::uniform_int_distribution<uint32_t>(0, jobs.size() - 1);
     doubleRand = std::uniform_real_distribution<double_t>(0, blockShares);
 
     for (int i =1; i < this->jobs.size(); i++) {
