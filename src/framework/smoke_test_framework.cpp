@@ -105,6 +105,7 @@ class SerenityNoExecutorScheduler : public Scheduler
         this->queue[job->targetHostname.get()] = SmokeAliasQueue();
       }
 
+      // Add job for targeted queue.
       this->queue[job->targetHostname.get()]
         .add(job);
     }
@@ -168,8 +169,7 @@ class SerenityNoExecutorScheduler : public Scheduler
       while(!allJobsScheduled()) {
         auto jobQueue = this->queue.find(offer.hostname());
         if (jobQueue == this->queue.end()) {
-          jobQueue = this->queue.find(ANY_HOSTNAME);
-          if (jobQueue == this->queue.end()) break;
+          break;
         }
 
         if (jobQueue->second.finished) break;
