@@ -127,7 +127,7 @@ set(SERENITY_TEST_SOURCES
     src/tests/common/sources/json_source.cpp
     src/tests/controllers/qos_controller_test.cpp
     src/tests/contention_detectors/signal_analyzers/drop_test.cpp
-    #src/tests/filters/contention_detectors/threshold_test.cpp
+    src/tests/contention_detectors/too_high_cpu_usage_test.cpp
     src/tests/estimators/estimator_test.cpp
     src/tests/filters/ema_test.cpp
     src/tests/filters/ignore_new_executors_test.cpp

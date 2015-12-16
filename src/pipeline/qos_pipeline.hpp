@@ -133,7 +133,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
           &qoSCorrectionObserver,
           usage::getEmaCpuUsage,
           conf[TooHighCpuUsageDetector::NAME],
-          Tag(QOS_CONTROLLER, "CPU Usage utilization detector")),
+          Tag(QOS_CONTROLLER, "CPU High Usage utilization detector")),
       cpuEMAFilter(
         &cpuUtilizationDetector,
         usage::getCpuUsage,

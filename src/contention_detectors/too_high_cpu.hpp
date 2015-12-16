@@ -49,7 +49,7 @@ class TooHighCpuUsageDetector :
       Consumer<Contentions>* _consumer,
       const lambda::function<usage::GetterFunction>& _cpuUsageGetFunction,
       SerenityConfig _conf,
-      const Tag& _tag = Tag(QOS_CONTROLLER, "thresholdDetector"))
+      const Tag& _tag = Tag(QOS_CONTROLLER, NAME))
     : tag(_tag),
       cpuUsageGetFunction(_cpuUsageGetFunction),
       Producer<Contentions>(_consumer) {
