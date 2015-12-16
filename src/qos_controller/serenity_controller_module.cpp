@@ -58,7 +58,7 @@ static QoSController* createSerenityController(
 
   // UtilizationDetector configuration:
   // CPU utilization threshold.
-  conf[THRESHOLD].set(THRESHOLD, (double_t) 0.85);
+  conf[THRESHOLD].set(THRESHOLD, (double_t) 0.72);
 
   conf[TooLowUsageFilter::NAME].set(MINIMAL_CPU_USAGE, (double_t) 0.25);
 

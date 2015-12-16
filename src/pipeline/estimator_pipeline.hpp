@@ -63,7 +63,7 @@ class CpuEstimatorPipeline : public ResourceEstimatorPipeline {
       // Time series exporters.
       slackTimeSeriesExporter(),
       // Last item in pipeline.
-      slackObserver(this),
+      slackObserver(this, 0.7),
       // 4th item in pipeline.
       ignoreNewExecutorsFilter(&slackObserver),
       // 3rd item in pipeline.

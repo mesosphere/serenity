@@ -44,11 +44,14 @@ Try<Nothing> TooHighCpuUsageDetector::consume(const ResourceUsage& in) {
     agentSumValue += value.get();
   }
 
+  // Debug only
+  SERENITY_LOG(INFO) << "Sum = " << agentSumValue << " vs total = "
+                     << totalAgentCpus.get();
   double_t lvl = agentSumValue / totalAgentCpus.get();
 
   if (lvl > this->cfgUtilizationThreshold) {
     SERENITY_LOG(INFO) << "Creating REVOKE ALL contention, because of the value"
-      "above the threshold. " << agentSumValue << "/" << totalAgentCpus.get();
+      " above the threshold. " << agentSumValue << "/" << totalAgentCpus.get();
     product.push_back(createCpuContention(KILL_ALL_SEVERITY));
   }
 
