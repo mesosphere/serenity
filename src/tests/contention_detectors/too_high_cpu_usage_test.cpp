@@ -64,7 +64,7 @@ TEST(TooHighCpuUtilizationTest, LowUtilization) {
 
   SignalScenario signalGen =
     SignalScenario(ITERATIONS)
-      .use([=](int64_t){ return 8*UTIL_THRESHOLD - 0.1; })
+      .use([UTIL_THRESHOLD](int64_t){ return 8*UTIL_THRESHOLD - 0.1; })
       .use(new ZeroNoise());
 
 
@@ -75,8 +75,9 @@ TEST(TooHighCpuUtilizationTest, LowUtilization) {
     // Run pipeline iteration.
     usageSource.produce(usage);
 
-    if (signalGen.iteration > 0)
+    if (signalGen.iteration > 0) {
       mockSink.expectContentions(0);
+    }
   }
 }
 
@@ -114,7 +115,7 @@ TEST(TooHighCpuUtilizationTest, HighUtilization) {
 
   SignalScenario signalGen =
     SignalScenario(ITERATIONS)
-      .use([=](int64_t){ return 8*UTIL_THRESHOLD - 0.1; })
+      .use([UTIL_THRESHOLD](int64_t){ return 8*UTIL_THRESHOLD - 0.1; })
       .use(new ZeroNoise())
       .after(20).add(1);
 
@@ -126,9 +127,13 @@ TEST(TooHighCpuUtilizationTest, HighUtilization) {
     // Run pipeline iteration.
     usageSource.produce(usage);
 
-    if (signalGen.iteration > 0)
-      if (signalGen.iteration >= 20) mockSink.expectContentions(1);
-      else mockSink.expectContentions(0);
+    if (signalGen.iteration > 0) {
+      if (signalGen.iteration >= 20) {
+        mockSink.expectContentions(1);
+      } else {
+        mockSink.expectContentions(0);
+      }
+    }
   }
 }
 
