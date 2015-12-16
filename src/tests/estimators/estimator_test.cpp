@@ -1,5 +1,3 @@
-#include <list>
-
 #include <gtest/gtest.h>
 
 #include <mesos/resources.hpp>
@@ -10,6 +8,7 @@
 
 #include <process/gtest.hpp>
 
+#include <list>
 
 #include "estimator/serenity_estimator.hpp"
 
