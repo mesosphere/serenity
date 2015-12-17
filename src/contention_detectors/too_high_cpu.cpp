@@ -48,7 +48,7 @@ Try<Nothing> TooHighCpuUsageDetector::consume(const ResourceUsage& in) {
 
     agentSumValue += value.get();
 
-    if (Resources(inExec.allocated()).revocable().empty()) {
+    if (!Resources(inExec.allocated()).revocable().empty()) {
       beExecutors++;
     }
   }
