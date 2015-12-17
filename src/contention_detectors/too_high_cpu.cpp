@@ -11,7 +11,7 @@ namespace serenity {
 Try<Nothing> TooHighCpuUsageDetector::consume(const ResourceUsage& in) {
   Contentions product;
 
-  if (!in.has_total()) {
+  if (in.total_size() == 0) {
     SERENITY_LOG(ERROR) << "";
     return Error(std::string(NAME) + " No total in ResourceUsage");
   }
