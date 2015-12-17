@@ -22,11 +22,6 @@ Try<Nothing> TooHighCpuUsageDetector::consume(const ResourceUsage& in) {
     return Error(std::string(NAME) + " No total cpus in ResourceUsage");
   }
 
-  SERENITY_LOG(INFO) << "debug2";
-  produce(product);
-  return Nothing();
-
-
   double_t agentSumValue = 0;
 
   for (const ResourceUsage_Executor& inExec : in.executors()) {
@@ -44,12 +39,13 @@ Try<Nothing> TooHighCpuUsageDetector::consume(const ResourceUsage& in) {
       continue;
     }
 
+    SERENITY_LOG(INFO) << "Getting value...";
     Try<double_t> value = this->cpuUsageGetFunction(inExec);
     if (value.isError()) {
       SERENITY_LOG(ERROR) << value.error();
       continue;
     }
-
+    SERENITY_LOG(INFO) << "Got value: " << value.get();
     agentSumValue += value.get();
   }
 

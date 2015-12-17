@@ -110,7 +110,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       // Last item in pipeline.
       qoSCorrectionObserver(
           this,
-          2,  // Two contention producers for sync consmuing.
+          2,  // Two contention producers for sync consuming.
           conf["QoSCorrectionObserver"],
           &ageFilter,
           new SeniorityStrategy(conf["QoSCorrectionObserver"])),
