@@ -22,7 +22,7 @@ Try<Nothing> TooHighCpuUsageDetector::consume(const ResourceUsage& in) {
     return Error(std::string(NAME) + " No total cpus in ResourceUsage");
   }
 
-  SERENITY_LOG(INFO) << "debug";
+  SERENITY_LOG(INFO) << "debug2";
   produce(product);
   return Nothing();
 
