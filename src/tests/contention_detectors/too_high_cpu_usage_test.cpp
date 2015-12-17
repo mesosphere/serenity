@@ -57,7 +57,7 @@ TEST(TooHighCpuUtilizationTest, LowUtilization) {
   MockSource<ResourceUsage> usageSource(&tooHighCpuUsageDetector);
 
   Try<mesos::FixtureResourceUsage> usages =
-    JsonUsage::ReadJson("tests/fixtures/start_json_test.json");
+    JsonUsage::ReadJson("tests/fixtures/be_start_json_test.json");
   if (usages.isError()) {
     LOG(ERROR) << "JsonSource failed: " << usages.error() << std::endl;
   }
@@ -108,7 +108,7 @@ TEST(TooHighCpuUtilizationTest, HighUtilization) {
   MockSource<ResourceUsage> usageSource(&tooHighCpuUsageDetector);
 
   Try<mesos::FixtureResourceUsage> usages =
-    JsonUsage::ReadJson("tests/fixtures/start_json_test.json");
+    JsonUsage::ReadJson("tests/fixtures/be_start_json_test.json");
   if (usages.isError()) {
     LOG(ERROR) << "JsonSource failed: " << usages.error() << std::endl;
   }
@@ -173,7 +173,7 @@ TEST(TooHighCpuUtilizationTest, IntegrationTest) {
   MockSource<ResourceUsage> usageSource(&cumulativeFilter);
 
   Try<mesos::FixtureResourceUsage> usages =
-    JsonUsage::ReadJson("tests/fixtures/start_json_test.json");
+    JsonUsage::ReadJson("tests/fixtures/be_start_json_test.json");
   if (usages.isError()) {
     LOG(ERROR) << "JsonSource failed: " << usages.error() << std::endl;
   }
