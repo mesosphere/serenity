@@ -16,6 +16,10 @@ Try<Nothing> TooHighCpuUsageDetector::consume(const ResourceUsage& in) {
     return Error(std::string(NAME) + " No total in ResourceUsage");
   }
 
+  SERENITY_LOG(INFO) << "debug";
+  produce(product);
+  return Nothing();
+
   Resources totalAgentResources(in.total());
   Option<double_t> totalAgentCpus = totalAgentResources.cpus();
 
