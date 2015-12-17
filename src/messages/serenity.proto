@@ -43,7 +43,7 @@ message Contention{
   // moment (based on different signals). Let's figure out ways to represent
   // that.
   enum Type {
-    CACHE = 1;
+    IPC = 1;
     CPU = 2;
     IO = 3;
     NETWORK = 4;

@@ -56,28 +56,39 @@ Try<Nothing> CumulativeFilter::consume(const ResourceUsage& in) {
         // in next filters.
         if (previousSample->statistics().has_timestamp() &&
             inExec.statistics().has_timestamp()) {
+          // SERENITY_LOG(INFO) << "timestamp before = "
+          //                    << inExec.statistics().timestamp();
           double_t sampled =
-            previousSample->statistics().timestamp() -
-              inExec.statistics().timestamp();
+            inExec.statistics().timestamp() -
+            previousSample->statistics().timestamp();
           outExec->mutable_statistics()->set_timestamp(sampled);
+          // SERENITY_LOG(INFO) << "timestamp sampled = " << sampled;
         }
 
         // Convert cpus_system_time_secs.
         if (previousSample->statistics().has_cpus_system_time_secs() &&
             inExec.statistics().has_cpus_system_time_secs()) {
+          // SERENITY_LOG(INFO) << "cpus_system_time_secs before = "
+          // <<  inExec.statistics().cpus_system_time_secs();
           double_t sampled =
-            previousSample->statistics().cpus_system_time_secs() -
-            inExec.statistics().cpus_system_time_secs();
+            inExec.statistics().cpus_system_time_secs() -
+            previousSample->statistics().cpus_system_time_secs();
           outExec->mutable_statistics()->set_cpus_system_time_secs(sampled);
+          // SERENITY_LOG(INFO) << "cpus_system_time_secs sampled = "
+          // << sampled;
         }
 
         // Convert cpus_user_time_secs.
         if (previousSample->statistics().has_cpus_user_time_secs() &&
             inExec.statistics().has_cpus_user_time_secs()) {
+          // SERENITY_LOG(INFO) << "cpus_user_time_secs before = "
+          // <<  inExec.statistics().cpus_user_time_secs();
           double_t sampled =
-            previousSample->statistics().cpus_user_time_secs() -
-            inExec.statistics().cpus_user_time_secs();
+            inExec.statistics().cpus_user_time_secs() -
+            previousSample->statistics().cpus_user_time_secs();
           outExec->mutable_statistics()->set_cpus_user_time_secs(sampled);
+
+          // SERENITY_LOG(INFO) << "cpus_user_time_secs sampled = " << sampled;
         }
 
         product.mutable_executors()->AddAllocated(outExec);
@@ -101,6 +112,9 @@ Try<Nothing> CumulativeFilter::consume(const ResourceUsage& in) {
     << "There is no Executor in given usage. Ending the pipeline.";
     return Nothing();
   }
+
+  // Copy total agent's capacity.
+  product.mutable_total()->CopyFrom(in.total());
 
   // Continue pipeline.
   SERENITY_LOG(INFO) << "Continuing with "

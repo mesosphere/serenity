@@ -48,8 +48,8 @@ class SerenityEstimatorProcess :
     } else if (ret.isNone()) {
       return Resources();
     }
-    LOG(INFO) << "[Serenity] Considering allocated revocable resources: "
-              << allocatedRevocable;
+    LOG(INFO) << "[SerenityEstimator] Considering allocated revocable "
+              << "resources: " << allocatedRevocable;
     return (ret.get() - allocatedRevocable);
   }
 

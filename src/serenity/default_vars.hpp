@@ -23,6 +23,10 @@ namespace ema {
  */
 const constexpr char* ALPHA = "ALPHA";
 constexpr double_t DEFAULT_ALPHA = 0.2;
+
+const constexpr char* ALPHA_CPU = "ALPHA_CPU";
+const constexpr char* ALPHA_IPC = "ALPHA_IPC";
+
 }  // namespace ema
 
 namespace detector {

@@ -17,6 +17,12 @@ Try<Nothing> SlackResourceObserver::consume(const ResourceUsage& usage) {
   std::unique_ptr<ExecutorSet> newSamples(new ExecutorSet());
   double_t cpuUsage = 0;
   double_t slackResources = 0;
+  uint64_t oversubscrivedExecutors = 0;
+
+  if (usage.total_size() == 0) {
+    return Error(std::string(NAME) + "Cannot estimate slack resources."
+                 + "No total in ResourceUsage");
+  }
 
   Resources totalAgentResources(usage.total());
   Option<double_t> totalAgentCpus = totalAgentResources.cpus();
@@ -39,9 +45,10 @@ Try<Nothing> SlackResourceObserver::consume(const ResourceUsage& usage) {
 
         if (executorCpuUsage.isError()) {
           LOG(ERROR) << std::string(NAME) << ": " << executorCpuUsage.error();
-          break;
+          continue;
         }
         cpuUsage += executorCpuUsage.get();
+        oversubscrivedExecutors++;
 
         if (!executor.statistics().has_cpus_limit()) {
           return Error(std::string(NAME) +
@@ -63,6 +70,10 @@ Try<Nothing> SlackResourceObserver::consume(const ResourceUsage& usage) {
   } else if (slackResources < SLACK_EPSILON) {
     slackResources = 0.0;
   }
+
+  LOG(INFO) << std::string(NAME) << "Reporting slack value: " << slackResources
+            << ", maxSlack: " << maxSlack << " from " << oversubscrivedExecutors
+            << " executors.";
 
   Resource slackResult;
   Value_Scalar *cpuSlackScalar = new Value_Scalar();

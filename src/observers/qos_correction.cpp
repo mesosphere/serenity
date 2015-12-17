@@ -51,20 +51,16 @@ Try<Nothing> QoSCorrectionObserver::__correctSlave() {
   if (!this->currentContentions.isSome() || !this->currentUsage.isSome())
     return Nothing();
 
-  if (this->currentContentions.get().empty()) {
+  // Allowed to interpret contention using different algorithms.
+  Try<QoSCorrections> corrections =
+    this->revStrategy->decide(ageFilter,
+                              this->currentContentions.get(),
+                              this->currentUsage.get());
+  if (corrections.isError()) {
+    // In case of Error produce empty corrections.
     produce(QoSCorrections());
   } else {
-    // Allowed to interpret contention using different algorithms.
-    Try<QoSCorrections> corrections =
-      this->revStrategy->decide(ageFilter,
-                                      this->currentContentions.get(),
-                                      this->currentUsage.get());
-    if (corrections.isError()) {
-      // In case of Error produce empty corrections.
-      produce(QoSCorrections());
-    } else {
-      produce(corrections.get());
-    }
+    produce(corrections.get());
   }
 
   this->currentContentions = None();

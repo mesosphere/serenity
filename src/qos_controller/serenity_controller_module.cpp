@@ -62,7 +62,8 @@ static QoSController* createSerenityController(
 
   conf[TooLowUsageFilter::NAME].set(MINIMAL_CPU_USAGE, (double_t) 0.25);
 
-  conf.set(ALPHA, (double_t) 0.9);
+  conf.set(ALPHA_CPU, (double_t) 0.9);
+  conf.set(ALPHA_IPC, (double_t) 0.9);
   conf.set(ENABLED_VISUALISATION, false);
   conf.set(VALVE_OPENED, true);
 

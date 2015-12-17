@@ -110,7 +110,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       // Last item in pipeline.
       qoSCorrectionObserver(
           this,
-          2,  // Two contention producers for sync consmuing.
+          2,  // Two contention producers for sync consuming.
           conf["QoSCorrectionObserver"],
           &ageFilter,
           new SeniorityStrategy(conf["QoSCorrectionObserver"])),
@@ -123,7 +123,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
         &ipcDropDetector,
         usage::getIpc,
         usage::setEmaIpc,
-        conf.getD(ema::ALPHA),
+        conf.getD(ema::ALPHA_IPC),
         Tag(QOS_CONTROLLER, "ipcEMAFilter")),
       tooLowUsageFilter(
         &ipcEMAFilter,
@@ -138,7 +138,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
         &cpuUtilizationDetector,
         usage::getCpuUsage,
         usage::setEmaCpuUsage,
-        conf.getD(ema::ALPHA),
+        conf.getD(ema::ALPHA_CPU),
         Tag(QOS_CONTROLLER, "cpuEMAFilter")),
       cumulativeFilter(
         &tooLowUsageFilter,
@@ -154,7 +154,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
 
     // QoSCorrection needs ResourceUsage as well.
     cumulativeFilter.addConsumer(&qoSCorrectionObserver);
-    cumulativeFilter.addConsumer(&cpuUtilizationDetector);
+    cumulativeFilter.addConsumer(&cpuEMAFilter);
 
     // Setup Time Series export
     if (conf.getB(ENABLED_VISUALISATION)) {
