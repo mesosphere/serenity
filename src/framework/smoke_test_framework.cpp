@@ -258,8 +258,9 @@ class SerenityNoExecutorScheduler : public Scheduler
         record.setTag(TsTag::TASK_ID, status.task_id().value());
         record.setTag(TsTag::EXECUTOR_ID, status.executor_id().value());
         record.setTag(TsTag::HOSTNAME, task->second); //get hostname
-        LOG(INFO) << "Sending data about preempted task to InfluxDB.";
-        dbBackend->PutMetric(record);
+        LOG(INFO) << "Sending data about preempted task to InfluxDB is "
+                       "disabled.";
+        //dbBackend->PutMetric(record);
       }
     } else {
       LOG(INFO) << "Task '" << status.task_id() << "'"
