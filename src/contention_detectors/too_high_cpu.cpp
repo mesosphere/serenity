@@ -9,10 +9,12 @@ namespace mesos {
 namespace serenity {
 
 Try<Nothing> TooHighCpuUsageDetector::consume(const ResourceUsage& in) {
-  SERENITY_LOG(INFO) << "[debug] passing through..";
-  produce(Contentions());
-  return Nothing();
   Contentions product;
+
+  if (!in.has_total()) {
+    SERENITY_LOG(ERROR) << "";
+    return Error(std::string(NAME) + " No total in ResourceUsage");
+  }
 
   Resources totalAgentResources(in.total());
   Option<double_t> totalAgentCpus = totalAgentResources.cpus();
