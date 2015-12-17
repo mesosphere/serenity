@@ -14,6 +14,29 @@ Try<Nothing> IgnoreNewExecutorsFilter::consume(const ResourceUsage &usage) {
   // insert method result: tuple<Iterator, bool>
   auto resultPair = std::make_pair(executorTimestamps->begin() , true);
   for (const auto& executor : usage.executors()) {
+    if (!executor.has_executor_info()) {
+      LOG(ERROR) << name << "Executor <unknown>"
+      << " does not include executor_info";
+      // Filter out these executors.
+      continue;
+    }
+
+    if (!executor.has_statistics()) {
+      LOG(ERROR) << name << "Executor "
+      << executor.executor_info().executor_id().value()
+      << " does not include statistics.";
+      // Filter out these executors.
+      continue;
+    }
+
+    if (!executor.statistics().has_timestamp()) {
+      LOG(ERROR) << name << "Executor "
+      << executor.executor_info().executor_id().value()
+      << " does not include timestamp in statistics.";
+      // Filter out these executors.
+      continue;
+    }
+
     ExecutorInfo executorInfo = executor.executor_info();
 
     // Find executor or add it if non-existent.

@@ -54,7 +54,7 @@ inline Try<double_t> CountCpuUsage(const ResourceUsage_Executor& previous,
       !previous.statistics().has_cpus_user_time_secs() ||
       !previous.statistics().has_cpus_system_time_secs()) {
     return Error("Cannot count CPU usage, Parameter does not have required "
-                     "statistics");
+                 "statistics " + current.executor_info().executor_id().value());
   }
 
   double_t samplingDuration = current.statistics().timestamp() -
