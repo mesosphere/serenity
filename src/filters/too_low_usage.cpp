@@ -22,9 +22,6 @@ TooLowUsageFilter::~TooLowUsageFilter() {}
 
 
 Try<Nothing> TooLowUsageFilter::consume(const ResourceUsage& in) {
-  SERENITY_LOG(INFO) << "[debug] passing through..";
-  produce(in);
-  return Nothing();
   ResourceUsage product;
   product.mutable_total()->CopyFrom(in.total());
 
