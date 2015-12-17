@@ -154,7 +154,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
 
     // QoSCorrection needs ResourceUsage as well.
     cumulativeFilter.addConsumer(&qoSCorrectionObserver);
-    cumulativeFilter.addConsumer(&cpuUtilizationDetector);
+    cumulativeFilter.addConsumer(&cpuEMAFilter);
 
     // Setup Time Series export
     if (conf.getB(ENABLED_VISUALISATION)) {
