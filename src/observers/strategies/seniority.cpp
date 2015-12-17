@@ -47,6 +47,8 @@ Try<QoSCorrections> SeniorityStrategy::decide(
       cooldownCounter = cooldownCounterValue;
 
       // Return empty corrections;
+      SERENITY_LOG(INFO) << "Cooldown active. Iterations to go: "
+                         << cooldownCounterValue;
       return QoSCorrections();
     } else {
       SERENITY_LOG(INFO) << "Cooldown ended, but we have still contention"
