@@ -123,7 +123,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
         &ipcDropDetector,
         usage::getIpc,
         usage::setEmaIpc,
-        conf.getD(ema::ALPHA),
+        conf.getD(ema::ALPHA_IPC),
         Tag(QOS_CONTROLLER, "ipcEMAFilter")),
       tooLowUsageFilter(
         &ipcEMAFilter,
@@ -138,7 +138,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
         &cpuUtilizationDetector,
         usage::getCpuUsage,
         usage::setEmaCpuUsage,
-        conf.getD(ema::ALPHA),
+        conf.getD(ema::ALPHA_CPU),
         Tag(QOS_CONTROLLER, "cpuEMAFilter")),
       cumulativeFilter(
         &tooLowUsageFilter,

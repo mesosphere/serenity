@@ -15,7 +15,7 @@ Try<Nothing> TooHighCpuUsageDetector::consume(const ResourceUsage& in) {
   Option<double_t> totalAgentCpus = totalAgentResources.cpus();
 
   if (totalAgentCpus.isNone()) {
-    return Error(std::string(NAME) + "No CPUS in ResourceUsage");
+    return Error(std::string(NAME) + " No total cpus in ResourceUsage");
   }
 
   double_t agentSumValue = 0;

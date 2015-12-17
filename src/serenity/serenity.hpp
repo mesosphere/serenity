@@ -104,7 +104,10 @@ class Producer : public BusSocket {
       Try<Nothing> ret = c->consume(out);
 
       // Stop the pipeline in case of error.
-      if (ret.isError()) return ret;
+      if (ret.isError()) {
+        LOG(ERROR) << ret.error() << " Stopping pipeline.";
+        return ret;
+      }
     }
     return Nothing();
   }
