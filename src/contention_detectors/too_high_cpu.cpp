@@ -10,7 +10,7 @@ namespace serenity {
 
 Try<Nothing> TooHighCpuUsageDetector::consume(const ResourceUsage& in) {
   Contentions product;
-  SERENITY_LOG(INFO) << "debug1";
+  
   if (in.total_size() == 0) {
     return Error(std::string(NAME) + " No total in ResourceUsage");
   }
@@ -39,13 +39,12 @@ Try<Nothing> TooHighCpuUsageDetector::consume(const ResourceUsage& in) {
       continue;
     }
 
-    SERENITY_LOG(INFO) << "Getting value...";
     Try<double_t> value = this->cpuUsageGetFunction(inExec);
     if (value.isError()) {
       SERENITY_LOG(ERROR) << value.error();
       continue;
     }
-    SERENITY_LOG(INFO) << "Got value: " << value.get();
+
     agentSumValue += value.get();
   }
 
