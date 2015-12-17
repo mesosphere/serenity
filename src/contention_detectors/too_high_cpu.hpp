@@ -66,7 +66,7 @@ class TooHighCpuUsageDetector :
 
  protected:
   const Tag tag;
-  const lambda::function<usage::GetterFunction>& cpuUsageGetFunction;
+  const lambda::function<usage::GetterFunction> cpuUsageGetFunction;
 
   // cfg parameters.
   double_t cfgUtilizationThreshold;
