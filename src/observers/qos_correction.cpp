@@ -54,8 +54,8 @@ Try<Nothing> QoSCorrectionObserver::__correctSlave() {
   // Allowed to interpret contention using different algorithms.
   Try<QoSCorrections> corrections =
     this->revStrategy->decide(ageFilter,
-                                    this->currentContentions.get(),
-                                    this->currentUsage.get());
+                              this->currentContentions.get(),
+                              this->currentUsage.get());
   if (corrections.isError()) {
     // In case of Error produce empty corrections.
     produce(QoSCorrections());

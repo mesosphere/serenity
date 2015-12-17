@@ -66,8 +66,9 @@ Try<Nothing> SignalBasedDetector::_detect(
           (cpDetector->second)->reset();
         }
 
-        product.push_back(createCpuContention(
+        product.push_back(createContention(
             cpDetected.get().severity,
+            contentionType,
             WID(inExec.executor_info()).getWorkID(),
             inExec.statistics().timestamp()));
       }

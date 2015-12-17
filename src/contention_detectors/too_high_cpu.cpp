@@ -23,6 +23,7 @@ Try<Nothing> TooHighCpuUsageDetector::consume(const ResourceUsage& in) {
   }
 
   double_t agentSumValue = 0;
+  uint64_t beExecutors = 0;
 
   for (const ResourceUsage_Executor& inExec : in.executors()) {
     if (!inExec.has_executor_info()) {
@@ -46,6 +47,10 @@ Try<Nothing> TooHighCpuUsageDetector::consume(const ResourceUsage& in) {
     }
 
     agentSumValue += value.get();
+
+    if (Resources(inExec.allocated()).revocable().empty()) {
+      beExecutors++;
+    }
   }
 
   // Debug only
@@ -54,9 +59,15 @@ Try<Nothing> TooHighCpuUsageDetector::consume(const ResourceUsage& in) {
   double_t lvl = agentSumValue / totalAgentCpus.get();
 
   if (lvl > this->cfgUtilizationThreshold) {
-    SERENITY_LOG(INFO) << "Creating REVOKE ALL contention, because of the value"
-      " above the threshold. " << agentSumValue << "/" << totalAgentCpus.get();
-    product.push_back(createCpuContention(KILL_ALL_SEVERITY));
+    if (beExecutors == 0) {
+      SERENITY_LOG(INFO) << "No BE tasks - only high host utilization";
+    } else {
+      SERENITY_LOG(INFO) << "Creating CPU contention, because of the value"
+                         << " above the threshold. " << agentSumValue << "/"
+                         << totalAgentCpus.get();
+      product.push_back(createContention(totalAgentCpus.get() - agentSumValue,
+                                         Contention_Type_CPU));
+    }
   }
 
   // Continue pipeline.

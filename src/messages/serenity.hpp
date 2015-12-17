@@ -31,13 +31,14 @@ inline slave::QoSCorrection createKillQoSCorrection(
 }
 
 
-inline Contention createCpuContention(
+inline Contention createContention(
   Option<double_t> severity,
+  const Contention_Type contentionType = Contention_Type_IPC,
   Option<WorkID> victim = None(),
   Option<double_t> timestamp = None(),
   Option<WorkID> aggressor = None()) {
   Contention contention;
-  contention.set_type(Contention_Type_CPU);
+  contention.set_type(contentionType);
   if (severity.isSome()) {
     contention.set_severity(severity.get());
   }
