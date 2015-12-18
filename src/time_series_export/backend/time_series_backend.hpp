@@ -44,6 +44,7 @@ static std::string SeriesString(Series series) {
     case Series::CPI:             return "cpi";
     case Series::IPC:             return "ipc";
     case Series::CACHE_MISSES:    return "cache_misses";
+    case Series::REVOCATED_TASKS: return "revocated_tasks";
   }
 }
 
