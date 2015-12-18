@@ -67,8 +67,8 @@ class DividedResourceUsage {
     return this->be;
   }
 
-  const Resources& total() const {
-    this->usage.total();
+  const Resources total() const {
+    return this->usage.total();
   }
 
  protected:

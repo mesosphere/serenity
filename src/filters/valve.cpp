@@ -106,6 +106,8 @@ class ValveFilterEndpointProcess
         // Subscribe for OversubscriptionCtrlEventEnvelope messages.
         StaticEventBus::subscribe<OversubscriptionCtrlEventEnvelope>(self());
         break;
+      default:
+        break;
     }
   }
 

@@ -10,10 +10,14 @@ if (USE_CLANG)
     set(CMAKE_C_FLAGS_RELEASE   "-O4 -DNDEBUG")
     set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g")
     set(CMAKE_CXX_COMPILER "/usr/bin/clang-3.5")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
     set(CMAKE_CXX_FLAGS_DEBUG "-g")
     set(EXTRA_LIBRARIES "stdc++ m")
 endif(USE_CLANG)
+
+IF(CMAKE_COMPILER_IS_GNUCXX)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
+ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 project(serenity)
 enable_testing()
@@ -64,6 +68,7 @@ include_directories(src)
 # Protobuf stuff.
 find_package(Protobuf REQUIRED)
 set(PROTOBUF_IMPORT_DIRS ${MESOS_INSTALLATION_DIR}/include/)
+include_directories(${PROTOBUF_INCLUDE_DIRS})
 
 # Add message proto files.
 file(GLOB ProtoFiles "src/messages/serenity.proto")
