@@ -1,4 +1,4 @@
-FROM bplotka/mesos-modules-dev:0.24.1
+FROM bplotka/mesos-modules-dev:0.24.1-cmt
 MAINTAINER serenity
 
 ADD . /serenity
