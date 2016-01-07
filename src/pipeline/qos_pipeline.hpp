@@ -84,13 +84,14 @@ using QoSControllerPipeline = Pipeline<ResourceUsage, QoSCorrections>;
  *       |           |                      |
  *       |           |        {{ Too High Utilization Detector }}
  *       |           |                      |
- *       |  {{ IPC Signal Detector<Drop> Det. }}  |
+ *       |  {{ IPC Signal Detector<Drop> }}  |
  *       |           |                      |
  *       |      |Contentions|          |Contentions|
  *       |           |                      |
- *       \___________\______________________/
- *              {{ QoS Correction Observer }} // Last item.
- *                          |
+ *       \___________|____________________  |
+ *             \     |                    \ |
+ *  {{ IPC QoS Observer }}      {{ CPU QoS Observer }}
+ *              \______________________/
  *                     |Corrections|
  *                          |
  *                  {{ PIPELINE SINK }}
@@ -118,31 +119,32 @@ class CpuQoSPipeline : public QoSControllerPipeline {
           &qoSCorrectionObserver,
           usage::getEmaIpc,
           conf[SIGNAL_DROP_ANALYZER_NAME],
-          Tag(QOS_CONTROLLER, "IPC detectorFilter")),
+          Tag(QOS_CONTROLLER, "IPC detectorFilter"),
+          Contention_Type_IPC),
       ipcEMAFilter(
-        &ipcDropDetector,
-        usage::getIpc,
-        usage::setEmaIpc,
-        conf.getD(ema::ALPHA_IPC),
-        Tag(QOS_CONTROLLER, "ipcEMAFilter")),
+          &ipcDropDetector,
+          usage::getIpc,
+          usage::setEmaIpc,
+          conf.getD(ema::ALPHA_IPC),
+          Tag(QOS_CONTROLLER, "ipcEMAFilter")),
       tooLowUsageFilter(
-        &ipcEMAFilter,
-        conf[TooLowUsageFilter::NAME],
-        Tag(QOS_CONTROLLER, "tooLowCPUUsageFilter")),
+          &ipcEMAFilter,
+          conf[TooLowUsageFilter::NAME],
+          Tag(QOS_CONTROLLER, "tooLowCPUUsageFilter")),
       cpuUtilizationDetector(
           &qoSCorrectionObserver,
           usage::getEmaCpuUsage,
           conf[TooHighCpuUsageDetector::NAME],
           Tag(QOS_CONTROLLER, "CPU High Usage utilization detector")),
       cpuEMAFilter(
-        &cpuUtilizationDetector,
-        usage::getCpuUsage,
-        usage::setEmaCpuUsage,
-        conf.getD(ema::ALPHA_CPU),
-        Tag(QOS_CONTROLLER, "cpuEMAFilter")),
+          &cpuUtilizationDetector,
+          usage::getCpuUsage,
+          usage::setEmaCpuUsage,
+          conf.getD(ema::ALPHA_CPU),
+          Tag(QOS_CONTROLLER, "cpuEMAFilter")),
       cumulativeFilter(
-        &tooLowUsageFilter,
-        Tag(QOS_CONTROLLER, "cumulativeFilter")),
+          &tooLowUsageFilter,
+          Tag(QOS_CONTROLLER, "cumulativeFilter")),
       // First item in pipeline. For now, close the pipeline for QoS.
       valveFilter(
           &cumulativeFilter,
