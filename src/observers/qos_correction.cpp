@@ -28,7 +28,7 @@ Try<Nothing> QoSCorrectionObserver::_syncConsume(
   this->currentContentions.get().sort(compareSeverity);
 
   if (this->currentUsage.isSome()) {
-    this->correctSlave();
+    this->correctAgent();
   }
 
   return Nothing();
@@ -39,14 +39,14 @@ Try<Nothing> QoSCorrectionObserver::consume(const ResourceUsage& usage) {
   this->currentUsage = usage;
 
   if (this->currentContentions.isSome()) {
-    this->correctSlave();
+    this->correctAgent();
   }
 
   return Nothing();
 }
 
 
-Try<Nothing> QoSCorrectionObserver::correctSlave() {
+Try<Nothing> QoSCorrectionObserver::correctAgent() {
   // Consumer base code ensures we have needed information here.
   if (!this->currentContentions.isSome() || !this->currentUsage.isSome())
     return Nothing();

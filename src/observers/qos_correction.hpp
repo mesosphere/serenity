@@ -29,7 +29,7 @@ namespace serenity {
  * QoSCorrectionObserver observes incoming Contentions and
  * ResourceUsage and produces QoSCorrections.
  *
- * Currently Slave understand only kill correction action.
+ * Currently Mesos Agent understand only kill correction action.
  */
 class QoSCorrectionObserver : public SyncConsumer<Contentions>,
                               public Consumer<ResourceUsage>,
@@ -97,7 +97,7 @@ class QoSCorrectionObserver : public SyncConsumer<Contentions>,
   const SerenityConfig config;
 
   //! Run when all required info are gathered.
-  Try<Nothing> correctSlave();
+  Try<Nothing> correctAgent();
 };
 
 }  // namespace serenity
