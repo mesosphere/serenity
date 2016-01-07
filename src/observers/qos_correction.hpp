@@ -97,7 +97,7 @@ class QoSCorrectionObserver : public SyncConsumer<Contentions>,
   const SerenityConfig config;
 
   //! Run when all required info are gathered.
-  Try<Nothing> __correctSlave();
+  Try<Nothing> correctSlave();
 };
 
 }  // namespace serenity
