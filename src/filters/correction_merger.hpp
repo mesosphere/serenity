@@ -58,6 +58,7 @@ class CorrectionMergerFilter:
   const Tag tag;
 
   // Returns True when value is duplicated in list.
+  // TODO(bplotka): Move to QoSCorrections std::set in future.
   bool checkForDuplicates(
       slave::QoSCorrection value, QoSCorrections corrections) {
     for (slave::QoSCorrection correction : corrections) {
