@@ -68,7 +68,15 @@ class SyncConsumer : public Consumer<T> {
     return Nothing();
   }
 
- private:
+  // You can enforce pipeline to continue the flow even if only some
+  // of the producents produced the needed object.
+  Try<Nothing> ensure() {
+    this->_syncConsume(this->products);
+
+    return this->reset();
+  }
+
+ protected:
   uint64_t producentsToWaitFor;
   std::vector<T> products;
 };

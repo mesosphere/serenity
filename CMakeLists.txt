@@ -134,6 +134,7 @@ set(SERENITY_TEST_SOURCES
     src/tests/contention_detectors/signal_analyzers/drop_test.cpp
     src/tests/contention_detectors/too_high_cpu_usage_test.cpp
     src/tests/estimators/estimator_test.cpp
+    src/tests/filters/correction_merger_test.cpp
     src/tests/filters/ema_test.cpp
     src/tests/filters/ignore_new_executors_test.cpp
     src/tests/filters/pr_executor_pass_test.cpp

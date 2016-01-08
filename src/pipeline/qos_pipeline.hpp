@@ -5,6 +5,7 @@
 #include "contention_detectors/too_high_cpu.hpp"
 #include "contention_detectors/signal_analyzers/drop.hpp"
 
+#include "filters/correction_merger.hpp"
 #include "filters/cumulative.hpp"
 #include "filters/ema.hpp"
 #include "filters/executor_age.hpp"
@@ -109,8 +110,12 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       // to the qosCorrectionObserver.
       ageFilter(),
       // Last item in pipeline.
-      qoSCorrectionObserver(
+      correctionMerger(
           this,
+          1,  // TODO(skonefal): ++ when new observer appeared.
+          Tag(QOS_CONTROLLER, "CorrectionMerger")),
+      qoSCorrectionObserver(
+          &correctionMerger,
           2,  // Two contention producers for sync consuming.
           conf["QoSCorrectionObserver"],
           &ageFilter,
@@ -165,10 +170,12 @@ class CpuQoSPipeline : public QoSControllerPipeline {
     }
   }
 
-  virtual Try<Nothing> resetSyncConsumers() {
+  virtual Try<Nothing> postPipelineRun() {
     this->qoSCorrectionObserver.reset();
 
-    return Nothing();
+    // Force pipeline continuation.
+    // TODO(bplotka): That would not be needed if we always continue pipeline.
+    return this->correctionMerger.ensure();
   }
 
  private:
@@ -182,6 +189,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
   TooHighCpuUsageDetector cpuUtilizationDetector;
   TooLowUsageFilter tooLowUsageFilter;
   ValveFilter valveFilter;
+  CorrectionMergerFilter correctionMerger;
 
   // --- Observers ---
   QoSCorrectionObserver qoSCorrectionObserver;
