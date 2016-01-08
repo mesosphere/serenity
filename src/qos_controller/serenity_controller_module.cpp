@@ -18,7 +18,7 @@
 // TODO(nnielsen): Should be explicit using-directives.
 using namespace mesos;  // NOLINT(build/namespaces)
 using namespace mesos::serenity::ema;  // NOLINT(build/namespaces)
-using namespace mesos::serenity::decider;  // NOLINT(build/namespaces)
+using namespace mesos::serenity::strategy;  // NOLINT(build/namespaces)
 using namespace mesos::serenity::detector;  // NOLINT(build/namespaces)
 using namespace mesos::serenity::too_low_usage;  // NOLINT(build/namespaces)
 using namespace mesos::serenity::qos_pipeline;  // NOLINT(build/namespaces)
@@ -52,9 +52,10 @@ static QoSController* createSerenityController(
   conf[SIGNAL_DROP_ANALYZER_NAME].set(FRACTIONAL_THRESHOLD, (double_t) 0.3);
   conf[SIGNAL_DROP_ANALYZER_NAME].set(SEVERITY_FRACTION, (double_t) 2.1);
 
-  // How many iterations detector will wait with creating another
-  // contention.
-  conf[SIGNAL_DROP_ANALYZER_NAME].set(CONTENTION_COOLDOWN, (uint64_t) 10);
+  // How many iterations observers will wait with creating another
+  // correction.
+  conf["CpuCorrectionObserver"].set(CONTENTION_COOLDOWN, (uint64_t) 10);
+  conf["IpcCorrectionObserver"].set(CONTENTION_COOLDOWN, (uint64_t) 10);
 
   // UtilizationDetector configuration:
   // CPU utilization threshold.
