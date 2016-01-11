@@ -115,7 +115,7 @@ set(SERENITY_SOURCES
     src/filters/valve.cpp
     src/observers/qos_correction.cpp
     src/observers/slack_resource.cpp
-    src/observers/strategies/kill_all.cpp
+    src/observers/strategies/cpu_contention.cpp
     src/observers/strategies/seniority.cpp
     src/qos_controller/serenity_controller.cpp
     src/qos_controller/serenity_controller_module.cpp
