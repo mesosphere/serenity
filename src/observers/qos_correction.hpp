@@ -38,7 +38,6 @@ class QoSCorrectionObserver : public SyncConsumer<Contentions>,
   explicit QoSCorrectionObserver(
       Consumer<QoSCorrections>* _consumer,
       uint64_t _contentionProducents,
-      const SerenityConfig& _config,
       ExecutorAgeFilter* _ageFilter = new ExecutorAgeFilter(),
       RevocationStrategy* _revStrategy = nullptr)
     : SyncConsumer<Contentions>(_contentionProducents),
@@ -46,11 +45,9 @@ class QoSCorrectionObserver : public SyncConsumer<Contentions>,
       currentContentions(None()),
       currentUsage(None()),
       revStrategy(_revStrategy),
-      ageFilter(_ageFilter),
-      config(_config) {
-
+      ageFilter(_ageFilter) {
     if (revStrategy == nullptr) {
-      revStrategy = new SeniorityStrategy(this->config);
+      revStrategy = new SeniorityStrategy(SerenityConfig());
     }
   }
 
@@ -93,8 +90,6 @@ class QoSCorrectionObserver : public SyncConsumer<Contentions>,
   Option<ResourceUsage> currentUsage;
   RevocationStrategy* revStrategy;
   ExecutorAgeFilter* ageFilter;
-
-  const SerenityConfig config;
 
   //! Run when all required info are gathered.
   Try<Nothing> correctAgent();

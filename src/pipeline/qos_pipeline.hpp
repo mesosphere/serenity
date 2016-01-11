@@ -116,10 +116,9 @@ class CpuQoSPipeline : public QoSControllerPipeline {
           Tag(QOS_CONTROLLER, "CorrectionMerger")),
       ipcCorrectionObserver(
           &correctionMerger, 1,
-          conf["IpcCorrectionObserver"],
           &ageFilter,
           // TODO(Bplotka): Change to own Ipc strategy.
-          new SeniorityStrategy(conf["IpcCorrectionObserver"])),
+          new SeniorityStrategy(conf[SeniorityStrategy::NAME])),
       ipcDropDetector(
           &ipcCorrectionObserver,
           usage::getEmaIpc,
@@ -138,10 +137,9 @@ class CpuQoSPipeline : public QoSControllerPipeline {
           Tag(QOS_CONTROLLER, "tooLowCPUUsageFilter")),
       cpuCorrectionObserver(
           &correctionMerger, 1,
-          conf["CpuCorrectionObserver"],
           &ageFilter,
         new CpuContentionStrategy(
-            conf["CpuCorrectionObserver"],
+            conf[CpuContentionStrategy::NAME],
             usage::getEmaCpuUsage)),
       cpuUtilizationDetector(
           &cpuCorrectionObserver,

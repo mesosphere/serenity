@@ -60,6 +60,8 @@ class CpuContentionStrategy : public RevocationStrategy {
 
   RevocationStrategyFunction decide;
 
+  static const constexpr char* NAME = "CpuContentionStrategy";
+
  private:
   bool estimatorDisabled;
   Option<uint64_t> cooldownCounter;

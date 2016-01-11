@@ -23,12 +23,14 @@ using namespace mesos::serenity::detector;  // NOLINT(build/namespaces)
 using namespace mesos::serenity::too_low_usage;  // NOLINT(build/namespaces)
 using namespace mesos::serenity::qos_pipeline;  // NOLINT(build/namespaces)
 
-using mesos::serenity::SignalBasedDetector;
-using mesos::serenity::TooHighCpuUsageDetector;
-using mesos::serenity::TooLowUsageFilter;
+using mesos::serenity::CpuContentionStrategy;
 using mesos::serenity::CpuQoSPipeline;
 using mesos::serenity::SerenityConfig;
 using mesos::serenity::SerenityController;
+using mesos::serenity::SeniorityStrategy;
+using mesos::serenity::SignalBasedDetector;
+using mesos::serenity::TooHighCpuUsageDetector;
+using mesos::serenity::TooLowUsageFilter;
 using mesos::serenity::QoSControllerPipeline;
 
 using mesos::slave::QoSController;
@@ -54,8 +56,8 @@ static QoSController* createSerenityController(
 
   // How many iterations observers will wait with creating another
   // correction.
-  conf["CpuCorrectionObserver"].set(CONTENTION_COOLDOWN, (uint64_t) 10);
-  conf["IpcCorrectionObserver"].set(CONTENTION_COOLDOWN, (uint64_t) 10);
+  conf[CpuContentionStrategy::NAME].set(CONTENTION_COOLDOWN, (uint64_t) 10);
+  conf[SeniorityStrategy::NAME].set(CONTENTION_COOLDOWN, (uint64_t) 10);
 
   // UtilizationDetector configuration:
   // CPU utilization threshold.

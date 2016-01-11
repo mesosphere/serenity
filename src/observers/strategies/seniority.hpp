@@ -56,6 +56,7 @@ class SeniorityStrategy : public RevocationStrategy {
 
   RevocationStrategyFunction decide;
 
+  static const constexpr char* NAME = "SeniorityStrategy";
  private:
   bool estimatorDisabled;
 
