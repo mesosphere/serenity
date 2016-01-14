@@ -20,16 +20,6 @@ namespace serenity {
 using Contentions = std::list<mesos::Contention>;
 using QoSCorrections = std::list<slave::QoSCorrection>;
 
-inline slave::QoSCorrection createKillQoSCorrection(
-    slave::QoSCorrection_Kill kill_msg,
-    slave::QoSCorrection_Type actionType = slave::QoSCorrection_Type_KILL) {
-  slave::QoSCorrection correction;
-  correction.set_type(actionType);
-  correction.mutable_kill()->CopyFrom(kill_msg);
-
-  return correction;
-}
-
 
 inline Contention createContention(
   Option<double_t> severity,
@@ -73,6 +63,25 @@ inline WorkID createExecutorWorkID(const ExecutorInfo info) {
   workID.mutable_executor_id()->CopyFrom(info.executor_id());
 
   return workID;
+}
+
+/**
+ * TODO(skonefal): Do we need function that accepts QoSCorrection_Kill?
+ *                 Maybe we should only use ExecutorInfo parameter
+ */
+inline slave::QoSCorrection createKillQoSCorrection(
+slave::QoSCorrection_Kill kill_msg) {
+  slave::QoSCorrection correction;
+  correction.set_type(slave::QoSCorrection_Type_KILL);
+  correction.mutable_kill()->CopyFrom(kill_msg);
+
+  return correction;
+}
+
+
+static slave::QoSCorrection createKillQosCorrection(
+const ExecutorInfo& executorInfo) {
+  return createKillQoSCorrection(createKill(executorInfo));
 }
 
 }  // namespace serenity

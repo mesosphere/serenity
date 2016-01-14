@@ -10,13 +10,13 @@ if (USE_CLANG)
     set(CMAKE_C_FLAGS_RELEASE   "-O4 -DNDEBUG")
     set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g")
     set(CMAKE_CXX_COMPILER "/usr/bin/clang-3.5")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
     set(CMAKE_CXX_FLAGS_DEBUG "-g")
     set(EXTRA_LIBRARIES "stdc++ m")
 endif(USE_CLANG)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 project(serenity)
@@ -96,6 +96,7 @@ include_directories(
     ${pbjson_SOURCE_DIR}/src/
     ${MESOS_INSTALLATION_DIR}/include/
     ${CMAKE_BINARY_DIR}/
+    $(CMAKE_INCLUDE_PATH)
 )
 
 set(SERENITY_SOURCES
@@ -115,6 +116,7 @@ set(SERENITY_SOURCES
     src/filters/valve.cpp
     src/observers/qos_correction.cpp
     src/observers/slack_resource.cpp
+    src/observers/strategies/cache_occupancy.cpp
     src/observers/strategies/cpu_contention.cpp
     src/observers/strategies/seniority.cpp
     src/qos_controller/serenity_controller.cpp

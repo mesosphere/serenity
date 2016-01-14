@@ -12,6 +12,9 @@ namespace serenity {
 /**
  * Useful class for having dividing usage to Production & Best Effort
  * executors.
+ *
+ * TODO(skonefal): Class to be removed and it's functionality merged
+ *                 with extended ResourceUsage class.
  */
 class DividedResourceUsage {
  public:
@@ -75,6 +78,45 @@ class DividedResourceUsage {
   std::list<ResourceUsage_Executor> pr, be;
   ResourceUsage usage;
 };
+
+
+/**
+ * Checks if executor has empty revocable resources.
+ *
+ * Returns error when executor has no allocated resources.
+ *
+ * TODO(skonefal): Merge with extended ResourceUsage class in future.
+ */
+static Try<bool> isPrExecutor(const ResourceUsage_Executor& executor) {
+  if (executor.allocated().size() == 0) {
+    return Error("Executor has no allocated resources.");
+  }
+
+  Resources allocated(executor.allocated());
+  if (allocated.revocable().empty()) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+
+/**
+ * Checks if executor has revocable resources.
+ *
+ * Returns error when executor has no allocated resources.
+ *
+ * TODO(skonefal): Merge with extended ResourceUsage class in future.
+ */
+static Try<bool> isBeExecutor(const ResourceUsage_Executor& executor) {
+  Try<bool> result = isPrExecutor(executor);
+  if (result.isError()) {
+    return result;
+  }
+
+  return !result.get();
+}
+
 
 }  // namespace serenity
 }  // namespace mesos
