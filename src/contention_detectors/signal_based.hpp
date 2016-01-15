@@ -30,8 +30,8 @@ namespace mesos {
 namespace serenity {
 
 /**
- * SignalBasedDetector is able to check defined value and trigger some contentions
- * on given thresholds.
+ * SignalBasedDetector looks at specific metric of each production executor
+ * and signals contention when Detector.
  */
 class SignalBasedDetector :
     public Consumer<ResourceUsage>,
@@ -39,32 +39,30 @@ class SignalBasedDetector :
  public:
   SignalBasedDetector(
       Consumer<Contentions>* _consumer,
-      const lambda::function<usage::GetterFunction>& _valueGetFunction,
+      const lambda::function<usage::GetterFunction>&_getValue,
       SerenityConfig _detectorConf,
       const Tag& _tag = Tag(QOS_CONTROLLER, "SignalBasedDetector"),
       const Contention_Type _contentionType = Contention_Type_IPC)
     : tag(_tag),
       Producer<Contentions>(_consumer),
-      detectors(new ExecutorMap<std::unique_ptr<SignalAnalyzer>>()),
-      valueGetFunction(_valueGetFunction),
+      detectors(ExecutorMap<SignalAnalyzer>()),
+      getValue(_getValue),
       detectorConf(_detectorConf),
       contentionType(_contentionType) {}
 
   ~SignalBasedDetector() {}
 
-  Try<Nothing> consume(const ResourceUsage& in) override;
-
-  Try<Nothing> _detect(const DividedResourceUsage& in);
+  Try<Nothing> consume(const ResourceUsage& usage) override;
 
   static const constexpr char* NAME = "SignalBasedDetector";
 
  protected:
   const Tag tag;
   const Contention_Type contentionType;
-  const lambda::function<usage::GetterFunction> valueGetFunction;
+  const lambda::function<usage::GetterFunction> getValue;
 
   // Detections.
-  std::unique_ptr<ExecutorMap<std::unique_ptr<SignalAnalyzer>>> detectors;
+  ExecutorMap<SignalAnalyzer> detectors;
   SerenityConfig detectorConf;
 };
 

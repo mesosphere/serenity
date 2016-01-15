@@ -19,8 +19,10 @@
 #include "pipeline/pipeline.hpp"
 
 #include "observers/qos_correction.hpp"
-#include "observers/strategies/seniority.hpp"
+
+#include "observers/strategies/cache_occupancy.hpp"
 #include "observers/strategies/cpu_contention.hpp"
+#include "observers/strategies/seniority.hpp"
 
 #include "serenity/config.hpp"
 #include "serenity/data_utils.hpp"
@@ -112,15 +114,18 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       ageFilter(),
       // Last item in pipeline.
       correctionMerger(
-          this, 2,  // Two producers connected. IPC & CPU observers.
+          this, 3,  // Three producers connected. IPC, CPU, Cache observers.
           Tag(QOS_CONTROLLER, "CorrectionMerger")),
-      ipcCorrectionObserver(
+      ipcContentionObserver(
           &correctionMerger, 1,
           &ageFilter,
-          // TODO(Bplotka): Change to own Ipc strategy.
           new SeniorityStrategy(conf[SeniorityStrategy::NAME])),
+      cacheOccupancyCorrectionObserver(
+          &correctionMerger, 1,
+          &ageFilter,
+          new CacheOccupancyStrategy()),
       ipcDropDetector(
-          &ipcCorrectionObserver,
+          &cacheOccupancyCorrectionObserver,
           usage::getEmaIpc,
           conf[SIGNAL_DROP_ANALYZER_NAME],
           Tag(QOS_CONTROLLER, "IPC detectorFilter"),
@@ -138,7 +143,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       cpuCorrectionObserver(
           &correctionMerger, 1,
           &ageFilter,
-        new CpuContentionStrategy(
+          new CpuContentionStrategy(
             conf[CpuContentionStrategy::NAME],
             usage::getEmaCpuUsage)),
       cpuUtilizationDetector(
@@ -164,9 +169,12 @@ class CpuQoSPipeline : public QoSControllerPipeline {
     // Setup starting producer.
     this->addConsumer(&ageFilter);
 
+    cacheOccupancyCorrectionObserver.
+      Producer<QoSCorrections>::addConsumer(&correctionMerger);
+
     // QoSCorrection observers needs ResourceUsage as well.
     cumulativeFilter.addConsumer(&cpuCorrectionObserver);
-    cumulativeFilter.addConsumer(&ipcCorrectionObserver);
+    cumulativeFilter.addConsumer(&ipcContentionObserver);
     cumulativeFilter.addConsumer(&cpuEMAFilter);
 
     // Setup Time Series export
@@ -178,7 +186,8 @@ class CpuQoSPipeline : public QoSControllerPipeline {
 
   virtual Try<Nothing> postPipelineRun() {
     this->cpuCorrectionObserver.reset();
-    this->ipcCorrectionObserver.reset();
+    this->ipcContentionObserver.reset();
+    this->cacheOccupancyCorrectionObserver.reset();
     // Force pipeline continuation.
     // TODO(bplotka): That would not be needed if we always continue pipeline.
     return this->correctionMerger.ensure();
@@ -198,8 +207,9 @@ class CpuQoSPipeline : public QoSControllerPipeline {
   CorrectionMergerFilter correctionMerger;
 
   // --- Observers ---
-  QoSCorrectionObserver ipcCorrectionObserver;
   QoSCorrectionObserver cpuCorrectionObserver;
+  QoSCorrectionObserver cacheOccupancyCorrectionObserver;
+  QoSCorrectionObserver ipcContentionObserver;
 
   // --- Time Series Exporters ---
   ResourceUsageTimeSeriesExporter rawResourcesExporter;

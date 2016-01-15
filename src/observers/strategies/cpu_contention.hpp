@@ -50,12 +50,8 @@ class CpuContentionStrategy : public RevocationStrategy {
       const SerenityConfig& _config,
       const lambda::function<usage::GetterFunction>& _cpuUsageGetFunction)
       : RevocationStrategy(Tag(QOS_CONTROLLER, "CpuContentionStrategy")),
-        cpuUsageGetFunction(_cpuUsageGetFunction),
-        cooldownCounter(None()),
-        estimatorDisabled(false) {
+        getCpuUsage(_cpuUsageGetFunction) {
     SerenityConfig config = CpuContentionStrategyConfig(_config);
-    this->cfgCooldownTime = config.getU64(strategy::CONTENTION_COOLDOWN);
-    this->cfgDefaultSeverity = config.getD(strategy::DEFAULT_CPU_SEVERITY);
   }
 
   RevocationStrategyFunction decide;
@@ -63,13 +59,11 @@ class CpuContentionStrategy : public RevocationStrategy {
   static const constexpr char* NAME = "CpuContentionStrategy";
 
  private:
-  bool estimatorDisabled;
-  Option<uint64_t> cooldownCounter;
-  const lambda::function<usage::GetterFunction> cpuUsageGetFunction;
+  const lambda::function<usage::GetterFunction> getCpuUsage;
 
   // cfg parameters.
-  uint64_t cfgCooldownTime;
-  double_t cfgDefaultSeverity;
+  uint64_t cooldownTime;
+  double_t defaultSeverity;
 };
 
 }  // namespace serenity

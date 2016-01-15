@@ -34,7 +34,7 @@ class CorrectionMergerFilter:
 
   static const constexpr char* NAME = "CorrectionMerger";
 
-  virtual Try<Nothing> _syncConsume(
+  virtual Try<Nothing> syncConsume(
     const std::vector<QoSCorrections> products) {
     QoSCorrections corrections;
 

@@ -49,8 +49,6 @@ message Contention{
     NETWORK = 4;
   }
 
-  optional WorkID victim = 1;
-  optional WorkID aggressor = 2;
   optional Type type = 3;
   optional double timestamp = 4;
 

@@ -122,6 +122,7 @@ set(SERENITY_SOURCES
     src/qos_controller/serenity_controller.cpp
     src/qos_controller/serenity_controller_module.cpp
     src/serenity/agent_utils.cpp
+    src/serenity/resource_helper.cpp
     src/serenity/wid.cpp
     src/time_series_export/resource_usage_ts_export.cpp
     src/time_series_export/slack_ts_export.cpp

@@ -37,13 +37,6 @@ inline Contention createContention(
     contention.set_timestamp(timestamp.get());
   }
 
-  if (victim.isSome()) {
-    contention.mutable_victim()->CopyFrom(victim.get());
-  }
-
-  if (aggressor.isSome())
-    contention.mutable_aggressor()->CopyFrom(aggressor.get());
-
   return contention;
 }
 

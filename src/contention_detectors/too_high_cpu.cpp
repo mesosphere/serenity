@@ -22,7 +22,6 @@ Try<Nothing> TooHighCpuUsageDetector::consume(const ResourceUsage& in) {
     return Error(std::string(NAME) + " No total cpus in ResourceUsage");
   }
 
-
   double_t thresholdCpus = this->cfgUtilizationThreshold * totalAgentCpus.get();
   double_t agentSumCpus = 0;
   uint64_t beExecutors = 0;
@@ -55,7 +54,6 @@ Try<Nothing> TooHighCpuUsageDetector::consume(const ResourceUsage& in) {
     }
   }
 
-  // Debug only
   SERENITY_LOG(INFO) << "Sum = " << agentSumCpus << " vs total = "
     << totalAgentCpus.get() << " [threshold = " << thresholdCpus << "]";
 
