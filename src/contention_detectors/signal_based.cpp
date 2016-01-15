@@ -6,7 +6,7 @@
 namespace mesos {
 namespace serenity {
 
-Try<Nothing> SignalBasedDetector::consume(const ResourceUsage&usage) {
+Try<Nothing> SignalBasedDetector::consume(const ResourceUsage& usage) {
   auto executorsListsTuple =
     ResourceUsageHelper::getProductionAndRevocableExecutors(usage);
 
