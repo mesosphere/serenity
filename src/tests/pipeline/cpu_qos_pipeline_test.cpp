@@ -2,7 +2,6 @@
 
 #include "gtest/gtest.h"
 
-#include "filters/detectors/assurance.hpp"
 
 #include "mesos/slave/oversubscription.hpp"
 
@@ -11,11 +10,10 @@
 #include "process/clock.hpp"
 #include "process/gtest.hpp"
 
-#include "pipeline/qos_pipeline.hpp"
+#include "pipeline/cpu_qos_pipeline.hpp"
 
 #include "stout/gtest.hpp"
 
-#include "tests/common/load_generator.hpp"
 #include "tests/common/config_helper.hpp"
 #include "tests/common/usage_helper.hpp"
 
@@ -23,7 +21,7 @@ namespace mesos {
 namespace serenity {
 namespace tests {
 
-TEST(QoSPipelineTest, FiltersNotProperlyFed) {
+TEST(CpuQoSPipelineTest, FiltersNotProperlyFed) {
   uint64_t WINDOWS_SIZE = 10;
   uint64_t CONTENTION_COOLDOWN = 10;
   double_t FRATIONAL_THRESHOLD = 0.5;
@@ -69,7 +67,7 @@ const int BE_0_5CPUS_2 = 2;
 const int PR_4CPUS = 3;
 const int PR_2CPUS = 4;
 
-TEST(QoSPipelineTest, NoCorrections) {
+TEST(CpuQoSPipelineTest, NoCorrections) {
   uint64_t WINDOWS_SIZE = 10;
   uint64_t CONTENTION_COOLDOWN = 10;
   double_t FRATIONAL_THRESHOLD = 0.5;

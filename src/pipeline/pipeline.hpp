@@ -68,6 +68,8 @@ class Pipeline : public Producer<Product>, public Consumer<Consumable> {
   Option<Consumable> result;
 };
 
+using QoSControllerPipeline = Pipeline<ResourceUsage, QoSCorrections>;
+
 }  // namespace serenity
 }  // namespace mesos
 

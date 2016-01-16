@@ -8,7 +8,7 @@
 #include "mesos/slave/oversubscription.pb.h"  // ONLY USEFUL AFTER RUNNING ROTOC
 #include "mesos/slave/qos_controller.hpp"
 
-#include "pipeline/qos_pipeline.hpp"
+#include "pipeline/cpu_qos_pipeline.hpp"
 
 #include "serenity/serenity.hpp"
 

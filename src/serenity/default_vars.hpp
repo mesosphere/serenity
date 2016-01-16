@@ -14,6 +14,12 @@ const constexpr char* ENABLED_VISUALISATION = "ENABLED_VISUALISATION";
 constexpr bool DEFAULT_ENABLED_VISUALISATION = true;
 }  // namespace qos_pipeline
 
+namespace python_pipeline {
+const constexpr char* SERENITY_PYPELINE_PATH = "SERENITY_PYPELINE_PATH";
+const constexpr char* DEFAULT_SERENITY_PYPELINE_PATH =
+  "/usr/local/lib/python27/serenity-pypeline/serenity-pypeline/pypeline.py";
+}  // namespace python_pipeline
+
 
 namespace ema {
 /**

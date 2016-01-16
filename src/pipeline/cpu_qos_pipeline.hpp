@@ -1,5 +1,5 @@
-#ifndef SERENITY_QOS_PIPELINE_HPP
-#define SERENITY_QOS_PIPELINE_HPP
+#ifndef SERENITY_CPU_QOS_PIPELINE_HPP
+#define SERENITY_CPU_QOS_PIPELINE_HPP
 
 #include "contention_detectors/signal_based.hpp"
 #include "contention_detectors/too_high_cpu.hpp"
@@ -33,11 +33,11 @@ namespace serenity {
 
 using namespace qos_pipeline;  // NOLINT(build/namespaces)
 
-class QoSPipelineConfig : public SerenityConfig {
+class CpuQoSPipelineConfig : public SerenityConfig {
  public:
-  QoSPipelineConfig() {}
+  CpuQoSPipelineConfig() {}
 
-  explicit QoSPipelineConfig(const SerenityConfig& customCfg) {
+  explicit CpuQoSPipelineConfig(const SerenityConfig& customCfg) {
     this->initDefaults();
     this->applyConfig(customCfg);
   }
@@ -51,9 +51,6 @@ class QoSPipelineConfig : public SerenityConfig {
     this->fields[ENABLED_VISUALISATION] = DEFAULT_ENABLED_VISUALISATION;
   }
 };
-
-
-using QoSControllerPipeline = Pipeline<ResourceUsage, QoSCorrections>;
 
 
 /**
@@ -103,7 +100,7 @@ using QoSControllerPipeline = Pipeline<ResourceUsage, QoSCorrections>;
 class CpuQoSPipeline : public QoSControllerPipeline {
  public:
   explicit CpuQoSPipeline(const SerenityConfig& _conf)
-    : conf(QoSPipelineConfig(_conf)),
+    : conf(CpuQoSPipelineConfig(_conf)),
       // Time series exporters.
       rawResourcesExporter("raw"),
       emaFilteredResourcesExporter("ema"),
@@ -209,4 +206,4 @@ class CpuQoSPipeline : public QoSControllerPipeline {
 }  // namespace serenity
 }  // namespace mesos
 
-#endif  // SERENITY_QOS_PIPELINE_HPP
+#endif  // SERENITY_CPU_QOS_PIPELINE_HPP
