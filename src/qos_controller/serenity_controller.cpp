@@ -5,7 +5,7 @@
 
 #include "messages/serenity.hpp"
 
-#include "pipeline/qos_pipeline.hpp"
+#include "pipeline/pipeline.hpp"
 
 #include "process/defer.hpp"
 #include "process/delay.hpp"

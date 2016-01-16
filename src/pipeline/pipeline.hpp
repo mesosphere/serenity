@@ -33,9 +33,15 @@ class Pipeline : public Producer<Product>, public Consumer<Consumable> {
 
     // Start pipeline.
     Try<Nothing> ret = this->produce(_product);
-    this->resetSyncConsumers();
+
+    Try<Nothing> retPostRun = this->postPipelineRun();
+
     if (ret.isError()) {
       return Error(ret.error());
+    }
+
+    if (retPostRun.isError()) {
+      return Error(retPostRun.error());
     }
 
     return this->result;
@@ -48,17 +54,21 @@ class Pipeline : public Producer<Product>, public Consumer<Consumable> {
     return Nothing();
   }
 
-  //! Ensure that in case of error or empty
-  // result we reset sync consumers to be ready for next iteration.
+  //! Place for additional logic after pipeline run.
+  // Usually we need to ensure that in case of error or empty result we reset
+  // sync consumers to be ready for next iteration. Some of them are crucial
+  // and need to forced to continue the pipeline.
   // Override if you have sync consumers in you pipeline.
   // TODO(bplotka): That would not be needed if we continue pipeline always.
-  virtual Try<Nothing> resetSyncConsumers() {
+  virtual Try<Nothing> postPipelineRun() {
     return Nothing();
   }
 
  protected:
   Option<Consumable> result;
 };
+
+using QoSControllerPipeline = Pipeline<ResourceUsage, QoSCorrections>;
 
 }  // namespace serenity
 }  // namespace mesos

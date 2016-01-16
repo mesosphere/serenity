@@ -52,6 +52,9 @@ execute_process(
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/lib
 )
 
+# Python bindings.
+find_package(PythonLibs REQUIRED)
+
 # Curlcpp.
 add_subdirectory(3rdparty/lib/curlcpp)
 include_directories(${CURLCPP_SOURCE_DIR}/include)
@@ -96,6 +99,7 @@ include_directories(
     ${pbjson_SOURCE_DIR}/src/
     ${MESOS_INSTALLATION_DIR}/include/
     ${CMAKE_BINARY_DIR}/
+    ${PYTHON_INCLUDE_DIRS}/
 )
 
 set(SERENITY_SOURCES
@@ -115,10 +119,12 @@ set(SERENITY_SOURCES
     src/filters/valve.cpp
     src/observers/qos_correction.cpp
     src/observers/slack_resource.cpp
-    src/observers/strategies/kill_all.cpp
+    src/observers/strategies/cpu_contention.cpp
     src/observers/strategies/seniority.cpp
+    src/observers/strategies/simple.cpp
     src/qos_controller/serenity_controller.cpp
     src/qos_controller/serenity_controller_module.cpp
+    src/qos_controller/serenity_py_controller_module.cpp
     src/serenity/agent_utils.cpp
     src/serenity/wid.cpp
     src/time_series_export/resource_usage_ts_export.cpp
@@ -134,12 +140,14 @@ set(SERENITY_TEST_SOURCES
     src/tests/contention_detectors/signal_analyzers/drop_test.cpp
     src/tests/contention_detectors/too_high_cpu_usage_test.cpp
     src/tests/estimators/estimator_test.cpp
+    src/tests/filters/correction_merger_test.cpp
     src/tests/filters/ema_test.cpp
     src/tests/filters/ignore_new_executors_test.cpp
     src/tests/filters/pr_executor_pass_test.cpp
     src/tests/filters/utilization_threshold_test.cpp
     src/tests/filters/valve_test.cpp
     src/tests/pipeline/estimator_pipeline_test.cpp
+    src/tests/pipeline/python_qos_pipeline_test.cpp
     src/tests/observers/slack_resource_test.cpp
     src/tests/observers/qos_correction_test.cpp
     src/tests/serenity/config_test.cpp
@@ -162,9 +170,14 @@ endif(INTEGRATION_TESTS)
 file(GLOB TestFixtures "src/tests/fixtures")
 file(COPY ${TestFixtures} DESTINATION tests/)
 
+# Copy Test Python Pypeline module.
+file(GLOB TestFixtures "src/tests/pipeline/python")
+file(COPY ${TestFixtures} DESTINATION tests/)
+
+
 # Serenity library.
 add_library(serenity SHARED ${SERENITY_SOURCES})
-target_link_libraries(serenity messages curlcpp)
+target_link_libraries(serenity messages curlcpp ${PYTHON_LIBRARIES})
 
 # Tests.
 add_executable(serenity-tests

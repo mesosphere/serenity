@@ -1,10 +1,11 @@
-#ifndef SERENITY_QOS_PIPELINE_HPP
-#define SERENITY_QOS_PIPELINE_HPP
+#ifndef SERENITY_CPU_QOS_PIPELINE_HPP
+#define SERENITY_CPU_QOS_PIPELINE_HPP
 
 #include "contention_detectors/signal_based.hpp"
 #include "contention_detectors/too_high_cpu.hpp"
 #include "contention_detectors/signal_analyzers/drop.hpp"
 
+#include "filters/correction_merger.hpp"
 #include "filters/cumulative.hpp"
 #include "filters/ema.hpp"
 #include "filters/executor_age.hpp"
@@ -19,6 +20,7 @@
 
 #include "observers/qos_correction.hpp"
 #include "observers/strategies/seniority.hpp"
+#include "observers/strategies/cpu_contention.hpp"
 
 #include "serenity/config.hpp"
 #include "serenity/data_utils.hpp"
@@ -31,11 +33,11 @@ namespace serenity {
 
 using namespace qos_pipeline;  // NOLINT(build/namespaces)
 
-class QoSPipelineConfig : public SerenityConfig {
+class CpuQoSPipelineConfig : public SerenityConfig {
  public:
-  QoSPipelineConfig() {}
+  CpuQoSPipelineConfig() {}
 
-  explicit QoSPipelineConfig(const SerenityConfig& customCfg) {
+  explicit CpuQoSPipelineConfig(const SerenityConfig& customCfg) {
     this->initDefaults();
     this->applyConfig(customCfg);
   }
@@ -49,9 +51,6 @@ class QoSPipelineConfig : public SerenityConfig {
     this->fields[ENABLED_VISUALISATION] = DEFAULT_ENABLED_VISUALISATION;
   }
 };
-
-
-using QoSControllerPipeline = Pipeline<ResourceUsage, QoSCorrections>;
 
 
 /**
@@ -84,13 +83,14 @@ using QoSControllerPipeline = Pipeline<ResourceUsage, QoSCorrections>;
  *       |           |                      |
  *       |           |        {{ Too High Utilization Detector }}
  *       |           |                      |
- *       |  {{ IPC Signal Detector<Drop> Det. }}  |
+ *       |  {{ IPC Signal Detector<Drop> }}  |
  *       |           |                      |
  *       |      |Contentions|          |Contentions|
  *       |           |                      |
- *       \___________\______________________/
- *              {{ QoS Correction Observer }} // Last item.
- *                          |
+ *       \___________|____________________  |
+ *             \     |                    \ |
+ *  {{ IPC QoS Observer }}      {{ CPU QoS Observer }}
+ *              \______________________/
  *                     |Corrections|
  *                          |
  *                  {{ PIPELINE SINK }}
@@ -100,7 +100,7 @@ using QoSControllerPipeline = Pipeline<ResourceUsage, QoSCorrections>;
 class CpuQoSPipeline : public QoSControllerPipeline {
  public:
   explicit CpuQoSPipeline(const SerenityConfig& _conf)
-    : conf(QoSPipelineConfig(_conf)),
+    : conf(CpuQoSPipelineConfig(_conf)),
       // Time series exporters.
       rawResourcesExporter("raw"),
       emaFilteredResourcesExporter("ema"),
@@ -108,41 +108,50 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       // to the qosCorrectionObserver.
       ageFilter(),
       // Last item in pipeline.
-      qoSCorrectionObserver(
-          this,
-          2,  // Two contention producers for sync consuming.
-          conf["QoSCorrectionObserver"],
+      correctionMerger(
+          this, 2,  // Two producers connected. IPC & CPU observers.
+          Tag(QOS_CONTROLLER, "CorrectionMerger")),
+      ipcCorrectionObserver(
+          &correctionMerger, 1,
           &ageFilter,
-          new SeniorityStrategy(conf["QoSCorrectionObserver"])),
+          // TODO(Bplotka): Change to own Ipc strategy.
+          new SeniorityStrategy(conf[SeniorityStrategy::NAME])),
       ipcDropDetector(
-          &qoSCorrectionObserver,
+          &ipcCorrectionObserver,
           usage::getEmaIpc,
           conf[SIGNAL_DROP_ANALYZER_NAME],
-          Tag(QOS_CONTROLLER, "IPC detectorFilter")),
+          Tag(QOS_CONTROLLER, "IPC detectorFilter"),
+          Contention_Type_IPC),
       ipcEMAFilter(
-        &ipcDropDetector,
-        usage::getIpc,
-        usage::setEmaIpc,
-        conf.getD(ema::ALPHA_IPC),
-        Tag(QOS_CONTROLLER, "ipcEMAFilter")),
+          &ipcDropDetector,
+          usage::getIpc,
+          usage::setEmaIpc,
+          conf.getD(ema::ALPHA_IPC),
+          Tag(QOS_CONTROLLER, "ipcEMAFilter")),
       tooLowUsageFilter(
-        &ipcEMAFilter,
-        conf[TooLowUsageFilter::NAME],
-        Tag(QOS_CONTROLLER, "tooLowCPUUsageFilter")),
+          &ipcEMAFilter,
+          conf[TooLowUsageFilter::NAME],
+          Tag(QOS_CONTROLLER, "tooLowCPUUsageFilter")),
+      cpuCorrectionObserver(
+          &correctionMerger, 1,
+          &ageFilter,
+        new CpuContentionStrategy(
+            conf[CpuContentionStrategy::NAME],
+            usage::getEmaCpuUsage)),
       cpuUtilizationDetector(
-          &qoSCorrectionObserver,
+          &cpuCorrectionObserver,
           usage::getEmaCpuUsage,
           conf[TooHighCpuUsageDetector::NAME],
           Tag(QOS_CONTROLLER, "CPU High Usage utilization detector")),
       cpuEMAFilter(
-        &cpuUtilizationDetector,
-        usage::getCpuUsage,
-        usage::setEmaCpuUsage,
-        conf.getD(ema::ALPHA_CPU),
-        Tag(QOS_CONTROLLER, "cpuEMAFilter")),
+          &cpuUtilizationDetector,
+          usage::getCpuUsage,
+          usage::setEmaCpuUsage,
+          conf.getD(ema::ALPHA_CPU),
+          Tag(QOS_CONTROLLER, "cpuEMAFilter")),
       cumulativeFilter(
-        &tooLowUsageFilter,
-        Tag(QOS_CONTROLLER, "cumulativeFilter")),
+          &tooLowUsageFilter,
+          Tag(QOS_CONTROLLER, "cumulativeFilter")),
       // First item in pipeline. For now, close the pipeline for QoS.
       valveFilter(
           &cumulativeFilter,
@@ -152,8 +161,9 @@ class CpuQoSPipeline : public QoSControllerPipeline {
     // Setup starting producer.
     this->addConsumer(&ageFilter);
 
-    // QoSCorrection needs ResourceUsage as well.
-    cumulativeFilter.addConsumer(&qoSCorrectionObserver);
+    // QoSCorrection observers needs ResourceUsage as well.
+    cumulativeFilter.addConsumer(&cpuCorrectionObserver);
+    cumulativeFilter.addConsumer(&ipcCorrectionObserver);
     cumulativeFilter.addConsumer(&cpuEMAFilter);
 
     // Setup Time Series export
@@ -163,10 +173,12 @@ class CpuQoSPipeline : public QoSControllerPipeline {
     }
   }
 
-  virtual Try<Nothing> resetSyncConsumers() {
-    this->qoSCorrectionObserver.reset();
-
-    return Nothing();
+  virtual Try<Nothing> postPipelineRun() {
+    this->cpuCorrectionObserver.reset();
+    this->ipcCorrectionObserver.reset();
+    // Force pipeline continuation.
+    // TODO(bplotka): That would not be needed if we always continue pipeline.
+    return this->correctionMerger.ensure();
   }
 
  private:
@@ -180,9 +192,11 @@ class CpuQoSPipeline : public QoSControllerPipeline {
   TooHighCpuUsageDetector cpuUtilizationDetector;
   TooLowUsageFilter tooLowUsageFilter;
   ValveFilter valveFilter;
+  CorrectionMergerFilter correctionMerger;
 
   // --- Observers ---
-  QoSCorrectionObserver qoSCorrectionObserver;
+  QoSCorrectionObserver ipcCorrectionObserver;
+  QoSCorrectionObserver cpuCorrectionObserver;
 
   // --- Time Series Exporters ---
   ResourceUsageTimeSeriesExporter rawResourcesExporter;
@@ -192,4 +206,4 @@ class CpuQoSPipeline : public QoSControllerPipeline {
 }  // namespace serenity
 }  // namespace mesos
 
-#endif  // SERENITY_QOS_PIPELINE_HPP
+#endif  // SERENITY_CPU_QOS_PIPELINE_HPP
