@@ -115,7 +115,7 @@ set(SERENITY_SOURCES
     src/filters/valve.cpp
     src/observers/qos_correction.cpp
     src/observers/slack_resource.cpp
-    src/observers/strategies/kill_all.cpp
+    src/observers/strategies/cpu_contention.cpp
     src/observers/strategies/seniority.cpp
     src/qos_controller/serenity_controller.cpp
     src/qos_controller/serenity_controller_module.cpp
@@ -134,6 +134,7 @@ set(SERENITY_TEST_SOURCES
     src/tests/contention_detectors/signal_analyzers/drop_test.cpp
     src/tests/contention_detectors/too_high_cpu_usage_test.cpp
     src/tests/estimators/estimator_test.cpp
+    src/tests/filters/correction_merger_test.cpp
     src/tests/filters/ema_test.cpp
     src/tests/filters/ignore_new_executors_test.cpp
     src/tests/filters/pr_executor_pass_test.cpp

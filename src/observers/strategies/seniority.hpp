@@ -26,12 +26,12 @@ class SeniorityConfig : public SerenityConfig {
     // uint64_t
     // Specify the initial value of iterations we should wait until
     // we create new correction.
-    this->fields[decider::CONTENTION_COOLDOWN] =
-      decider::DEFAULT_CONTENTION_COOLDOWN;
+    this->fields[strategy::CONTENTION_COOLDOWN] =
+      strategy::DEFAULT_CONTENTION_COOLDOWN;
 
     // double_t
-    this->fields[decider::STARTING_SEVERITY] =
-      decider::DEFAULT_STARTING_SEVERITY;
+    this->fields[strategy::STARTING_SEVERITY] =
+      strategy::DEFAULT_STARTING_SEVERITY;
   }
 };
 
@@ -50,12 +50,13 @@ class SeniorityStrategy : public RevocationStrategy {
         cooldownCounter(None()),
         estimatorDisabled(false) {
     SerenityConfig config = SeniorityConfig(_config);
-    this->cfgCooldownTime = config.getU64(decider::CONTENTION_COOLDOWN);
-    this->cfgDefaultSeverity = config.getD(decider::STARTING_SEVERITY);
+    this->cfgCooldownTime = config.getU64(strategy::CONTENTION_COOLDOWN);
+    this->cfgDefaultSeverity = config.getD(strategy::STARTING_SEVERITY);
   }
 
   RevocationStrategyFunction decide;
 
+  static const constexpr char* NAME = "SeniorityStrategy";
  private:
   bool estimatorDisabled;
 

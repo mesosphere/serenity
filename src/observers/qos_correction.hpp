@@ -29,7 +29,7 @@ namespace serenity {
  * QoSCorrectionObserver observes incoming Contentions and
  * ResourceUsage and produces QoSCorrections.
  *
- * Currently Slave understand only kill correction action.
+ * Currently Mesos Agent understand only kill correction action.
  */
 class QoSCorrectionObserver : public SyncConsumer<Contentions>,
                               public Consumer<ResourceUsage>,
@@ -38,7 +38,6 @@ class QoSCorrectionObserver : public SyncConsumer<Contentions>,
   explicit QoSCorrectionObserver(
       Consumer<QoSCorrections>* _consumer,
       uint64_t _contentionProducents,
-      const SerenityConfig& _config,
       ExecutorAgeFilter* _ageFilter = new ExecutorAgeFilter(),
       RevocationStrategy* _revStrategy = nullptr)
     : SyncConsumer<Contentions>(_contentionProducents),
@@ -46,11 +45,9 @@ class QoSCorrectionObserver : public SyncConsumer<Contentions>,
       currentContentions(None()),
       currentUsage(None()),
       revStrategy(_revStrategy),
-      ageFilter(_ageFilter),
-      config(_config) {
-
+      ageFilter(_ageFilter) {
     if (revStrategy == nullptr) {
-      revStrategy = new SeniorityStrategy(this->config);
+      revStrategy = new SeniorityStrategy(SerenityConfig());
     }
   }
 
@@ -94,10 +91,8 @@ class QoSCorrectionObserver : public SyncConsumer<Contentions>,
   RevocationStrategy* revStrategy;
   ExecutorAgeFilter* ageFilter;
 
-  const SerenityConfig config;
-
   //! Run when all required info are gathered.
-  Try<Nothing> __correctSlave();
+  Try<Nothing> correctAgent();
 };
 
 }  // namespace serenity
