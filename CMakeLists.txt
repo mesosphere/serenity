@@ -10,13 +10,13 @@ if (USE_CLANG)
     set(CMAKE_C_FLAGS_RELEASE   "-O4 -DNDEBUG")
     set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g")
     set(CMAKE_CXX_COMPILER "/usr/bin/clang-3.5")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
     set(CMAKE_CXX_FLAGS_DEBUG "-g")
     set(EXTRA_LIBRARIES "stdc++ m")
 endif(USE_CLANG)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 project(serenity)
@@ -190,8 +190,8 @@ target_link_libraries(serenity-tests
 add_test(serenity-tests serenity-tests)
 
 
-# Smoke-test-framework requires mesos source directory.
-# If WITH_SOURCE_MESOS is not specified, test-framework is omitted.
+# Smoke Test Framework requires mesos source directory.
+# If WITH_SOURCE_MESOS is not specified, STF is omitted.
 set(WITH_SOURCE_MESOS "" CACHE STRING "Mesos source directory")
 set(MESOS_SOURCE_DIR ${WITH_SOURCE_MESOS})
 
@@ -201,17 +201,17 @@ if (MESOS_SOURCE_DIR)
     include_directories(
         ${MESOS_SOURCE_DIR}/build/src/
         ${MESOS_SOURCE_DIR}/src/
-        src/framework/
+        src/smoke_test_framework/
         src/time_series_export/
     )
     # Serenity test framework exe.
-    add_executable(test-framework
-        src/framework/smoke_test_framework.cpp
+    add_executable(smoke_test_framework
+        src/smoke_test_framework/smoke_test_framework.cpp
         src/time_series_export/backend/influx_db8.cpp)
-    target_link_libraries(test-framework mesos protobuf glog stdc++ m curlcpp)
+    target_link_libraries(smoke_test_framework mesos protobuf glog stdc++ m curlcpp)
 
 else(MESOS_SOURCE_DIR)
     message(
         "Mesos source directory was not set. "
-        "Test-framework compilation will be omitted.")
+        "Smoke Test Framework compilation will be omitted.")
 endif(MESOS_SOURCE_DIR)
