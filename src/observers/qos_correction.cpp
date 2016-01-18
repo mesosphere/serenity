@@ -1,6 +1,7 @@
 #include <list>
 #include <vector>
 #include <utility>
+#include <serenity/resource_helper.hpp>
 
 #include "bus/event_bus.hpp"
 
@@ -12,7 +13,8 @@ namespace serenity {
 QoSCorrectionObserver::~QoSCorrectionObserver() {}
 
 Try<Nothing> QoSCorrectionObserver::qosCorrectionStateMachine() {
-  if (contentions.get().empty()) {
+  if (contentions.get().empty() ||
+      ResourceUsageHelper::getRevocableExecutors(usage.get()).empty()) {
     noContentionsReceived();
     // Produce empty corrections and contentions
     produceResultsAndClearConsumedData();
@@ -34,15 +36,15 @@ Try<Nothing> QoSCorrectionObserver::qosCorrectionStateMachine() {
   }
 
   if (corrections.get().empty()) {
-    // Strategy didn't found aggresors.
+    // Strategy didn't found aggressors.
     // Passing contentions to next QoS Controller.
     produceResultsAndClearConsumedData(QoSCorrections(),
                                        this->contentions.get());
+    return Nothing();
   }
 
-  // Produce corrections from strategy.
-  // Strategy was successfull, so don't pass contentions to
-  // next QoS Controller.
+  // Strategy has pointed aggressors, so don't pass
+  // current contentions to next QoS Controller.
   produceResultsAndClearConsumedData(corrections.get(),
                                      Contentions());
   return Nothing();
