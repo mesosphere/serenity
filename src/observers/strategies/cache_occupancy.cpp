@@ -20,31 +20,17 @@ Try<QoSCorrections> CacheOccupancyStrategy::decide(
     ExecutorAgeFilter* ageFilter,
     const Contentions& contentions,
     const ResourceUsage& usage) {
+  std::vector<ResourceUsage_Executor> cmtEnabledExecutors =
+      getCmtEnabledExecutors(usage);
 
-  double_t cacheOccuancySum = 0.0;
-  uint32_t cmtEnabledExecutorsCount = 0;
-  std::vector<ResourceUsage_Executor> cmtEnabledRevocableExecutors;
-  for (const ResourceUsage_Executor& executor : usage.executors()) {
-    if (executor.has_statistics() &&
-        executor.statistics().has_perf() &&
-        executor.statistics().perf().has_llc_occupancy()) {
-      cacheOccuancySum += executor.statistics().perf().llc_occupancy();
-      cmtEnabledExecutorsCount += 1;
-
-      Try<bool> isExecutorRevocable =
-        ResourceUsageHelper::isRevocableExecutor(executor);
-      if (isExecutorRevocable.isSome() && isExecutorRevocable.get()) {
-        cmtEnabledRevocableExecutors.push_back(executor);
-      }
-    }
+  if (cmtEnabledExecutors.empty()) {
+    return QoSCorrections();
   }
 
-  std::vector<ResourceUsage_Executor> aggressors;
-  if (!cmtEnabledRevocableExecutors.empty()) {
-    double_t cacheOccupancyMean = cacheOccuancySum / cmtEnabledExecutorsCount;
-    aggressors = getCacheNoisyExecutors(cmtEnabledRevocableExecutors,
-                                        cacheOccupancyMean);
-  }
+  double_t meanCacheOccupancy = countMeanCacheOccupancy(cmtEnabledExecutors);
+  std::vector<ResourceUsage_Executor> aggressors =
+    getExecutorsAboveMeanCacheOccupancy(cmtEnabledExecutors,
+                                        meanCacheOccupancy);
 
   QoSCorrections corrections;
   for (auto aggressor : aggressors) {
@@ -55,18 +41,39 @@ Try<QoSCorrections> CacheOccupancyStrategy::decide(
   return corrections;
 }
 
+std::vector<ResourceUsage_Executor>
+CacheOccupancyStrategy::getCmtEnabledExecutors(
+    const ResourceUsage& usage) const {
+  std::vector<ResourceUsage_Executor> executors;
+  for (const ResourceUsage_Executor& executor : usage.executors()) {
+    if (executor.has_statistics() &&
+        executor.statistics().has_perf() &&
+        executor.statistics().perf().has_llc_occupancy()) {
+      executors.push_back(executor);
+    }
+  }
+  return executors;
+}
+
+double_t CacheOccupancyStrategy::countMeanCacheOccupancy(
+    const std::vector<ResourceUsage_Executor> &_executors) const {
+  double_t cacheOccupacySum = 0.0;
+  for (const ResourceUsage_Executor& executor : _executors) {
+    cacheOccupacySum += executor.statistics().perf().llc_occupancy();
+  }
+  return cacheOccupacySum / _executors.size();
+}
 
 std::vector<ResourceUsage_Executor>
-CacheOccupancyStrategy::getCacheNoisyExecutors(
+CacheOccupancyStrategy::getExecutorsAboveMeanCacheOccupancy(
     const std::vector<ResourceUsage_Executor>& _executors,
-    double_t _cacheOccupancyMean) const {
+    const double_t _cacheOccupancyMean) const {
   std::vector<ResourceUsage_Executor> product;
   for (const ResourceUsage_Executor& executor : _executors) {
     if (executor.statistics().perf().llc_occupancy() >= _cacheOccupancyMean) {
       product.push_back(executor);
     }
   }
-
   return product;
 }
 

@@ -34,9 +34,13 @@ class CacheOccupancyStrategy : public RevocationStrategy {
 
   static const constexpr char* NAME = "CacheOccupancyStrategy";
  protected:
-  std::vector<ResourceUsage_Executor> getCacheNoisyExecutors(
-    const std::vector<ResourceUsage_Executor>& executors,
-    double_t cacheOccupancySum) const;
+  std::vector<ResourceUsage_Executor> getCmtEnabledExecutors(
+    const ResourceUsage&) const;
+  double_t countMeanCacheOccupancy(
+  const std::vector<ResourceUsage_Executor> &) const;
+  std::vector<ResourceUsage_Executor> getExecutorsAboveMeanCacheOccupancy(
+    const std::vector<ResourceUsage_Executor>&,
+    const double_t) const;
 };
 
 }  // namespace serenity
