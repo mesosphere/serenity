@@ -54,7 +54,9 @@ class CpuContentionStrategy : public RevocationStrategy {
     SerenityConfig config = CpuContentionStrategyConfig(_config);
   }
 
-  RevocationStrategyFunction decide;
+  Try<QoSCorrections> decide(ExecutorAgeFilter* ageFilter,
+                             const Contentions& currentContentions,
+                             const ResourceUsage& currentUsage);
 
   static const constexpr char* NAME = "CpuContentionStrategy";
 

@@ -14,7 +14,9 @@ class KillAllStrategy : public RevocationStrategy {
   KillAllStrategy() :
     RevocationStrategy(Tag(QOS_CONTROLLER, "KillAllStrategy")) {}
 
-  RevocationStrategyFunction decide;
+  Try<QoSCorrections> decide(ExecutorAgeFilter* ageFilter,
+                             const Contentions& currentContentions,
+                             const ResourceUsage& currentUsage);
 };
 
 

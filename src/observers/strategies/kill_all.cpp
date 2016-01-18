@@ -18,7 +18,7 @@ Try<QoSCorrections> KillAllStrategy::decide(
 
   // List of BE executors.
   list<ResourceUsage_Executor> aggressors =
-    ResourceUsageHelper::filterPrExecutors(currentUsage);
+    ResourceUsageHelper::getRevocableExecutors(currentUsage);
 
   // Create QoSCorrection from aggressors list.
   for (auto aggressorToKill : aggressors) {

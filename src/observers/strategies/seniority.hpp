@@ -23,7 +23,9 @@ class SeniorityStrategy : public RevocationStrategy {
   explicit SeniorityStrategy(const SerenityConfig& _config)
       : RevocationStrategy(Tag(QOS_CONTROLLER, "SeniorityStrategy")) {}
 
-  RevocationStrategyFunction decide;
+  Try<QoSCorrections> decide(ExecutorAgeFilter* ageFilter,
+                             const Contentions& currentContentions,
+                             const ResourceUsage& currentUsage);
 
   static const constexpr char* NAME = "SeniorityStrategy";
  private:
