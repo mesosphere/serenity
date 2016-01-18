@@ -1,11 +1,12 @@
 #include <list>
 #include <vector>
 #include <utility>
-#include <serenity/resource_helper.hpp>
 
 #include "bus/event_bus.hpp"
 
 #include "observers/qos_correction.hpp"
+
+#include "serenity/resource_helper.hpp"
 
 namespace mesos {
 namespace serenity {
