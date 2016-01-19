@@ -30,8 +30,10 @@ namespace mesos {
 namespace serenity {
 
 /**
+ * TODO(skonefal): Prepare proper docstring.
  * SignalBasedDetector looks at specific metric of each production executor
- * and signals contention when Detector.
+ * and emits contention when it's signal drops bellow certain percent of
+ * previous value.
  */
 class SignalBasedDetector :
     public Consumer<ResourceUsage>,
@@ -39,7 +41,7 @@ class SignalBasedDetector :
  public:
   SignalBasedDetector(
       Consumer<Contentions>* _consumer,
-      const lambda::function<usage::GetterFunction>&_getValue,
+      const lambda::function<usage::GetterFunction>& _getValue,
       SerenityConfig _detectorConf,
       const Tag& _tag = Tag(QOS_CONTROLLER, "SignalBasedDetector"),
       const Contention_Type _contentionType = Contention_Type_IPC)

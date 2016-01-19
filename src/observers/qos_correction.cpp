@@ -13,10 +13,10 @@ namespace serenity {
 
 QoSCorrectionObserver::~QoSCorrectionObserver() {}
 
-Try<Nothing> QoSCorrectionObserver::qosCorrectionStateMachine() {
+Try<Nothing> QoSCorrectionObserver::doQosDecision() {
   if (contentions.get().empty() ||
       ResourceUsageHelper::getRevocableExecutors(usage.get()).empty()) {
-    noContentionsReceived();
+    emptyContentionsReceived();
     // Produce empty corrections and contentions
     produceResultsAndClearConsumedData();
     return Nothing();
@@ -29,7 +29,7 @@ Try<Nothing> QoSCorrectionObserver::qosCorrectionStateMachine() {
     return Nothing();
   }
 
-  Try<QoSCorrections> corrections = newContentionReceived();
+  Try<QoSCorrections> corrections = newContentionsReceived();
   if (corrections.isError()) {
     // Produce empty corrections and contentions
     produceResultsAndClearConsumedData();
@@ -61,7 +61,7 @@ void QoSCorrectionObserver::produceResultsAndClearConsumedData(
   this->usage = None();
 }
 
-void QoSCorrectionObserver::noContentionsReceived() {
+void QoSCorrectionObserver::emptyContentionsReceived() {
   // Restart state of QoSCorrection observer
   if (iterationCooldownCounter.isSome()) {
     iterationCooldownCounter = None();
@@ -72,8 +72,14 @@ void QoSCorrectionObserver::noContentionsReceived() {
   }
 }
 
+/**
+ * Cooldown phase - waiting for system to stabilise.
+ */
 void QoSCorrectionObserver::cooldownPhase() {
-  // Cooldown phase - waiting for system to stabilize.
+  if (iterationCooldownCounter.isNone()) {
+    return;
+  }
+
   iterationCooldownCounter.get() -= 1;
   if (iterationCooldownCounter.get() <= 0) {
     iterationCooldownCounter = None();
@@ -81,7 +87,7 @@ void QoSCorrectionObserver::cooldownPhase() {
   return;
 }
 
-Try<QoSCorrections> QoSCorrectionObserver::newContentionReceived() {
+Try<QoSCorrections> QoSCorrectionObserver::newContentionsReceived() {
   iterationCooldownCounter = this->cooldownIterations;
   if (!estimatorPipelineDisabled) {
     // Disable Estimator pipeline.
@@ -103,7 +109,7 @@ Try<Nothing> QoSCorrectionObserver::syncConsume(
   }
 
   if (isAllDataForCorrectionGathered()) {
-    this->qosCorrectionStateMachine();
+    this->doQosDecision();
   }
 
   return Nothing();
@@ -113,7 +119,7 @@ Try<Nothing> QoSCorrectionObserver::consume(const ResourceUsage& usage) {
   this->usage = usage;
 
   if (isAllDataForCorrectionGathered()) {
-    this->qosCorrectionStateMachine();
+    this->doQosDecision();
   }
 
   return Nothing();

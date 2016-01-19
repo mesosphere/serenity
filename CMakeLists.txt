@@ -28,6 +28,14 @@ set(MESOS_INSTALLATION_DIR ${WITH_MESOS})
 message("Mesos installation directory set to: " ${MESOS_INSTALLATION_DIR})
 
 option(INTEGRATION_TESTS "Enable compilation of integration tests." OFF)
+option(CMT_ENABLED "Enable revocation based on LLC_OCCUPANCY metric." OFF)
+if(CMT_ENABLED)
+    message(WARNING "CMT SUPPORT IS ENABLED.")
+    message("It needs to have llc_occupacy metric in ResourceUsage proto.")
+    message("If Serenity does not compile, try to compile it against")
+    message("https://github.com/Bplotka/mesos/tree/perf-fix-0.24.1")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCMT_ENABLED")
+endif()
 
 # Compiler things.
 include(CheckCXXCompilerFlag)

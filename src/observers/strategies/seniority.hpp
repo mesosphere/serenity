@@ -20,16 +20,37 @@ namespace serenity {
  */
 class SeniorityStrategy : public RevocationStrategy {
  public:
-  explicit SeniorityStrategy(const SerenityConfig& _config)
-      : RevocationStrategy(Tag(QOS_CONTROLLER, "SeniorityStrategy")) {}
+  SeniorityStrategy() : RevocationStrategy(Tag(QOS_CONTROLLER, NAME)) {
+    initialize();
+  }
 
-  Try<QoSCorrections> decide(ExecutorAgeFilter* ageFilter,
-                             const Contentions& currentContentions,
-                             const ResourceUsage& currentUsage);
+  /**
+   * TODO(skonefal): SerenityConfig should have const methods inside.
+   *                 Currently, it cannot be passed as const.
+   */
+  explicit SeniorityStrategy(SerenityConfig _config)
+      : RevocationStrategy(Tag(QOS_CONTROLLER, NAME)) {
+    initialize();
+    if (_config.hasKey(STARTING_SEVERITY_KEY)) {
+       severity = _config.getD(STARTING_SEVERITY_KEY);
+    }
+  }
 
+  Try<QoSCorrections> decide(ExecutorAgeFilter*,
+                             const Contentions&,
+                             const ResourceUsage&);
+
+  static const constexpr char* STARTING_SEVERITY_KEY = "STARTING_SEVERITY";
   static const constexpr char* NAME = "SeniorityStrategy";
+
  private:
-  double_t defaultSeverity;
+  void initialize() {
+    severity = DEFAULT_SEVERITY;
+  }
+
+  static const constexpr double_t DEFAULT_SEVERITY = 0.1;
+
+  double_t severity;
 };
 
 }  // namespace serenity

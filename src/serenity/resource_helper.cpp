@@ -49,8 +49,7 @@ const ResourceUsage_Executor& executor) {
     return Error("Executor has no allocated resources.");
   }
 
-  Resources allocated(executor.allocated());
-  if (allocated.revocable().empty()) {
+  if (Resources(executor.allocated()).revocable().empty()) {
     return true;
   } else {
     return false;

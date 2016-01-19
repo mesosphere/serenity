@@ -66,7 +66,7 @@ Try<Nothing> TooHighCpuUsageDetector::consume(const ResourceUsage& in) {
       SERENITY_LOG(INFO) << "Creating CPU contention, because of the "
                          << severity << " CPUs above the threshold. ";
 
-      product.push_back(createContention(severity));
+      product.push_back(createContention(severity, Contention_Type_CPU));
     }
   }
 

@@ -23,12 +23,16 @@ using QoSCorrections = std::list<slave::QoSCorrection>;
 
 inline Contention createContention(
   Option<double_t> severity,
-  const Contention_Type contentionType = Contention_Type_IPC,
+  const Contention_Type contentionType,
   Option<WorkID> victim = None(),
-  Option<double_t> timestamp = None(),
-  Option<WorkID> aggressor = None()) {
+  Option<double_t> timestamp = None()) {
   Contention contention;
   contention.set_type(contentionType);
+
+  if (victim.isSome()) {
+    contention.mutable_victim()->CopyFrom(victim.get());
+  }
+
   if (severity.isSome()) {
     contention.set_severity(severity.get());
   }

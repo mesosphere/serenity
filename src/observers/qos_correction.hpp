@@ -34,7 +34,7 @@ namespace serenity {
  * When new contention appears, it sends "Disable" message to
  * Estimator pipeline to make environment stable.
  *
- * When strategy generates QoSRevocations, OoSCorrectionObserver starts
+ * When strategy generates QoSCorrections, OoSCorrectionObserver starts
  * CooldownCounter, to give platform time to stabilize.
  * During cooldown, QoSCorrectionObserved does not produce new Corrections.
  *
@@ -77,18 +77,24 @@ class QoSCorrectionObserver : public SyncConsumer<Contentions>,
   static constexpr const char* NAME = "QoSCorrectionObserver: ";
 
  protected:
-  Try<Nothing> qosCorrectionStateMachine();
-  void noContentionsReceived();
+  Try<Nothing> doQosDecision();
+
+  void emptyContentionsReceived();
+
+  Try<QoSCorrections> newContentionsReceived();
+
   void cooldownPhase();
-  Try<QoSCorrections> newContentionReceived();
 
   bool isAllDataForCorrectionGathered();
+
   void produceResultsAndClearConsumedData(
                         QoSCorrections _corrections = QoSCorrections(),
                         Contentions _contentions = Contentions());
 
   RevocationStrategy* revocationStrategy;
+
   ExecutorAgeFilter* executorAgeFilter;
+
   const Tag tag;
 
   Option<Contentions> contentions;  //!< Contention resources from other filters

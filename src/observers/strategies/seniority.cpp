@@ -1,4 +1,5 @@
 #include <list>
+#include <string>
 #include <utility>
 
 #include "bus/event_bus.hpp"
@@ -13,12 +14,12 @@ namespace serenity {
 using std::list;
 using std::pair;
 
+
+
 Try<QoSCorrections> SeniorityStrategy::decide(
     ExecutorAgeFilter* ageFilter,
     const Contentions& currentContentions,
     const ResourceUsage& currentUsage) {
-  // Product.
-  QoSCorrections corrections;
 
   // List of BE executors.
   list<ResourceUsage_Executor> possibleAggressors =
@@ -27,7 +28,7 @@ Try<QoSCorrections> SeniorityStrategy::decide(
   // Aggressors to be killed. (empty for now).
   std::list<slave::QoSCorrection_Kill> aggressorsToKill;
 
-  double_t maxSeverity = this->defaultSeverity;
+  double_t maxSeverity = this->severity;
   for (const Contention contention : currentContentions) {
     if (contention.has_severity()) {
       if (contention.severity() > maxSeverity) {
@@ -35,8 +36,12 @@ Try<QoSCorrections> SeniorityStrategy::decide(
       }
     }
   }
+
   // TODO(nnielsen): Made gross assumption about homogenous best-effort tasks.
-  size_t killCount = ceil(possibleAggressors.size() * maxSeverity);
+  size_t executorsToRevokeCnt = ceil(possibleAggressors.size() * maxSeverity);
+  if (executorsToRevokeCnt == 0) {
+    return QoSCorrections();
+  }
 
   // Get ages for executors.
   list<pair<double_t, ResourceUsage_Executor>> executors;
@@ -46,9 +51,8 @@ Try<QoSCorrections> SeniorityStrategy::decide(
       LOG(WARNING) << age.error();
       continue;
     }
-
-    executors.push_back(pair<double_t, ResourceUsage_Executor>(age.get(),
-                                                               executor));
+    executors.push_back(
+      pair<double_t, ResourceUsage_Executor>(age.get(), executor));
   }
 
   // TODO(nielsen): Actual time delta should be factored in i.e. not only work
@@ -59,16 +63,20 @@ Try<QoSCorrections> SeniorityStrategy::decide(
     return left.first < right.first;
   });
 
-  /// ----------- sort ages for executor //
-
+  QoSCorrections corrections;
+  SERENITY_LOG(INFO) << "Revoking " << executorsToRevokeCnt << " executors";
   for (const auto& pair : executors) {
-    if (killCount == 0) {
-      break;
-    }
     slave::QoSCorrection correction =
       createKillQosCorrection(pair.second.executor_info());
     corrections.push_back(correction);
-    killCount -= 1;
+
+    std::string executorName = pair.second.executor_info().name();
+    SERENITY_LOG(INFO) << "Marked " << executorName << "to revoke";
+
+    executorsToRevokeCnt -= 1;
+    if (executorsToRevokeCnt == 0) {
+      break;
+    }
   }
 
   return corrections;

@@ -1,5 +1,5 @@
-#ifndef SERENITY_CACHE_OCCUPANCY_H
-#define SERENITY_CACHE_OCCUPANCY_H
+#ifndef SERENITY_CACHE_OCCUPANCY_HPP
+#define SERENITY_CACHE_OCCUPANCY_HPP
 
 #include <vector>
 
@@ -15,7 +15,7 @@ namespace mesos {
 namespace serenity {
 
 /**
- * Cach Occupancy Strategy looks at executor's LLC_OCCUPANCY and revokes
+ * Cache Occupancy Strategy looks at executor's LLC_OCCUPANCY and revokes
  * revocable jobs that are above (inclusive) mean LLC_OCCUPANCY for node.
  *
  * It returns empty QoSCorrections when there is zero BE tasks that
@@ -36,8 +36,10 @@ class CacheOccupancyStrategy : public RevocationStrategy {
  protected:
   std::vector<ResourceUsage_Executor> getCmtEnabledExecutors(
     const ResourceUsage&) const;
+
   double_t countMeanCacheOccupancy(
-  const std::vector<ResourceUsage_Executor> &) const;
+    const std::vector<ResourceUsage_Executor>&) const;
+
   std::vector<ResourceUsage_Executor> getExecutorsAboveMeanCacheOccupancy(
     const std::vector<ResourceUsage_Executor>&,
     const double_t) const;

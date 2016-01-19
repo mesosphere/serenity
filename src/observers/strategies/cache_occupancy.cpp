@@ -1,14 +1,15 @@
 #include <list>
+#include <string>
 #include <utility>
 #include <vector>
 
 #include "bus/event_bus.hpp"
 
+#include "observers/strategies/cache_occupancy.hpp"
 #include "observers/strategies/seniority.hpp"
 
 #include "serenity/resource_helper.hpp"
 
-#include "cache_occupancy.hpp"
 
 namespace mesos {
 namespace serenity {
@@ -32,10 +33,14 @@ Try<QoSCorrections> CacheOccupancyStrategy::decide(
     getExecutorsAboveMeanCacheOccupancy(cmtEnabledExecutors,
                                         meanCacheOccupancy);
 
+  SERENITY_LOG(INFO) << "Revoking " << aggressors.size() << " executors";
   QoSCorrections corrections;
   for (auto aggressor : aggressors) {
     ExecutorInfo executorInfo = aggressor.executor_info();
     corrections.push_back(createKillQosCorrection(executorInfo));
+
+    std::string executorName = aggressor.executor_info().name();
+    SERENITY_LOG(INFO) << "Marked " << executorName << "to revoke";
   }
 
   return corrections;
@@ -45,6 +50,7 @@ std::vector<ResourceUsage_Executor>
 CacheOccupancyStrategy::getCmtEnabledExecutors(
     const ResourceUsage& usage) const {
   std::vector<ResourceUsage_Executor> executors;
+#ifdef CMT_ENABLED
   for (const ResourceUsage_Executor& executor : usage.executors()) {
     if (executor.has_statistics() &&
         executor.statistics().has_perf() &&
@@ -52,6 +58,7 @@ CacheOccupancyStrategy::getCmtEnabledExecutors(
       executors.push_back(executor);
     }
   }
+#endif
   return executors;
 }
 
