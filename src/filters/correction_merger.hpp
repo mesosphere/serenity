@@ -38,7 +38,9 @@ class CorrectionMergerFilter:
     const std::vector<QoSCorrections> products) {
     QoSCorrections corrections;
 
+    uint64_t receivedCententionNum = 0;
     for (QoSCorrections product : products) {
+      receivedCententionNum += product.size();
       for (slave::QoSCorrection correction : product) {
         if (checkForDuplicates(correction, corrections)) {
           // Filter out duplicated value.
@@ -48,6 +50,9 @@ class CorrectionMergerFilter:
         corrections.push_back(correction);
       }
     }
+
+    SERENITY_LOG(INFO) << "Received " << receivedCententionNum << " corrections"
+      << "and merged to " << corrections.size() << " corrections.";
 
     produce(corrections);
 
