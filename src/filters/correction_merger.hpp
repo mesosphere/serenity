@@ -52,7 +52,7 @@ class CorrectionMergerFilter:
     }
 
     SERENITY_LOG(INFO) << "Received " << receivedCententionNum << " corrections"
-      << "and merged to " << corrections.size() << " corrections.";
+      << " and merged to " << corrections.size() << " corrections.";
 
     produce(corrections);
 

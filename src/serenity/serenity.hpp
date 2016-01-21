@@ -46,7 +46,7 @@ class SyncConsumer : public Consumer<T> {
   Try<Nothing> consume(const T& in) {
     this->products.push_back(in);
 
-    if (this->products.size() == this->producentsToWaitFor) {
+    if (consumedAllNeededProducts()) {
       // Run virtual function which should be implemented in derived
       // class.
       this->syncConsume(this->products);
@@ -71,7 +71,10 @@ class SyncConsumer : public Consumer<T> {
   // You can enforce pipeline to continue the flow even if only some
   // of the producents produced the needed object.
   Try<Nothing> ensure() {
-    this->syncConsume(this->products);
+    // We do syncConsume only when it wasn't done eariler.
+    if (!consumedAllNeededProducts()) {
+      this->syncConsume(this->products);
+    }
 
     return this->reset();
   }
@@ -79,6 +82,11 @@ class SyncConsumer : public Consumer<T> {
  protected:
   uint64_t producentsToWaitFor;
   std::vector<T> products;
+
+  bool consumedAllNeededProducts() {
+    return (this->products.size() == this->producentsToWaitFor);
+  }
+
 };
 
 template<typename T>
