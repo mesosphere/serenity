@@ -34,9 +34,11 @@ Try<Nothing> SignalBasedDetector::consume(const ResourceUsage& usage) {
       SERENITY_LOG(INFO) << "Not found executor: "
                         << executor.executor_info().executor_id();
       this->detectors.insert(
-      std::pair<ExecutorInfo, SignalAnalyzer>(
-      executor.executor_info(),
-      SignalDropAnalyzer(tag, this->detectorConf)));
+        std::pair<ExecutorInfo, std::unique_ptr<SignalAnalyzer>>(
+          executor.executor_info(),
+          std::unique_ptr<SignalAnalyzer>(
+            new SignalDropAnalyzer(tag, this->detectorConf))));
+
     } else {
       // Check if previousSample for given executor exists.
       // Get proper value.
@@ -50,7 +52,7 @@ Try<Nothing> SignalBasedDetector::consume(const ResourceUsage& usage) {
                          << executor.executor_info().executor_id();
       // Perform change point detection.
       Result<Detection> cpDetected =
-      (cpDetector->second).processSample(value.get());
+      (cpDetector->second)->processSample(value.get());
       if (cpDetected.isError()) {
         SERENITY_LOG(ERROR) << cpDetected.error();
         continue;

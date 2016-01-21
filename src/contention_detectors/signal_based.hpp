@@ -47,7 +47,7 @@ class SignalBasedDetector :
       const Contention_Type _contentionType = Contention_Type_IPC)
     : tag(_tag),
       Producer<Contentions>(_consumer),
-      detectors(ExecutorMap<SignalAnalyzer>()),
+      detectors(ExecutorMap<std::unique_ptr<SignalAnalyzer>>()),
       getValue(_getValue),
       detectorConf(_detectorConf),
       contentionType(_contentionType) {}
@@ -64,7 +64,7 @@ class SignalBasedDetector :
   const lambda::function<usage::GetterFunction> getValue;
 
   // Detections.
-  ExecutorMap<SignalAnalyzer> detectors;
+  ExecutorMap<std::unique_ptr<SignalAnalyzer>> detectors;
   SerenityConfig detectorConf;
 };
 
