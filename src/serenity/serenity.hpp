@@ -71,7 +71,7 @@ class SyncConsumer : public Consumer<T> {
   // You can enforce pipeline to continue the flow even if only some
   // of the producents produced the needed object.
   Try<Nothing> ensure() {
-    // We do syncConsume only when it wasn't done eariler.
+    // We do syncConsume only when it wasn't done earlier.
     if (!consumedAllNeededProducts()) {
       this->syncConsume(this->products);
     }
