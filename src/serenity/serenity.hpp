@@ -51,7 +51,8 @@ class SyncConsumer : public Consumer<T> {
       // class.
       this->syncConsume(this->products);
 
-      this->reset();
+      // Reset need to be done explicitly.
+      //this->reset();
     }
 
     return Nothing();
