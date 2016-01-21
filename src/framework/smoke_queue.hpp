@@ -86,7 +86,7 @@ class SmokeAliasQueue {
         } else {
           this->runAliasAlgorithm();
         }
-        LOG(INFO) << "Debug: Size after removal: " <<  size();
+        LOG(INFO) << "Debug: Size after removal: " << size();
         return;
       }
     LOG(ERROR) << "Requested job not found.";

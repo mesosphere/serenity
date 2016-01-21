@@ -175,17 +175,18 @@ class SerenityNoExecutorScheduler : public Scheduler
       while(!allJobsScheduled()) {
 
         auto jobQueuePair = queue.find(offer.hostname());
-        auto jobQueue = anyHostnameQueue;
+        SmokeAliasQueue* jobQueue = &anyHostnameQueue;
         if (jobQueuePair != queue.end()) {
-          jobQueue = jobQueuePair->second;
-          LOG(INFO) << "Found jobQueue of size: " << jobQueue.size();
+          jobQueue = &jobQueuePair->second;
+          LOG(INFO) << "Found jobQueue of size: " << jobQueue->size();
         }
 
-        if (jobQueue.finished) break;
-        std::shared_ptr<SmokeJob> job = jobQueue.selectJob();
+        if (jobQueue->finished) break;
+        std::shared_ptr<SmokeJob> job = jobQueue->selectJob();
         if (job == nullptr) break;
         if (job->finished()) {
-          jobQueue.removeAndReset(job);
+          jobQueue->removeAndReset(job);
+          LOG(INFO) << "jobQueue size: " << jobQueue->size();
           continue;
         }
 
@@ -216,7 +217,7 @@ class SerenityNoExecutorScheduler : public Scheduler
           // In case of limited jobs stop when scheduled totalTasks.
           this->jobsScheduled++;
           // Recalculate Alias alghoritm.
-          jobQueue.removeAndReset(job);
+          jobQueue->removeAndReset(job);
         }
       }
 
