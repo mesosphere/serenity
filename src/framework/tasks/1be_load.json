@@ -8,8 +8,8 @@
           "extract": false,
           "cache": false
       },
-      "taskResources": "mem(serenity):64",
-      "revocableResources": "cpus(serenity):1",
+      "taskResources": "mem(*):64",
+      "revocableResources": "cpus(*):1",
       "targetHostname": "kp9.intelsdi.com",
       "totalTasks": 5,
       "shares" : 99

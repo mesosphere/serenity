@@ -77,14 +77,21 @@ class SmokeAliasQueue {
 
   // Resetting is non-optimal: O(n^2)
   void removeAndReset(std::shared_ptr<SmokeJob> job) {
-
+    LOG(INFO) << "Debug: Resetting and removing Job";
     for (auto jobIter = this->jobs.begin(); jobIter != this->jobs.end(); jobIter++)
       if (jobIter->baseJob->id == job->id) {
         this->jobs.erase(jobIter);
-        if (this->jobs.size() == 0) this->finished = true;
-        else this->runAliasAlgorithm();
+        if (this->jobs.size() == 0) {
+          this->finished = true;
+        } else {
+          this->runAliasAlgorithm();
+        }
         return;
       }
+  }
+
+  size_t size() {
+    return this->jobs.size();
   }
 
   bool finished;
