@@ -179,7 +179,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       Producer<Contentions>::addConsumer(&ipcContentionObserver);
 
     // QoSCorrection observers needs ResourceUsage as well.
-    cumulativeFilter.addConsumer(&cpuContentionObserver);
+    cpuEMAFilter.addConsumer(&cpuContentionObserver);
     cumulativeFilter.addConsumer(&ipcContentionObserver);
     cumulativeFilter.addConsumer(&cacheOccupancyContentionObserver);
     cumulativeFilter.addConsumer(&cpuEMAFilter);
