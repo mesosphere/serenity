@@ -23,8 +23,8 @@ Try<Nothing> SignalBasedDetector::consume(const ResourceUsage& usage) {
   Contentions product;
   for (const ResourceUsage_Executor& executor : productionExecutors) {
     if (!ResourceUsageHelper::isExecutorHasStatistics(executor)) {
-      SERENITY_LOG(INFO) << "No statistics for executor " <<
-      executor.executor_info().command();
+      SERENITY_LOG(INFO) << "No statistics for executor "
+                         << executor.executor_info().executor_id();
       continue;
     }
 
