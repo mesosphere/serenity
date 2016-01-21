@@ -119,7 +119,9 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       ipcContentionObserver(
           &correctionMerger, 1,
           &ageFilter,
-          new SeniorityStrategy(conf[SeniorityStrategy::NAME])),
+          new SeniorityStrategy(conf[SeniorityStrategy::NAME]),
+          strategy::DEFAULT_CONTENTION_COOLDOWN,
+          Tag(QOS_CONTROLLER, SeniorityStrategy::NAME)),
       cacheOccupancyContentionObserver(
           &correctionMerger, 1,
           &ageFilter,
@@ -174,11 +176,12 @@ class CpuQoSPipeline : public QoSControllerPipeline {
     this->addConsumer(&ageFilter);
 
     cacheOccupancyContentionObserver.
-      Producer<QoSCorrections>::addConsumer(&correctionMerger);
+      Producer<Contentions>::addConsumer(&ipcContentionObserver);
 
     // QoSCorrection observers needs ResourceUsage as well.
     cumulativeFilter.addConsumer(&cpuContentionObserver);
     cumulativeFilter.addConsumer(&ipcContentionObserver);
+    cumulativeFilter.addConsumer(&cacheOccupancyContentionObserver);
     cumulativeFilter.addConsumer(&cpuEMAFilter);
 
     // Setup Time Series export
