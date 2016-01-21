@@ -8,6 +8,7 @@
 
 #include "serenity/resource_helper.hpp"
 
+
 namespace mesos {
 namespace serenity {
 
@@ -16,13 +17,16 @@ QoSCorrectionObserver::~QoSCorrectionObserver() {}
 Try<Nothing> QoSCorrectionObserver::doQosDecision() {
   if (contentions.get().empty() ||
       ResourceUsageHelper::getRevocableExecutors(usage.get()).empty()) {
+    SERENITY_LOG(INFO) << "Empty contentions received";
     emptyContentionsReceived();
     // Produce empty corrections and contentions
+
     produceResultsAndClearConsumedData();
     return Nothing();
   }
 
   if (iterationCooldownCounter.isSome()) {
+    SERENITY_LOG(INFO) << "QoS Correction observer is in cooldown phase";
     cooldownPhase();
     // Produce empty corrections and contentions
     produceResultsAndClearConsumedData();
@@ -31,12 +35,14 @@ Try<Nothing> QoSCorrectionObserver::doQosDecision() {
 
   Try<QoSCorrections> corrections = newContentionsReceived();
   if (corrections.isError()) {
+    SERENITY_LOG(INFO) << "corrections returned error: " << corrections.error();
     // Produce empty corrections and contentions
     produceResultsAndClearConsumedData();
     return Error(corrections.error());
   }
 
   if (corrections.get().empty()) {
+    SERENITY_LOG(INFO) << "Strategy didn't found aggressors";
     // Strategy didn't found aggressors.
     // Passing contentions to next QoS Controller.
     produceResultsAndClearConsumedData(QoSCorrections(),

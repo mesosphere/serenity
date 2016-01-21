@@ -17,9 +17,14 @@ Try<Nothing> SignalBasedDetector::consume(const ResourceUsage& usage) {
     std::get<ResourceUsageHelper::ExecutorType::REVOCABLE>(
       executorsListsTuple);
 
+  SERENITY_LOG(INFO) << "Production executors: " << productionExecutors.size()
+                    << " | Revocable executors: " << revocableExecutors.size();
+
   Contentions product;
   for (const ResourceUsage_Executor& executor : productionExecutors) {
     if (!ResourceUsageHelper::isExecutorHasStatistics(executor)) {
+      SERENITY_LOG(INFO) << "No statistics for executor " <<
+      executor.executor_info().command();
       continue;
     }
 
@@ -27,23 +32,23 @@ Try<Nothing> SignalBasedDetector::consume(const ResourceUsage& usage) {
     auto cpDetector = this->detectors.find(executor.executor_info());
     if (cpDetector == this->detectors.end()) {
       this->detectors.insert(
-        std::pair<ExecutorInfo, SignalAnalyzer>(
-          executor.executor_info(),
-          SignalDropAnalyzer(tag, this->detectorConf)));
+      std::pair<ExecutorInfo, SignalAnalyzer>(
+      executor.executor_info(),
+      SignalDropAnalyzer(tag, this->detectorConf)));
     } else {
       // Check if previousSample for given executor exists.
       // Get proper value.
       Try<double_t> value = this->getValue(executor);
       if (value.isError()) {
-        SERENITY_LOG(ERROR)  << value.error();
+        SERENITY_LOG(ERROR) << value.error();
         continue;
       }
 
       // Perform change point detection.
       Result<Detection> cpDetected =
-          (cpDetector->second).processSample(value.get());
+      (cpDetector->second).processSample(value.get());
       if (cpDetected.isError()) {
-        SERENITY_LOG(ERROR)  << cpDetected.error();
+        SERENITY_LOG(ERROR) << cpDetected.error();
         continue;
       }
 
@@ -51,18 +56,20 @@ Try<Nothing> SignalBasedDetector::consume(const ResourceUsage& usage) {
       if (cpDetected.isSome()) {
         if (revocableExecutors.empty()) {
           SERENITY_LOG(INFO) << "Contention spotted, however there are no "
-              << "Best effort tasks on the host. Assuming false positive.";
+                  << "Best effort tasks on the host. Assuming false positive";
           (cpDetector->second).reset();
         } else {
+          SERENITY_LOG(INFO) << "Signal contention spotted";
           product.push_back(createContention(
-            cpDetected.get().severity,
-            contentionType,
-            WID(executor.executor_info()).getWorkID(),
-            executor.statistics().timestamp()));
+          cpDetected.get().severity,
+          contentionType,
+          WID(executor.executor_info()).getWorkID(),
+          executor.statistics().timestamp()));
         }
       }
     }
   }
+  SERENITY_LOG(INFO) << "Producing " << product.size() << " contentions";
   produce(product);
   return Nothing();
 }
