@@ -63,7 +63,7 @@ Try<Nothing> SignalBasedDetector::consume(const ResourceUsage& usage) {
         if (revocableExecutors.empty()) {
           SERENITY_LOG(INFO) << "Contention spotted, however there are no "
                   << "Best effort tasks on the host. Assuming false positive";
-          (cpDetector->second).reset();
+          (cpDetector->second)->resetSignalRecovering();
         } else {
           SERENITY_LOG(INFO) << "Signal contention spotted";
           product.push_back(createContention(

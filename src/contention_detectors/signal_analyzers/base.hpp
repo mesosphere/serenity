@@ -30,7 +30,7 @@ class SignalAnalyzer {
 
   virtual Result<Detection> processSample(double_t in) = 0;
 
-  virtual Try<Nothing> reset() = 0;
+  virtual Try<Nothing> resetSignalRecovering() = 0;
 
  protected:
   const Tag tag;
