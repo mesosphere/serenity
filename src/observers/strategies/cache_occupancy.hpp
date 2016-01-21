@@ -1,6 +1,7 @@
 #ifndef SERENITY_CACHE_OCCUPANCY_HPP
 #define SERENITY_CACHE_OCCUPANCY_HPP
 
+#include <list>
 #include <vector>
 
 #include "glog/logging.h"
@@ -35,7 +36,7 @@ class CacheOccupancyStrategy : public RevocationStrategy {
   static const constexpr char* NAME = "CacheOccupancyStrategy";
  protected:
   std::vector<ResourceUsage_Executor> getCmtEnabledExecutors(
-    const ResourceUsage&) const;
+    const std::list<ResourceUsage_Executor>&) const;
 
   double_t countMeanCacheOccupancy(
     const std::vector<ResourceUsage_Executor>&) const;

@@ -21,16 +21,17 @@ Try<QoSCorrections> CacheOccupancyStrategy::decide(
     ExecutorAgeFilter* ageFilter,
     const Contentions& contentions,
     const ResourceUsage& usage) {
-  std::vector<ResourceUsage_Executor> cmtEnabledExecutors =
-      getCmtEnabledExecutors(usage);
 
-  if (cmtEnabledExecutors.empty()) {
+  std::vector<ResourceUsage_Executor> beCmtEnabledExecutors
+    = getCmtEnabledExecutors(ResourceUsageHelper::getRevocableExecutors(usage));
+
+  if (beCmtEnabledExecutors.empty()) {
     return QoSCorrections();
   }
 
-  double_t meanCacheOccupancy = countMeanCacheOccupancy(cmtEnabledExecutors);
+  double_t meanCacheOccupancy = countMeanCacheOccupancy(beCmtEnabledExecutors);
   std::vector<ResourceUsage_Executor> aggressors =
-    getExecutorsAboveMeanCacheOccupancy(cmtEnabledExecutors,
+    getExecutorsAboveMeanCacheOccupancy(beCmtEnabledExecutors,
                                         meanCacheOccupancy);
 
   SERENITY_LOG(INFO) << "Revoking " << aggressors.size() << " executors";
@@ -48,10 +49,10 @@ Try<QoSCorrections> CacheOccupancyStrategy::decide(
 
 std::vector<ResourceUsage_Executor>
 CacheOccupancyStrategy::getCmtEnabledExecutors(
-    const ResourceUsage& usage) const {
+    const std::list<ResourceUsage_Executor>& _executors) const {
   std::vector<ResourceUsage_Executor> executors;
 #ifdef CMT_ENABLED
-  for (const ResourceUsage_Executor& executor : usage.executors()) {
+  for (const ResourceUsage_Executor& executor : _executors) {
     if (executor.has_statistics() &&
         executor.statistics().has_perf() &&
         executor.statistics().perf().has_llc_occupancy()) {
@@ -63,7 +64,7 @@ CacheOccupancyStrategy::getCmtEnabledExecutors(
 }
 
 double_t CacheOccupancyStrategy::countMeanCacheOccupancy(
-    const std::vector<ResourceUsage_Executor> &_executors) const {
+    const std::vector<ResourceUsage_Executor>& _executors) const {
   double_t cacheOccupacySum = 0.0;
   for (const ResourceUsage_Executor& executor : _executors) {
     cacheOccupacySum += executor.statistics().perf().llc_occupancy();
