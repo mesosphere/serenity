@@ -130,7 +130,6 @@ class ValveFilterEndpointProcess
   }
 
   Future<bool> isOpened() {
-    SERENITY_LOG(INFO) << openedCounter;
     return (openedCounter >= IS_OPENED_THRESHOLD);
   }
 
