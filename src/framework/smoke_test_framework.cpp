@@ -186,7 +186,6 @@ class SerenityNoExecutorScheduler : public Scheduler
         if (job == nullptr) break;
         if (job->finished()) {
           jobQueue->removeAndReset(job);
-          LOG(INFO) << "jobQueue size: " << jobQueue->size();
           continue;
         }
 
