@@ -65,7 +65,7 @@ class SerenityControllerProcess :
 
   QoSCorrections __corrections(
       const Future<ResourceUsage>& _resourceUsage) {
-    LOG(INFO) << "[SerenityQoS] Starting QoS pipeline";
+    LOG(INFO) << "[SerenityQoS] -------- Starting QoS pipeline --------";
     Result<QoSCorrections> ret = this->pipeline->run(_resourceUsage.get());
 
     QoSCorrections corrections;
@@ -76,8 +76,8 @@ class SerenityControllerProcess :
       corrections = ret.get();
     }
 
-    LOG(INFO) << "[SerenityQoS] Ending QoS pipeline with "
-              << corrections.size() << " corrections.";
+    LOG(INFO) << "[SerenityQoS] ------- Ending QoS pipeline with "
+              << corrections.size() << " corrections. --------";
     return corrections;
   }
 
