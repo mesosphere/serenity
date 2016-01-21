@@ -31,6 +31,8 @@ Try<Nothing> SignalBasedDetector::consume(const ResourceUsage& usage) {
     // Check if change point Detector for given executor exists.
     auto cpDetector = this->detectors.find(executor.executor_info());
     if (cpDetector == this->detectors.end()) {
+      SERENITY_LOG(INFO) << "Not found executor: "
+                        << executor.executor_info().executor_id();
       this->detectors.insert(
       std::pair<ExecutorInfo, SignalAnalyzer>(
       executor.executor_info(),
@@ -44,6 +46,8 @@ Try<Nothing> SignalBasedDetector::consume(const ResourceUsage& usage) {
         continue;
       }
 
+      SERENITY_LOG(INFO) << "Starting processing executor: "
+                         << executor.executor_info().executor_id();
       // Perform change point detection.
       Result<Detection> cpDetected =
       (cpDetector->second).processSample(value.get());
