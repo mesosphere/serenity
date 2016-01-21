@@ -86,7 +86,6 @@ class SyncConsumer : public Consumer<T> {
   bool consumedAllNeededProducts() {
     return (this->products.size() == this->producentsToWaitFor);
   }
-
 };
 
 template<typename T>
