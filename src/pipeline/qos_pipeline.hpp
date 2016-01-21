@@ -123,7 +123,9 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       cacheOccupancyContentionObserver(
           &correctionMerger, 1,
           &ageFilter,
-          new CacheOccupancyStrategy()),
+          new CacheOccupancyStrategy(),
+          strategy::DEFAULT_CONTENTION_COOLDOWN,
+          Tag(QOS_CONTROLLER, CacheOccupancyStrategy::NAME)),
       ipcDropDetector(
           &cacheOccupancyContentionObserver,
           usage::getEmaIpc,
@@ -145,7 +147,9 @@ class CpuQoSPipeline : public QoSControllerPipeline {
           &ageFilter,
           new CpuContentionStrategy(
             conf[CpuContentionStrategy::NAME],
-            usage::getEmaCpuUsage)),
+            usage::getEmaCpuUsage),
+          strategy::DEFAULT_CONTENTION_COOLDOWN,
+          Tag(QOS_CONTROLLER, CpuContentionStrategy::NAME)),
       cpuUtilizationDetector(
           &cpuContentionObserver,
           usage::getEmaCpuUsage,

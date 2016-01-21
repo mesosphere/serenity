@@ -74,7 +74,7 @@ class QoSCorrectionObserver : public SyncConsumer<Contentions>,
     return Producer<T>::addConsumer(consumer);
   }
 
-  static constexpr const char* NAME = "QoSCorrectionObserver: ";
+  static constexpr const char* NAME = "QoSCorrectionObserver";
 
  protected:
   Try<Nothing> doQosDecision();

@@ -17,7 +17,7 @@ QoSCorrectionObserver::~QoSCorrectionObserver() {}
 Try<Nothing> QoSCorrectionObserver::doQosDecision() {
   if (contentions.get().empty() ||
       ResourceUsageHelper::getRevocableExecutors(usage.get()).empty()) {
-    SERENITY_LOG(INFO) << "Empty contentions received";
+    SERENITY_LOG(INFO) << "Empty contentions received.";
     emptyContentionsReceived();
     // Produce empty corrections and contentions
 
