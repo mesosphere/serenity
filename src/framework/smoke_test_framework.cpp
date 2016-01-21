@@ -173,17 +173,19 @@ class SerenityNoExecutorScheduler : public Scheduler
       Resources remaining = offer.resources();
       vector<TaskInfo> tasks;
       while(!allJobsScheduled()) {
+
         auto jobQueuePair = queue.find(offer.hostname());
-        auto jobQueue = anyHostnameQueue;
+        SmokeAliasQueue* jobQueue = &anyHostnameQueue;
         if (jobQueuePair != queue.end()) {
-          jobQueue = jobQueuePair->second;
+          jobQueue = &jobQueuePair->second;
+          LOG(INFO) << "Found jobQueue of size: " << jobQueue->size();
         }
 
-        if (jobQueue.finished) break;
-        std::shared_ptr<SmokeJob> job = jobQueue.selectJob();
+        if (jobQueue->finished) break;
+        std::shared_ptr<SmokeJob> job = jobQueue->selectJob();
         if (job == nullptr) break;
         if (job->finished()) {
-          jobQueue.removeAndReset(job);
+          jobQueue->removeAndReset(job);
           continue;
         }
 
@@ -192,7 +194,8 @@ class SerenityNoExecutorScheduler : public Scheduler
           LOG(INFO) << "Not enough resources for "
           << stringify(job->id) + "_"
              + stringify(job->tasksLaunched)
-          << " job. Needed: " << job->taskResources
+          << "( " << stringify(job->command) << ") "
+          << "job. Needed: " << job->taskResources
           << " Offered: " << remaining;
           break;
         }
@@ -206,14 +209,14 @@ class SerenityNoExecutorScheduler : public Scheduler
 
         job->tasksLaunched++;
         tasksLaunched++;
-        LOG(INFO) << "Prepared " << tasks.back().task_id();
+        LOG(INFO) << "Prepared " << tasks.back().task_id()
+                  << " ( " << stringify(job->command) << ")";
 
         if (job->finished()) {
           // In case of limited jobs stop when scheduled totalTasks.
-          job->scheduled = true;
           this->jobsScheduled++;
           // Recalculate Alias alghoritm.
-          jobQueue.removeAndReset(job);
+          jobQueue->removeAndReset(job);
         }
       }
 
@@ -255,12 +258,12 @@ class SerenityNoExecutorScheduler : public Scheduler
           status.reason() ==  TaskStatus::REASON_EXECUTOR_PREEMPTED) {
         // Executor was preempted.
         TimeSeriesRecord record(Series::REVOCATED_TASKS);
-//        record.setTag(TsTag::TASK_ID, status.task_id().value());
-//        record.setTag(TsTag::EXECUTOR_ID, status.executor_id().value());
-//        record.setTag(TsTag::HOSTNAME, task->second); //get hostname
+        record.setTag(TsTag::TASK_ID, status.task_id().value());
+        record.setTag(TsTag::EXECUTOR_ID, status.executor_id().value());
+        record.setTag(TsTag::HOSTNAME, task->second); //get hostname
         LOG(INFO) << "Sending data about preempted task to InfluxDB is "
                        "disabled.";
-        //dbBackend->PutMetric(record);
+        dbBackend->PutMetric(record);
       }
     } else {
       LOG(INFO) << "Task '" << status.task_id() << "'"

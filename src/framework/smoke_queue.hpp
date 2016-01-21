@@ -60,7 +60,7 @@ class SmokeAliasQueue {
 
   // Seleting is O(1)
   std::shared_ptr<SmokeJob> selectJob() {
-    if (jobs.size() == 0) {
+    if (jobs.empty()) {
       LOG(ERROR) << "Cannot select job when there is no job in queue";
       return nullptr;
     }
@@ -77,14 +77,21 @@ class SmokeAliasQueue {
 
   // Resetting is non-optimal: O(n^2)
   void removeAndReset(std::shared_ptr<SmokeJob> job) {
-
     for (auto jobIter = this->jobs.begin(); jobIter != this->jobs.end(); jobIter++)
       if (jobIter->baseJob->id == job->id) {
         this->jobs.erase(jobIter);
-        if (this->jobs.size() == 0) this->finished = true;
-        else this->runAliasAlgorithm();
+        if (this->jobs.empty()) {
+          this->finished = true;
+        } else {
+          this->runAliasAlgorithm();
+        }
         return;
       }
+    LOG(ERROR) << "Requested job not found.";
+  }
+
+  size_t size() {
+    return this->jobs.size();
   }
 
   bool finished;
