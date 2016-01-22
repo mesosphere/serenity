@@ -337,6 +337,7 @@ class SerenityNoExecutorScheduler : public Scheduler
     record.setTag(TsTag::EXECUTOR_ID, status.executor_id().value());
     record.setTag(TsTag::HOSTNAME, task->second.hostname); //get hostname
     record.setTag(TsTag::TASK_NAME, task->second.jobPtr->name);
+    record.setTag(TsTag::VALUE, 1);
     dbBackend->PutMetric(record);
   }
 
