@@ -204,8 +204,8 @@ class SerenityNoExecutorScheduler : public Scheduler
 
         tasks.push_back(job->createTask(offer.slave_id()));
 
-        this->activeTasks.insert(std::pair<TaskID, string>(
-            tasks.back().task_id(), offer.hostname()));
+        this->activeTasks.insert(std::pair<TaskID, SmokeTask>(
+            tasks.back().task_id(), SmokeTask(job, offer.hostname())));
 
         job->tasksLaunched++;
         tasksLaunched++;
@@ -257,12 +257,11 @@ class SerenityNoExecutorScheduler : public Scheduler
       if (status.state() == TASK_LOST &&
           status.reason() ==  TaskStatus::REASON_EXECUTOR_PREEMPTED) {
         // Executor was preempted.
-        TimeSeriesRecord record(Series::REVOCATED_TASKS);
-        record.setTag(TsTag::TASK_ID, status.task_id().value());
-        record.setTag(TsTag::EXECUTOR_ID, status.executor_id().value());
-        record.setTag(TsTag::HOSTNAME, task->second); //get hostname
-        LOG(INFO) << "Sending data about preempted task to InfluxDB";
-        dbBackend->PutMetric(record);
+        LOG(INFO) << "Sending data about revoked task to InfluxDB";
+        sendToInflux(Series::REVOKED_TASKS, task, status);
+      } else {
+        LOG(INFO) << "Sending data about failed task to InfluxDB";
+        sendToInflux(Series::FAILED_TASKS, task, status);
       }
     } else {
       LOG(INFO) << "Task '" << status.task_id() << "'"
@@ -271,6 +270,8 @@ class SerenityNoExecutorScheduler : public Scheduler
 
     if (internal::protobuf::isTerminalState(status.state())) {
       if (status.state() == TASK_FINISHED) {
+        LOG(INFO) << "Sending data about finished task to InfluxDB";
+        sendToInflux(Series::FINISHED_TASKS, task, status);
         tasksFinished++;
       }
 
@@ -326,6 +327,17 @@ class SerenityNoExecutorScheduler : public Scheduler
     LOG(ERROR) << message;
   }
 
+  void sendToInflux(const Series series,
+                    const hashmap<TaskID, SmokeTask>::iterator task,
+                    const TaskStatus& status) {
+    TimeSeriesRecord record(series);
+    record.setTag(TsTag::TASK_ID, status.task_id().value());
+    record.setTag(TsTag::EXECUTOR_ID, status.executor_id().value());
+    record.setTag(TsTag::HOSTNAME, task->second.hostname); //get hostname
+    record.setTag(TsTag::TASK_NAME, task->second.jobPtr->name);
+    dbBackend->PutMetric(record);
+  }
+
 private:
   FrameworkInfo frameworkInfo;
   list<std::shared_ptr<SmokeJob>> jobs;
@@ -334,7 +346,7 @@ private:
   size_t tasksLaunched;
   size_t tasksFinished;
   size_t tasksTerminated;
-  hashmap<TaskID, string> activeTasks;
+  hashmap<TaskID, SmokeTask> activeTasks;
   size_t jobsScheduled;
   std::shared_ptr<TimeSeriesBackend> dbBackend;
 
@@ -423,6 +435,7 @@ int main(int argc, char** argv)
       SmokeJob(0, flags.command,
                taskResources,
                flags.num_tasks,
+               flags.command,
                flags.target_hostname,
                uri)));
   }
