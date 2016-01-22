@@ -266,6 +266,8 @@ class SerenityNoExecutorScheduler : public Scheduler
     } else {
       LOG(INFO) << "Task '" << status.task_id() << "'"
                 << " is in state " << status.state();
+      LOG(INFO) << "Sending data about started task to InfluxDB";
+      sendToInflux(Series::STARTED_TASKS, task, status);
     }
 
     if (internal::protobuf::isTerminalState(status.state())) {
