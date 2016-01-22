@@ -332,12 +332,11 @@ class SerenityNoExecutorScheduler : public Scheduler
   void sendToInflux(const Series series,
                     const hashmap<TaskID, SmokeTask>::iterator task,
                     const TaskStatus& status) {
-    TimeSeriesRecord record(series);
+    TimeSeriesRecord record(series, (uint64_t) 1);
     record.setTag(TsTag::TASK_ID, status.task_id().value());
     record.setTag(TsTag::EXECUTOR_ID, status.executor_id().value());
     record.setTag(TsTag::HOSTNAME, task->second.hostname); //get hostname
     record.setTag(TsTag::TASK_NAME, task->second.jobPtr->name);
-    record.setTag(TsTag::VALUE, 1);
     dbBackend->PutMetric(record);
   }
 
