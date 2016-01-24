@@ -29,6 +29,7 @@ enum class Series : uint8_t {
   IPC,
   CACHE_MISSES,
   STARTED_TASKS,
+  RUNNING_TASKS,
   FINISHED_TASKS,
   REVOKED_TASKS,
   FAILED_TASKS
@@ -48,6 +49,7 @@ static std::string SeriesString(Series series) {
     case Series::IPC:             return "ipc";
     case Series::CACHE_MISSES:    return "cache_misses";
     case Series::STARTED_TASKS:   return "started_tasks";
+    case Series::RUNNING_TASKS:   return "running_tasks";
     case Series::FINISHED_TASKS:  return "finished_tasks";
     case Series::REVOKED_TASKS:   return "revoked_tasks";
     case Series::FAILED_TASKS:    return "failed_tasks";

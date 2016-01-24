@@ -254,6 +254,10 @@ class SerenityNoExecutorScheduler : public Scheduler
                  << " from source " << status.source()
                  << " with message '" << status.message() << "'";
 
+
+      LOG(INFO) << "Change counter in InfluxDB";
+      sendToInflux(Series::RUNNING_TASKS, task, status, -1);
+
       if (status.state() == TASK_LOST &&
           status.reason() ==  TaskStatus::REASON_EXECUTOR_PREEMPTED) {
         // Executor was preempted.
@@ -268,12 +272,18 @@ class SerenityNoExecutorScheduler : public Scheduler
                 << " is in state " << status.state();
       LOG(INFO) << "Sending data about started task to InfluxDB";
       sendToInflux(Series::STARTED_TASKS, task, status);
+
+      LOG(INFO) << "Change counter in InfluxDB";
+      sendToInflux(Series::RUNNING_TASKS, task, status, 1);
     }
 
     if (internal::protobuf::isTerminalState(status.state())) {
       if (status.state() == TASK_FINISHED) {
         LOG(INFO) << "Sending data about finished task to InfluxDB";
         sendToInflux(Series::FINISHED_TASKS, task, status);
+
+        LOG(INFO) << "Change counter in InfluxDB";
+        sendToInflux(Series::RUNNING_TASKS, task, status, -1);
         tasksFinished++;
       }
 
@@ -331,8 +341,9 @@ class SerenityNoExecutorScheduler : public Scheduler
 
   void sendToInflux(const Series series,
                     const hashmap<TaskID, SmokeTask>::iterator task,
-                    const TaskStatus& status) {
-    TimeSeriesRecord record(series, (uint64_t) 1);
+                    const TaskStatus& status,
+                    const int64_t value = 1) {
+    TimeSeriesRecord record(series, value);
     record.setTag(TsTag::TASK_ID, status.task_id().value());
     record.setTag(TsTag::EXECUTOR_ID, status.executor_id().value());
     record.setTag(TsTag::HOSTNAME, task->second.hostname); //get hostname
