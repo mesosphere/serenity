@@ -38,6 +38,7 @@
 #include <stout/path.hpp>
 #include <stout/stringify.hpp>
 #include <stout/try.hpp>
+#include <stout/duration.hpp>
 
 #include "common/protobuf_utils.hpp"
 #include "common/status_utils.hpp"
@@ -50,6 +51,14 @@
 #include "smoke_flags.hpp"
 #include "smoke_job.hpp"
 #include "smoke_queue.hpp"
+
+#include "process/future.hpp"
+#include "process/owned.hpp"
+#include "process/defer.hpp"
+#include "process/delay.hpp"
+#include "process/dispatch.hpp"
+#include "process/process.hpp"
+
 
 using namespace mesos;
 using namespace mesos::internal;
@@ -78,6 +87,57 @@ static Offer::Operation LAUNCH(const vector<TaskInfo>& tasks)
   return operation;
 }
 
+// Needed for Serenity demo.
+class SerenityNoExecutorSchedulerProcess
+  : public process::Process<SerenityNoExecutorSchedulerProcess> {
+public:
+  explicit SerenityNoExecutorSchedulerProcess(
+    const list<std::shared_ptr<SmokeJob>> _jobs)
+    : jobs(_jobs),
+      dbBackend(new InfluxDb8Backend()),
+      ProcessBase("serenity_scheduler_stats") {
+
+    process::delay(Duration::create(0.5).get(),
+                   self(),
+                   &SerenityNoExecutorSchedulerProcess::reportToInfluxDb);
+  }
+
+  void reportToInfluxDb() {
+    for (std::shared_ptr<SmokeJob> job : jobs) {
+      sendToInflux(Series::RUNNING_TASKS,
+                   job->name,
+                   job->runningTasks);
+
+      sendToInflux(Series::REVOKED_TASKS,
+                   job->name,
+                   job->revokedTasks);
+
+      sendToInflux(Series::FINISHED_TASKS,
+                   job->name,
+                   job->finishedTasks);
+
+      sendToInflux(Series::FAILED_TASKS,
+                   job->name,
+                   job->failedTasks);
+    }
+  }
+
+  // TODO(bplotka): Add hostname.
+  void sendToInflux(const Series series,
+                    const std::string taskName,
+                    const int64_t value = 1) {
+    TimeSeriesRecord record(series, value);
+    record.setTag(TsTag::TASK_NAME, taskName);
+    dbBackend->PutMetric(record);
+  }
+
+  virtual ~SerenityNoExecutorSchedulerProcess() {}
+
+private:
+  const list<std::shared_ptr<SmokeJob>> jobs;
+  std::unique_ptr<TimeSeriesBackend> dbBackend;
+};
+
 
 /**
  * Serenity No Executor Scheduler based on Mesos No Executor Scheduler.
@@ -93,8 +153,7 @@ class SerenityNoExecutorScheduler : public Scheduler
       tasksFinished(0u),
       tasksTerminated(0u),
       jobsScheduled(0u),
-      jobs(_jobs),
-      dbBackend(new InfluxDb8Backend()) {
+      jobs(_jobs) {
     anyHostnameQueue = SmokeAliasQueue();
 
     // For all jobs with specified target hostname.
@@ -123,6 +182,11 @@ class SerenityNoExecutorScheduler : public Scheduler
       // Additionaly add job to anyHostname queue.
       anyHostnameQueue.add(job);
     }
+
+    process = process::Owned<SerenityNoExecutorSchedulerProcess>(
+      new SerenityNoExecutorSchedulerProcess(jobs));
+
+    spawn(process.get());
 
     LOG(INFO) << "SerenityNoExecutorScheduler initialized. Jobs: "
               << jobs.size();
@@ -258,23 +322,23 @@ class SerenityNoExecutorScheduler : public Scheduler
       if (status.state() == TASK_LOST &&
           status.reason() ==  TaskStatus::REASON_EXECUTOR_PREEMPTED) {
         // Executor was preempted.
-        LOG(INFO) << "Sending data about revoked task to InfluxDB";
-        statTaskRevoked(task->second, status);
+//        LOG(INFO) << "Sending data about revoked task to InfluxDB";
+//        statTaskRevoked(task->second, status);
       } else {
-        LOG(INFO) << "Sending data about failed task to InfluxDB";
-        statTaskFailed(task->second, status);
+//        LOG(INFO) << "Sending data about failed task to InfluxDB";
+//        statTaskFailed(task->second, status);
       }
     } else {
-      LOG(INFO) << "Task '" << status.task_id() << "'"
-                << " is in state " << status.state();
-      LOG(INFO) << "Sending data about started task to InfluxDB";
-      statTaskRunning(task->second, status);
+//      LOG(INFO) << "Task '" << status.task_id() << "'"
+//                << " is in state " << status.state();
+//      LOG(INFO) << "Sending data about started task to InfluxDB";
+//      statTaskRunning(task->second, status);
     }
 
     if (internal::protobuf::isTerminalState(status.state())) {
       if (status.state() == TASK_FINISHED) {
-        LOG(INFO) << "Sending data about finished task to InfluxDB";
-        statTaskFinished(task->second, status);
+//        LOG(INFO) << "Sending data about finished task to InfluxDB";
+//        statTaskFinished(task->second, status);
         tasksFinished++;
       }
 
@@ -371,7 +435,12 @@ class SerenityNoExecutorScheduler : public Scheduler
     record.setTag(TsTag::EXECUTOR_ID, status.executor_id().value());
     record.setTag(TsTag::HOSTNAME, task.hostname); //get hostname
     record.setTag(TsTag::TASK_NAME, task.jobPtr->name);
-    dbBackend->PutMetric(record);
+    //dbBackend->PutMetric(record);
+  }
+
+  ~SerenityNoExecutorScheduler() {
+    process::terminate(process.get());
+    process::wait(process.get());
   }
 
 private:
@@ -384,7 +453,8 @@ private:
   size_t tasksTerminated;
   hashmap<TaskID, SmokeTask> activeTasks;
   size_t jobsScheduled;
-  std::shared_ptr<TimeSeriesBackend> dbBackend;
+
+  process::Owned<SerenityNoExecutorSchedulerProcess> process;
 
   bool allJobsScheduled() {
     return jobsScheduled >= jobs.size();
@@ -467,8 +537,8 @@ int main(int argc, char** argv)
     if (flags.uri_value.isSome()) {
       uri = SmokeURI(flags.uri_value.get());
     }
-    jobs.push_back(std::make_shared<SmokeJob>(
-      SmokeJob(0, flags.command,
+    jobs.push_back(std::shared_ptr<SmokeJob>(
+      new SmokeJob(0, flags.command,
                taskResources,
                flags.num_tasks,
                flags.command,
