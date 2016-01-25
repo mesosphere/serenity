@@ -337,23 +337,19 @@ class SerenityNoExecutorScheduler : public Scheduler
       if (status.state() == TASK_LOST &&
           status.reason() ==  TaskStatus::REASON_EXECUTOR_PREEMPTED) {
         // Executor was preempted.
-//        LOG(INFO) << "Sending data about revoked task to InfluxDB";
-//        statTaskRevoked(task->second, status);
+        statTaskRevoked(task->second, status);
       } else {
-//        LOG(INFO) << "Sending data about failed task to InfluxDB";
-//        statTaskFailed(task->second, status);
+        statTaskFailed(task->second, status);
       }
     } else {
-//      LOG(INFO) << "Task '" << status.task_id() << "'"
-//                << " is in state " << status.state();
-//      LOG(INFO) << "Sending data about started task to InfluxDB";
-//      statTaskRunning(task->second, status);
+      LOG(INFO) << "Task '" << status.task_id() << "'"
+                << " is in state " << status.state();
+      statTaskRunning(task->second, status);
     }
 
     if (internal::protobuf::isTerminalState(status.state())) {
       if (status.state() == TASK_FINISHED) {
-//        LOG(INFO) << "Sending data about finished task to InfluxDB";
-//        statTaskFinished(task->second, status);
+        statTaskFinished(task->second, status);
         tasksFinished++;
       }
 
@@ -412,45 +408,25 @@ class SerenityNoExecutorScheduler : public Scheduler
   // Needed for Serenity demo.
   void statTaskRunning(const SmokeTask& task,
                        const TaskStatus& status) {
-    sendToInflux(Series::RUNNING_TASKS, task,
-                 status, ++task.jobPtr->runningTasks);
+    ++task.jobPtr->runningTasks;
   }
 
   void statTaskRevoked(const SmokeTask& task,
                        const TaskStatus& status) {
-    sendToInflux(Series::RUNNING_TASKS, task,
-                 status, --task.jobPtr->runningTasks);
-    sendToInflux(Series::REVOKED_TASKS, task,
-                 status, ++task.jobPtr->revokedTasks);
+    --task.jobPtr->runningTasks;
+     ++task.jobPtr->revokedTasks;
   }
 
   void statTaskFailed(const SmokeTask& task,
                        const TaskStatus& status) {
-    sendToInflux(Series::RUNNING_TASKS, task,
-                 status, --task.jobPtr->runningTasks);
-    sendToInflux(Series::FAILED_TASKS, task,
-                 status, ++task.jobPtr->failedTasks);
+    --task.jobPtr->runningTasks;
+    ++task.jobPtr->failedTasks;
   }
 
   void statTaskFinished(const SmokeTask& task,
                       const TaskStatus& status) {
-    sendToInflux(Series::RUNNING_TASKS, task,
-                 status, --task.jobPtr->runningTasks);
-    sendToInflux(Series::FINISHED_TASKS, task,
-                 status, ++task.jobPtr->finishedTasks);
-  }
-
-
-  void sendToInflux(const Series series,
-                    const SmokeTask& task,
-                    const TaskStatus& status,
-                    const int64_t value = 1) {
-    TimeSeriesRecord record(series, value);
-    record.setTag(TsTag::TASK_ID, status.task_id().value());
-    record.setTag(TsTag::EXECUTOR_ID, status.executor_id().value());
-    record.setTag(TsTag::HOSTNAME, task.hostname); //get hostname
-    record.setTag(TsTag::TASK_NAME, task.jobPtr->name);
-    //dbBackend->PutMetric(record);
+    --task.jobPtr->runningTasks;
+    ++task.jobPtr->finishedTasks;
   }
 
   ~SerenityNoExecutorScheduler() {
