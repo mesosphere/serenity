@@ -339,19 +339,22 @@ class SerenityNoExecutorScheduler : public Scheduler
       if (status.state() == TASK_LOST &&
           status.reason() ==  TaskStatus::REASON_EXECUTOR_PREEMPTED) {
         // Executor was preempted.
-        statTaskRevoked(task->second, status);
+        statTaskRevoked(task->second.jobPtr, status);
       } else {
-        statTaskFailed(task->second, status);
+        statTaskFailed(task->second.jobPtr, status);
       }
     } else {
       LOG(INFO) << "Task '" << status.task_id() << "'"
                 << " is in state " << status.state();
-      statTaskRunning(task->second, status);
+      statTaskRunning(task->second.jobPtr, status);
     }
 
     if (internal::protobuf::isTerminalState(status.state())) {
       if (status.state() == TASK_FINISHED) {
-        statTaskFinished(task->second, status);
+
+        statTaskFinished(task->second.jobPtr, status);
+        LOG(INFO) << "!!!!! RUNNING tasks after2: " << task->second
+                                                         .jobPtr->runningTasks;
         tasksFinished++;
       }
 
@@ -409,29 +412,29 @@ class SerenityNoExecutorScheduler : public Scheduler
   }
 
   // Needed for Serenity demo.
-  void statTaskRunning(const SmokeTask& task,
+  void statTaskRunning(std::shared_ptr<SmokeJob>& job,
                        const TaskStatus& status) {
-    task.jobPtr->runningTasks += 1;
+    job->runningTasks += 1;
   }
 
-  void statTaskRevoked(const SmokeTask& task,
+  void statTaskRevoked(std::shared_ptr<SmokeJob>& job,
                        const TaskStatus& status) {
-    task.jobPtr->runningTasks -= 1;
-    task.jobPtr->revokedTasks += 1;
+    job->runningTasks -= 1;
+    job->revokedTasks += 1;
   }
 
-  void statTaskFailed(const SmokeTask& task,
+  void statTaskFailed(std::shared_ptr<SmokeJob>& job,
                        const TaskStatus& status) {
-    task.jobPtr->runningTasks -= 1;
-    task.jobPtr->failedTasks += 1;
+    job->runningTasks -= 1;
+    job->failedTasks += 1;
   }
 
-  void statTaskFinished(const SmokeTask& task,
-                      const TaskStatus& status) {
-    LOG(INFO) << "!!!!! RUNNING tasks: " << task.jobPtr->runningTasks;
-    task.jobPtr->runningTasks -= 1;
-    LOG(INFO) << "!!!!! RUNNING tasks after: " << task.jobPtr->runningTasks;
-    //task.jobPtr->finishedTasks += 1;
+  void statTaskFinished(std::shared_ptr<SmokeJob>& job,
+                        const TaskStatus& status) {
+    LOG(INFO) << "!!!!! RUNNING tasks: " << job->runningTasks;
+    job->runningTasks -= 1;
+    LOG(INFO) << "!!!!! RUNNING tasks after: " << job->runningTasks;
+    job->finishedTasks += 1;
   }
 
   ~SerenityNoExecutorScheduler() {

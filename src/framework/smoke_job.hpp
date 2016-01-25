@@ -350,7 +350,7 @@ class SmokeTask {
             const std::string _hostname)
     : jobPtr(_jobPtr), hostname(_hostname) {}
 
-  const std::shared_ptr<SmokeJob> jobPtr;
+  std::shared_ptr<SmokeJob> jobPtr;
   const std::string hostname;
 };
 
