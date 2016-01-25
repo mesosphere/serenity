@@ -411,25 +411,27 @@ class SerenityNoExecutorScheduler : public Scheduler
   // Needed for Serenity demo.
   void statTaskRunning(const SmokeTask& task,
                        const TaskStatus& status) {
-    ++task.jobPtr->runningTasks;
+    task.jobPtr->runningTasks += 1;
   }
 
   void statTaskRevoked(const SmokeTask& task,
                        const TaskStatus& status) {
-    --task.jobPtr->runningTasks;
-     ++task.jobPtr->revokedTasks;
+    task.jobPtr->runningTasks -= 1;
+    task.jobPtr->revokedTasks += 1;
   }
 
   void statTaskFailed(const SmokeTask& task,
                        const TaskStatus& status) {
-    --task.jobPtr->runningTasks;
-    ++task.jobPtr->failedTasks;
+    task.jobPtr->runningTasks -= 1;
+    task.jobPtr->failedTasks += 1;
   }
 
   void statTaskFinished(const SmokeTask& task,
                       const TaskStatus& status) {
-    --task.jobPtr->runningTasks;
-    ++task.jobPtr->finishedTasks;
+    LOG(INFO) << "RUNNING tasks: " << task.jobPtr->runningTasks;
+    task.jobPtr->runningTasks -= 1;
+    LOG(INFO) << "RUNNING tasks after: " << task.jobPtr->runningTasks;
+    task.jobPtr->finishedTasks += 1;
   }
 
   ~SerenityNoExecutorScheduler() {
