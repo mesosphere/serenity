@@ -31,8 +31,9 @@ Try<QoSCorrections> CacheOccupancyStrategy::decide(
 
   double_t meanCacheOccupancy = countMeanCacheOccupancy(beCmtEnabledExecutors);
   std::vector<ResourceUsage_Executor> aggressors =
-    getExecutorsAboveMeanCacheOccupancy(beCmtEnabledExecutors,
-                                        meanCacheOccupancy);
+  getExecutorsAboveCacheOccupancy(beCmtEnabledExecutors,
+                                  meanCacheOccupancy,
+                                  this->minimalCacheOccupancy);
 
   SERENITY_LOG(INFO) << "Revoking " << aggressors.size() << " executors";
   QoSCorrections corrections;
@@ -73,12 +74,15 @@ double_t CacheOccupancyStrategy::countMeanCacheOccupancy(
 }
 
 std::vector<ResourceUsage_Executor>
-CacheOccupancyStrategy::getExecutorsAboveMeanCacheOccupancy(
+CacheOccupancyStrategy::getExecutorsAboveCacheOccupancy(
     const std::vector<ResourceUsage_Executor>& _executors,
-    const double_t _cacheOccupancyMean) const {
+    const double_t _cacheOccupancyMean,
+    const uint64_t _minimalCacheOccupancy) const {
   std::vector<ResourceUsage_Executor> product;
   for (const ResourceUsage_Executor& executor : _executors) {
-    if (executor.statistics().perf().llc_occupancy() >= _cacheOccupancyMean) {
+    uint64_t cacheOccupancy = executor.statistics().perf().llc_occupancy();
+    if (cacheOccupancy >= _cacheOccupancyMean &&
+        cacheOccupancy > _minimalCacheOccupancy) {
       product.push_back(executor);
     }
   }

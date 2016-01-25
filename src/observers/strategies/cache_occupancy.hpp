@@ -24,26 +24,41 @@ namespace serenity {
  */
 class CacheOccupancyStrategy : public RevocationStrategy {
  public:
-  CacheOccupancyStrategy() : RevocationStrategy(Tag(QOS_CONTROLLER, NAME)) {}
+  CacheOccupancyStrategy() : RevocationStrategy(Tag(QOS_CONTROLLER, NAME)) {
+    init();
+  }
 
   explicit CacheOccupancyStrategy(const SerenityConfig& _config)
-  : RevocationStrategy(Tag(QOS_CONTROLLER, NAME)) {}
+  : RevocationStrategy(Tag(QOS_CONTROLLER, NAME)) {
+    init();
+  }
 
   Try<QoSCorrections> decide(ExecutorAgeFilter* ageFilter,
                              const Contentions& currentContentions,
                              const ResourceUsage& currentUsage);
 
   static const constexpr char* NAME = "CacheOccupancyStrategy";
+
+
  protected:
+  void init() {
+    minimalCacheOccupancy = DEFAULT_MINIMAL_CACHE_OCCUPANCY;
+  }
+
   std::vector<ResourceUsage_Executor> getCmtEnabledExecutors(
     const std::list<ResourceUsage_Executor>&) const;
 
   double_t countMeanCacheOccupancy(
     const std::vector<ResourceUsage_Executor>&) const;
 
-  std::vector<ResourceUsage_Executor> getExecutorsAboveMeanCacheOccupancy(
-    const std::vector<ResourceUsage_Executor>&,
-    const double_t) const;
+  std::vector<ResourceUsage_Executor> getExecutorsAboveCacheOccupancy(
+    const std::vector<ResourceUsage_Executor>& executors,
+    const double_t meanCacheOccupancy,
+    const uint64_t minimalCacheOccupancy) const;
+
+  //!< Minimal cache occupancy for executor to be revoked.
+  static constexpr uint64_t DEFAULT_MINIMAL_CACHE_OCCUPANCY = 1000000;  // 1M
+  uint64_t minimalCacheOccupancy;
 };
 
 }  // namespace serenity
