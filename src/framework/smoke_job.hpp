@@ -93,7 +93,11 @@ class SmokeJob {
       shares(_shares),
       tasksLaunched(0u),
       probability(1.0),
-      scheduled(false) {}
+      scheduled(false),
+      runningTasks(0),
+      failedTasks(0),
+      revokedTasks(0),
+      finishedTasks(0) {}
 
   const size_t id;
   const std::string command;
@@ -109,6 +113,12 @@ class SmokeJob {
   // Stats
   size_t tasksLaunched;
   bool scheduled;
+
+  // InfluxDb
+  size_t runningTasks;
+  size_t failedTasks;
+  size_t revokedTasks;
+  size_t finishedTasks;
 
   bool isEndless() const {
     return this->totalTasks.isNone();
