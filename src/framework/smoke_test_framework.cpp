@@ -105,6 +105,7 @@ public:
   }
 
   void reportToInfluxDb() {
+    LOG(INFO) << "Reporting to influx";
     for (std::shared_ptr<SmokeJob> job : jobs) {
       sendToInflux(Series::RUNNING_TASKS,
                    job->name,
