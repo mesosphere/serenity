@@ -24,6 +24,9 @@
 #include <string>
 #include <vector>
 
+#include <chrono>
+#include <thread>
+
 #include <mesos/resources.hpp>
 #include <mesos/scheduler.hpp>
 #include <mesos/type_utils.hpp>
@@ -58,7 +61,8 @@
 #include "process/delay.hpp"
 #include "process/dispatch.hpp"
 #include "process/process.hpp"
-
+#include "process/timer.hpp"
+#include "process/clock.hpp"
 
 using namespace mesos;
 using namespace mesos::internal;
@@ -93,40 +97,38 @@ class SerenityNoExecutorSchedulerProcess
 public:
   explicit SerenityNoExecutorSchedulerProcess(
     const list<std::shared_ptr<SmokeJob>> _jobs,
-    const Duration _reportInterval = Duration::create(0.5).get())
+    const Duration _reportInterval = Milliseconds(200))
     : jobs(_jobs),
       reportInterval(reportInterval),
       dbBackend(new InfluxDb8Backend()),
-      ProcessBase("serenity_scheduler_stats") {
-
-    process::delay(reportInterval,
-                   self(),
-                   &SerenityNoExecutorSchedulerProcess::reportToInfluxDb);
-  }
+      ProcessBase(process::ID::generate("stf")) {}
 
   void reportToInfluxDb() {
-    LOG(INFO) << "Reporting to influx";
-    for (std::shared_ptr<SmokeJob> job : jobs) {
-      sendToInflux(Series::RUNNING_TASKS,
-                   job->name,
-                   job->runningTasks);
+    LOG(INFO) << "Reporting to influxDB. Interval: "
+              << reportInterval.secs() << " seconds.";
+      for (std::shared_ptr<SmokeJob> job : jobs) {
+        sendToInflux(Series::RUNNING_TASKS,
+                     job->name,
+                     job->runningTasks);
 
-      sendToInflux(Series::REVOKED_TASKS,
-                   job->name,
-                   job->revokedTasks);
+        sendToInflux(Series::REVOKED_TASKS,
+                     job->name,
+                     job->revokedTasks);
 
-      sendToInflux(Series::FINISHED_TASKS,
-                   job->name,
-                   job->finishedTasks);
+        sendToInflux(Series::FINISHED_TASKS,
+                     job->name,
+                     job->finishedTasks);
 
-      sendToInflux(Series::FAILED_TASKS,
-                   job->name,
-                   job->failedTasks);
-    }
+        sendToInflux(Series::FAILED_TASKS,
+                     job->name,
+                     job->failedTasks);
+      }
 
-    process::delay(reportInterval,
-                   self(),
-                   &SerenityNoExecutorSchedulerProcess::reportToInfluxDb);
+    sleep(1);
+
+    // Use delay in future.
+    process::dispatch(self(),
+                      &SerenityNoExecutorSchedulerProcess::reportToInfluxDb);
   }
 
   // TODO(bplotka): Add hostname.
@@ -194,7 +196,12 @@ class SerenityNoExecutorScheduler : public Scheduler
     process = process::Owned<SerenityNoExecutorSchedulerProcess>(
       new SerenityNoExecutorSchedulerProcess(jobs));
 
-    spawn(process.get());
+    auto pid = spawn(process.get());
+
+    // Dispatch Influx DB reporting.
+    process::dispatch(
+      pid,
+      &SerenityNoExecutorSchedulerProcess::reportToInfluxDb);
 
     LOG(INFO) << "SerenityNoExecutorScheduler initialized. Jobs: "
               << jobs.size();
