@@ -116,12 +116,12 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       correctionMerger(
           this, 3,  // Three producers connected. IPC, CPU, Cache observers.
           Tag(QOS_CONTROLLER, "CorrectionMerger")),
-      ipcContentionObserver(
-          &correctionMerger, 1,
-          &ageFilter,
-          new SeniorityStrategy(conf[SeniorityStrategy::NAME]),
-          strategy::DEFAULT_CONTENTION_COOLDOWN,
-          Tag(QOS_CONTROLLER, SeniorityStrategy::NAME)),
+//      ipcContentionObserver(
+//          &correctionMerger, 1,
+//          &ageFilter,
+//          new SeniorityStrategy(conf[SeniorityStrategy::NAME]),
+//          strategy::DEFAULT_CONTENTION_COOLDOWN,
+//          Tag(QOS_CONTROLLER, SeniorityStrategy::NAME)),
       cacheOccupancyContentionObserver(
           &correctionMerger, 1,
           &ageFilter,
@@ -175,12 +175,12 @@ class CpuQoSPipeline : public QoSControllerPipeline {
     // Setup starting producer.
     this->addConsumer(&ageFilter);
 
-    cacheOccupancyContentionObserver.
-      Producer<Contentions>::addConsumer(&ipcContentionObserver);
+//    cacheOccupancyContentionObserver.
+//      Producer<Contentions>::addConsumer(&ipcContentionObserver);
 
     // QoSCorrection observers needs ResourceUsage as well.
     cpuEMAFilter.addConsumer(&cpuContentionObserver);
-    cumulativeFilter.addConsumer(&ipcContentionObserver);
+//    cumulativeFilter.addConsumer(&ipcContentionObserver);
     cumulativeFilter.addConsumer(&cacheOccupancyContentionObserver);
     cumulativeFilter.addConsumer(&cpuEMAFilter);
 
@@ -193,7 +193,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
 
   virtual Try<Nothing> postPipelineRun() {
     this->cpuContentionObserver.reset();
-    this->ipcContentionObserver.reset();
+//    this->ipcContentionObserver.reset();
     this->cacheOccupancyContentionObserver.reset();
     // Force pipeline continuation.
     // TODO(bplotka): That would not be needed if we always continue pipeline.
@@ -216,7 +216,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
   // --- Observers ---
   QoSCorrectionObserver cpuContentionObserver;
   QoSCorrectionObserver cacheOccupancyContentionObserver;
-  QoSCorrectionObserver ipcContentionObserver;
+//  QoSCorrectionObserver ipcContentionObserver;
 
   // --- Time Series Exporters ---
   ResourceUsageTimeSeriesExporter rawResourcesExporter;
