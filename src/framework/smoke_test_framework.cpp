@@ -92,12 +92,14 @@ class SerenityNoExecutorSchedulerProcess
   : public process::Process<SerenityNoExecutorSchedulerProcess> {
 public:
   explicit SerenityNoExecutorSchedulerProcess(
-    const list<std::shared_ptr<SmokeJob>> _jobs)
+    const list<std::shared_ptr<SmokeJob>> _jobs,
+    const Duration _reportInterval = Duration::create(0.5).get())
     : jobs(_jobs),
+      reportInterval(reportInterval),
       dbBackend(new InfluxDb8Backend()),
       ProcessBase("serenity_scheduler_stats") {
 
-    process::delay(Duration::create(0.5).get(),
+    process::delay(reportInterval,
                    self(),
                    &SerenityNoExecutorSchedulerProcess::reportToInfluxDb);
   }
@@ -120,6 +122,10 @@ public:
                    job->name,
                    job->failedTasks);
     }
+
+    process::delay(reportInterval,
+                   self(),
+                   &SerenityNoExecutorSchedulerProcess::reportToInfluxDb);
   }
 
   // TODO(bplotka): Add hostname.
@@ -136,6 +142,7 @@ public:
 private:
   const list<std::shared_ptr<SmokeJob>> jobs;
   std::unique_ptr<TimeSeriesBackend> dbBackend;
+  const Duration reportInterval;
 };
 
 
