@@ -117,10 +117,10 @@ class SmokeJob {
   bool scheduled;
 
   // InfluxDb
-  atomic_int runningTasks;
+  uint64_t runningTasks;
   atomic_int failedTasks;
   atomic_int revokedTasks;
-  atomic_int finishedTasks;
+  uint64_t finishedTasks;
 
   bool isEndless() const {
     return this->totalTasks.isNone();
