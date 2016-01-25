@@ -325,36 +325,43 @@ class SerenityNoExecutorScheduler : public Scheduler
       return;
     }
 
-    if (status.state() == TASK_LOST ||
-        status.state() == TASK_KILLED ||
-        status.state() == TASK_FAILED) {
-      LOG(ERROR) << "Task '" << status.task_id() << "'"
-                 << " is in unexpected state " << status.state()
-                 << (status.has_reason()
-                     ? " with reason " + stringify(status.reason()) : "")
-                 << " from source " << status.source()
-                 << " with message '" << status.message() << "'";
+    switch(status.state()) {
+      case TASK_LOST:
+        if (status.reason() == TaskStatus::REASON_EXECUTOR_PREEMPTED) {
+          // Executor was preempted.
+          LOG(INFO) << "Task '" << status.task_id() << "'"
+                    << " is in state " << status.state() << " and was REVOKED";
+          statTaskRevoked(task->second.jobPtr, status);
+          break;
+        }
 
-      if (status.state() == TASK_LOST &&
-          status.reason() ==  TaskStatus::REASON_EXECUTOR_PREEMPTED) {
-        // Executor was preempted.
-        statTaskRevoked(task->second.jobPtr, status);
-      } else {
+      case TASK_KILLED:
+      case TASK_FAILED:
+        LOG(ERROR) << "Task '" << status.task_id() << "'"
+        << " is in unexpected state " << status.state()
+        << (status.has_reason()
+            ? " with reason " + stringify(status.reason()) : "")
+        << " from source " << status.source()
+        << " with message '" << status.message() << "'";
+
         statTaskFailed(task->second.jobPtr, status);
-      }
-    } else {
-      LOG(INFO) << "Task '" << status.task_id() << "'"
-                << " is in state " << status.state();
-      statTaskRunning(task->second.jobPtr, status);
+        break;
+
+      case TASK_RUNNING:
+        LOG(INFO) << "Task '" << status.task_id() << "'"
+        << " is in state " << status.state();
+        statTaskRunning(task->second.jobPtr, status);
+        break;
+
+      default:
+        LOG(INFO) << "Task '" << status.task_id() << "'"
+        << " is in state " << status.state();
     }
 
     if (internal::protobuf::isTerminalState(status.state())) {
       if (status.state() == TASK_FINISHED) {
-
+        // Finished only when terminated as well.
         statTaskFinished(task->second.jobPtr, status);
-        LOG(INFO) << "!!!!! RUNNING tasks after2: "
-                  << task->second.jobPtr->runningTasks
-                  << " ptr add" << task->second.jobPtr;
         tasksFinished++;
       }
 
@@ -431,9 +438,7 @@ class SerenityNoExecutorScheduler : public Scheduler
 
   void statTaskFinished(std::shared_ptr<SmokeJob>& job,
                         const TaskStatus& status) {
-    LOG(INFO) << "!!!!! RUNNING tasks: " << job->runningTasks;
     job->runningTasks -= 1;
-    LOG(INFO) << "!!!!! RUNNING tasks after: " << job->runningTasks;
     job->finishedTasks += 1;
   }
 
