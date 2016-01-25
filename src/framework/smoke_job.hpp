@@ -99,9 +99,7 @@ class SmokeJob {
       finishedTasks(0),
       tasksLaunched(0u),
       probability(1.0),
-      scheduled(false) {
-    finishedTasks = 0;
-  }
+      scheduled(false) { }
 
   const size_t id;
   const std::string command;

@@ -428,10 +428,10 @@ class SerenityNoExecutorScheduler : public Scheduler
 
   void statTaskFinished(const SmokeTask& task,
                       const TaskStatus& status) {
-    LOG(INFO) << "RUNNING tasks: " << task.jobPtr->runningTasks;
+    LOG(INFO) << "!!!!! RUNNING tasks: " << task.jobPtr->runningTasks;
     task.jobPtr->runningTasks -= 1;
-    LOG(INFO) << "RUNNING tasks after: " << task.jobPtr->runningTasks;
-    task.jobPtr->finishedTasks += 1;
+    LOG(INFO) << "!!!!! RUNNING tasks after: " << task.jobPtr->runningTasks;
+    //task.jobPtr->finishedTasks += 1;
   }
 
   ~SerenityNoExecutorScheduler() {
