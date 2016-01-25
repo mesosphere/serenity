@@ -103,32 +103,34 @@ public:
       dbBackend(new InfluxDb8Backend()),
       ProcessBase(process::ID::generate("stf")) {}
 
-  void reportToInfluxDb() {
-    LOG(INFO) << "Reporting to influxDB. Interval: "
-              << reportInterval.secs() << " seconds.";
-      for (std::shared_ptr<SmokeJob> job : jobs) {
-        sendToInflux(Series::RUNNING_TASKS,
-                     job->name,
-                     job->runningTasks);
-
-        sendToInflux(Series::REVOKED_TASKS,
-                     job->name,
-                     job->revokedTasks);
-
-        sendToInflux(Series::FINISHED_TASKS,
-                     job->name,
-                     job->finishedTasks);
-
-        sendToInflux(Series::FAILED_TASKS,
-                     job->name,
-                     job->failedTasks);
-      }
-
+  void reportToInfluxDbJob() {
+    this->reportToInfluxDb();
     sleep(1);
-
     // Use delay in future.
     process::dispatch(self(),
-                      &SerenityNoExecutorSchedulerProcess::reportToInfluxDb);
+                      &SerenityNoExecutorSchedulerProcess::reportToInfluxDbJob);
+  }
+
+  void reportToInfluxDb() {
+    LOG(INFO) << "Reporting to influxDB. Interval: "
+    << reportInterval.secs() << " seconds.";
+    for (std::shared_ptr<SmokeJob> job : jobs) {
+      sendToInflux(Series::RUNNING_TASKS,
+                   job->name,
+                   job->runningTasks);
+
+      sendToInflux(Series::REVOKED_TASKS,
+                   job->name,
+                   job->revokedTasks);
+
+      sendToInflux(Series::FINISHED_TASKS,
+                   job->name,
+                   job->finishedTasks);
+
+      sendToInflux(Series::FAILED_TASKS,
+                   job->name,
+                   job->failedTasks);
+    }
   }
 
   // TODO(bplotka): Add hostname.
@@ -140,7 +142,9 @@ public:
     dbBackend->PutMetric(record);
   }
 
-  virtual ~SerenityNoExecutorSchedulerProcess() {}
+  virtual ~SerenityNoExecutorSchedulerProcess() {
+    reportToInfluxDb();
+  }
 
 private:
   const list<std::shared_ptr<SmokeJob>> jobs;
@@ -201,7 +205,7 @@ class SerenityNoExecutorScheduler : public Scheduler
     // Dispatch Influx DB reporting.
     process::dispatch(
       pid,
-      &SerenityNoExecutorSchedulerProcess::reportToInfluxDb);
+      &SerenityNoExecutorSchedulerProcess::reportToInfluxDbJob);
 
     LOG(INFO) << "SerenityNoExecutorScheduler initialized. Jobs: "
               << jobs.size();
