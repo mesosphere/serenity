@@ -142,9 +142,7 @@ public:
     dbBackend->PutMetric(record);
   }
 
-  virtual ~SerenityNoExecutorSchedulerProcess() {
-    reportToInfluxDb();
-  }
+  virtual ~SerenityNoExecutorSchedulerProcess() {}
 
 private:
   const list<std::shared_ptr<SmokeJob>> jobs;
@@ -369,6 +367,7 @@ class SerenityNoExecutorScheduler : public Scheduler
           << stringify(tasksTerminated - tasksFinished)
           << " of " << stringify(tasksLaunched) << " terminated abnormally";
       } else {
+        process->reportToInfluxDb();
         LOG(INFO) << "Stopping framework.";
         driver->stop();
       }
