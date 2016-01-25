@@ -335,7 +335,6 @@ class SerenityNoExecutorScheduler : public Scheduler
                  << " from source " << status.source()
                  << " with message '" << status.message() << "'";
 
-
       if (status.state() == TASK_LOST &&
           status.reason() ==  TaskStatus::REASON_EXECUTOR_PREEMPTED) {
         // Executor was preempted.
@@ -353,8 +352,9 @@ class SerenityNoExecutorScheduler : public Scheduler
       if (status.state() == TASK_FINISHED) {
 
         statTaskFinished(task->second.jobPtr, status);
-        LOG(INFO) << "!!!!! RUNNING tasks after2: " << task->second
-                                                         .jobPtr->runningTasks;
+        LOG(INFO) << "!!!!! RUNNING tasks after2: "
+                  << task->second.jobPtr->runningTasks
+                  << " ptr add" << task->second.jobPtr;
         tasksFinished++;
       }
 

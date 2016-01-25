@@ -137,7 +137,8 @@ class SmokeJob {
     mesos::TaskInfo task;
     // Generate Task ID.
     task.mutable_task_id()->set_value(
-      stringify(this->id) + "_" + stringify(this->tasksLaunched));
+      stringify(this->id) + "_" + stringify(this->tasksLaunched)
+      + "_" + this->name);
     // Add Name.
     task.set_name(stringify(this->id) + "_" + this->command);
     // Add Slave id.
@@ -346,7 +347,7 @@ class SmokeJob {
 
 class SmokeTask {
  public:
-  SmokeTask(const std::shared_ptr<SmokeJob> _jobPtr,
+  SmokeTask(std::shared_ptr<SmokeJob>& _jobPtr,
             const std::string _hostname)
     : jobPtr(_jobPtr), hostname(_hostname) {}
 
