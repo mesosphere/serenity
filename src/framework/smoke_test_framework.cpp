@@ -372,6 +372,7 @@ class SerenityNoExecutorScheduler : public Scheduler
     if (this->allJobsScheduled() &&
         tasksTerminated >= tasksLaunched) {
       if (tasksTerminated - tasksFinished > 0) {
+        process->reportToInfluxDb();
         EXIT(EXIT_FAILURE)
           << "Failed to complete successfully: "
           << stringify(tasksTerminated - tasksFinished)
