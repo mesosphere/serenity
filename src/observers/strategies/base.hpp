@@ -29,6 +29,8 @@ class RevocationStrategy {
   // TODO(skonefal): Abstract classes should not have tag.
   explicit RevocationStrategy(const Tag& _tag) : tag(_tag) {}
 
+  virtual ~RevocationStrategy() {}
+
   // TODO(skonefal): Executor Age should be part of Resource Usage.
   virtual Try<QoSCorrections> decide(
       ExecutorAgeFilter* exeutorAge,

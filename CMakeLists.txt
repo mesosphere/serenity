@@ -154,8 +154,11 @@ set(SERENITY_TEST_SOURCES
     src/tests/pipeline/estimator_pipeline_test.cpp
     src/tests/observers/slack_resource_test.cpp
     src/tests/observers/qos_correction_test.cpp
+    src/tests/observers/strategies/cache_occupancy_strategy_test.cpp
+    src/tests/observers/strategies/seniority_strategy_test
     src/tests/serenity/config_test.cpp
     src/tests/serenity/os_utils_tests.cpp
+    src/tests/serenity/resource_helper_test.cpp
     src/tests/sources/json_source_test.cpp
 )
 
@@ -167,7 +170,7 @@ if (INTEGRATION_TESTS)
         # Needs InfluxDB 0.8.8
         src/tests/time_series_export/resource_usage_ts_export_test.cpp
         src/tests/time_series_export/slack_ts_export_test.cpp
-    )
+       )
 endif(INTEGRATION_TESTS)
 
 # Copy fixtures.

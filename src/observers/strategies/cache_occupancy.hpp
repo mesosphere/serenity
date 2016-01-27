@@ -51,10 +51,9 @@ class CacheOccupancyStrategy : public RevocationStrategy {
   double_t countMeanCacheOccupancy(
     const std::vector<ResourceUsage_Executor>&) const;
 
-  std::vector<ResourceUsage_Executor> getExecutorsAboveCacheOccupancy(
+  std::vector<ResourceUsage_Executor> getExecutorsAboveMinimalAndMeanOccupancy(
     const std::vector<ResourceUsage_Executor>& executors,
-    const double_t meanCacheOccupancy,
-    const uint64_t minimalCacheOccupancy) const;
+    const double_t meanCacheOccupancy) const;
 
   //!< Minimal cache occupancy for executor to be revoked.
   static constexpr uint64_t DEFAULT_MINIMAL_CACHE_OCCUPANCY = 1000000;  // 1M

@@ -52,6 +52,7 @@ Try<Nothing> QoSCorrectionObserver::doQosDecision() {
 
   // Strategy has pointed aggressors, so don't pass
   // current contentions to next QoS Controller.
+  iterationCooldownCounter = this->cooldownIterations;
   produceResultsAndClearConsumedData(corrections.get(),
                                      Contentions());
   return Nothing();
@@ -94,7 +95,6 @@ void QoSCorrectionObserver::cooldownPhase() {
 }
 
 Try<QoSCorrections> QoSCorrectionObserver::newContentionsReceived() {
-  iterationCooldownCounter = this->cooldownIterations;
   if (!estimatorPipelineDisabled) {
     // Disable Estimator pipeline.
     StaticEventBus::publishOversubscriptionCtrlEvent(false);
