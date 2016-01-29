@@ -16,21 +16,22 @@ namespace mesos {
 namespace serenity {
 
 /**
- * Variant type for storing multiple types of data in configuration.
- */
-using CfgVariant =
-  boost::variant<bool, int64_t, uint64_t, double_t, std::string>;
-
-
-/**
  * Global Serenity Config class which implements basic mechanism
  * to support specifying config parameters via string key map.
  *
  * Check config_test.cpp to see example usage.
+ *
+ * TODO(skonefal): every getter should pack result in Try<T>.
  */
 class SerenityConfig {
  public:
   SerenityConfig() {}
+
+  /**
+  * Variant type for storing multiple types of data in configuration.
+  */
+  using CfgVariant = boost::variant<
+    bool, int64_t, uint64_t, double_t, std::string>;
 
   /**
    * Overlapping custom configuration options using recursive copy.
@@ -42,7 +43,7 @@ class SerenityConfig {
   /**
    * Gets variant config value.
    */
-  Option<CfgVariant> operator()(std::string key) const {
+  Option<SerenityConfig::CfgVariant> operator()(std::string key) const {
     return getField(key);
   }
 
@@ -138,12 +139,27 @@ class SerenityConfig {
   /**
    * Sets CfgVariant config value.
    */
-  void setVariant(std::string key, CfgVariant value) {
+  void setVariant(std::string key, SerenityConfig::CfgVariant value) {
     this->fields[key] = value;
   }
 
+  bool hasKey(std::string key) {
+    return fields.find(key) != fields.end();
+  }
+
+  /**
+   * TODO(skonefal): Add UT for usage of this enum.
+   */
+  enum ConfigurationType : int {
+    BOOL = 0,
+    INT64 = 1,
+    UINT64 = 2,
+    DOUBLE = 3,
+    STRING = 4
+  };
+
  protected:
-  std::unordered_map<std::string, CfgVariant> fields;
+  std::unordered_map<std::string, SerenityConfig::CfgVariant> fields;
 
   /**
    * Support for hierarchical configuration sections.
@@ -170,7 +186,7 @@ class SerenityConfig {
   /**
    * Getter for field.
    */
-  Option<CfgVariant> getField(std::string fieldKey) const {
+  Option<SerenityConfig::CfgVariant> getField(std::string fieldKey) const {
     auto mapItem = this->fields.find(fieldKey);
     if (mapItem != this->fields.end()) {
       return mapItem->second;

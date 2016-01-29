@@ -2,6 +2,7 @@
 #define SERENITY_RESOURCE_HELPER_HPP
 
 #include <list>
+#include <tuple>
 
 #include "mesos/mesos.hpp"
 #include "mesos/resources.hpp"
@@ -9,71 +10,49 @@
 namespace mesos {
 namespace serenity {
 
-/**
- * Useful class for having dividing usage to Production & Best Effort
- * executors.
- */
-class DividedResourceUsage {
+class ResourceUsageHelper {
  public:
-  explicit DividedResourceUsage(const ResourceUsage& _usage) {
-    usage.CopyFrom(_usage);
-
-    for (ResourceUsage_Executor executor : usage.executors()) {
-      // Check if task uses revocable resources.
-      Resources allocated(executor.allocated());
-      if (allocated.revocable().empty()) {
-        pr.push_back(executor);
-      } else {
-        be.push_back(executor);
-      }
-    }
-  }
+  /**
+   * Note: Drops executors that does not have allocated resources.
+   */
+  static std::list<ResourceUsage_Executor> getRevocableExecutors(
+    const ResourceUsage&);
 
   /**
-   * Static helper for filtering Executors.
+   * Note: Drops executors that does not have allocated resources.
    */
-  static inline std::list<ResourceUsage_Executor> filterPrExecutors(
-    const ResourceUsage& usage) {
-    std::list<ResourceUsage_Executor> beExecutors;
-    for (ResourceUsage_Executor inExec : usage.executors()) {
-      if (!inExec.has_executor_info()) {
-        LOG(ERROR) << "Executor <unknown>"
-        << " does not include executor_info";
-        // Filter out these executors.
-        continue;
-      }
-      if (inExec.allocated().size() == 0) {
-        LOG(ERROR) << "Executor "
-        << inExec.executor_info().executor_id().value()
-        << " does not include allocated resources.";
-        // Filter out these executors.
-        continue;
-      }
+  static std::list<ResourceUsage_Executor> getProductionExecutors(
+    const ResourceUsage&);
 
-      Resources allocated(inExec.allocated());
-      // Check if task uses revocable resources.
-      if (!allocated.revocable().empty())
-        beExecutors.push_back(inExec);
-    }
+  /**
+   * Returns tuple of <list<Production>, list<Revocable>> executors.
+   * Note, that it drops executors that does not have allocated
+   * resources.
+   */
+  static std::tuple<std::list<ResourceUsage_Executor>,
+                    std::list<ResourceUsage_Executor>>
+      getProductionAndRevocableExecutors(const ResourceUsage&);
 
-    return beExecutors;
-  }
+  /**
+  * Checks if executor has empty revocable resources.
+  *
+  * Returns error when executor has no allocated resources.
+  */
+  static Try<bool> isProductionExecutor(const ResourceUsage_Executor&);
 
-  const std::list<ResourceUsage_Executor>& prExecutors() const {
-    return this->pr;
-  }
+  /**
+  * Checks if executor has revocable resources.
+  *
+  * Returns error when executor has no allocated resources.
+  */
+  static Try<bool> isRevocableExecutor(const ResourceUsage_Executor&);
 
-  const std::list<ResourceUsage_Executor>& beExecutors() const {
-    return this->be;
-  }
+  static bool isExecutorHasStatistics(const ResourceUsage_Executor&);
 
-  const Resources total() const {
-    return this->usage.total();
-  }
-
- protected:
-  std::list<ResourceUsage_Executor> pr, be;
-  ResourceUsage usage;
+  enum ExecutorType : int {
+    PRODUCTION = 0,
+    REVOCABLE = 1
+  };
 };
 
 }  // namespace serenity

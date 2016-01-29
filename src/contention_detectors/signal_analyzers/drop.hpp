@@ -124,7 +124,7 @@ class SignalDropAnalyzer : public SignalAnalyzer {
 
   virtual Result<Detection> processSample(double_t in);
 
-  virtual Try<Nothing> reset();
+  virtual Try<Nothing> resetSignalRecovering();
 
   /**
    * Move each base point to next iterator.

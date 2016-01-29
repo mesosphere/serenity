@@ -27,7 +27,7 @@ namespace serenity {
 // TODO(bplotka): Break into explicit using-declarations.
 using namespace process;  // NOLINT(build/namespaces)
 
-using std::atomic_bool;
+using std::atomic_int;
 using std::string;
 
 static const string ESTIMATOR_VALVE_ENDPOINT_HELP() {
@@ -87,6 +87,7 @@ Try<string> getFormValue(
   return decodedValue.get();
 }
 
+#define IS_OPENED_THRESHOLD 1
 
 class ValveFilterEndpointProcess
   : public ProtobufProcess<ValveFilterEndpointProcess> {
@@ -94,7 +95,7 @@ class ValveFilterEndpointProcess
   explicit ValveFilterEndpointProcess(const Tag& _tag, bool _opened)
     : tag(_tag),
       ProcessBase(getValveProcessBaseName(_tag.TYPE())),
-      opened(_opened),
+      openedCounter(_opened ?  IS_OPENED_THRESHOLD : IS_OPENED_THRESHOLD - 1),
       // 2 permits per second.
       limiter(2, Seconds(1)) {
     switch (this->tag.TYPE()) {
@@ -116,7 +117,12 @@ class ValveFilterEndpointProcess
   void setOpen(bool open) {
     // NOTE: In future we may want to trigger some actions here.
     SERENITY_LOG(INFO) << (open?"Enabling":"Disabling") << " " << tag.AIM();
-    this->opened = open;
+
+    if (open) {
+      ++openedCounter;
+    } else {
+      --openedCounter;
+    }
   }
 
   void setOpenHandle(const OversubscriptionCtrlEvent& msg) {
@@ -124,7 +130,7 @@ class ValveFilterEndpointProcess
   }
 
   Future<bool> isOpened() {
-    return this->opened;
+    return (openedCounter >= IS_OPENED_THRESHOLD);
   }
 
   const lambda::function<Future<bool>()> getIsOpenedFunction() {
@@ -193,12 +199,17 @@ class ValveFilterEndpointProcess
       return http::BadRequest(tag.NAME() + "Unknown value of 'enabled' param. "
                               + "Possible values: true / false");
     }
+
+    // Open Pipeline (increment counter)
     this->setOpen(pipeline_enable_decision);
 
     return http::OK(message);
   }
 
-  atomic_bool opened;
+  // Since there could be a lot of potential operators we need counter.
+  // If counter is >= IS_OPENED_THRESHOLD than valve will be opened.
+  atomic_int openedCounter;
+
   //! Used to rate limit the endpoint.
   RateLimiter limiter;
 };
@@ -234,7 +245,7 @@ Try<Nothing> ValveFilter::consume(const ResourceUsage& in) {
     this->produce(in);
   } else {
     // Currently we are not continuing pipeline in case of closed valve.
-    SERENITY_LOG(INFO) << "pipeline is closed";
+    SERENITY_LOG(INFO) << "Pipeline is closed";
   }
 
   return Nothing();

@@ -50,14 +50,14 @@ message Contention{
   }
 
   optional WorkID victim = 1;
-  optional WorkID aggressor = 2;
-  optional Type type = 3;
-  optional double timestamp = 4;
+
+  optional Type type = 2;
+  optional double timestamp = 3;
 
   // It should reflect how many resources is needed for PR
   // job to not starve.
   // TODO(nnielsen): Which values does severity take?
-  optional double severity = 5;
+  optional double severity = 4;
 }
 
 

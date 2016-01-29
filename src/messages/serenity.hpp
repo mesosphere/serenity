@@ -20,25 +20,19 @@ namespace serenity {
 using Contentions = std::list<mesos::Contention>;
 using QoSCorrections = std::list<slave::QoSCorrection>;
 
-inline slave::QoSCorrection createKillQoSCorrection(
-    slave::QoSCorrection_Kill kill_msg,
-    slave::QoSCorrection_Type actionType = slave::QoSCorrection_Type_KILL) {
-  slave::QoSCorrection correction;
-  correction.set_type(actionType);
-  correction.mutable_kill()->CopyFrom(kill_msg);
-
-  return correction;
-}
-
 
 inline Contention createContention(
   Option<double_t> severity,
-  const Contention_Type contentionType = Contention_Type_IPC,
+  const Contention_Type contentionType,
   Option<WorkID> victim = None(),
-  Option<double_t> timestamp = None(),
-  Option<WorkID> aggressor = None()) {
+  Option<double_t> timestamp = None()) {
   Contention contention;
   contention.set_type(contentionType);
+
+  if (victim.isSome()) {
+    contention.mutable_victim()->CopyFrom(victim.get());
+  }
+
   if (severity.isSome()) {
     contention.set_severity(severity.get());
   }
@@ -46,13 +40,6 @@ inline Contention createContention(
   if (timestamp.isSome()) {
     contention.set_timestamp(timestamp.get());
   }
-
-  if (victim.isSome()) {
-    contention.mutable_victim()->CopyFrom(victim.get());
-  }
-
-  if (aggressor.isSome())
-    contention.mutable_aggressor()->CopyFrom(aggressor.get());
 
   return contention;
 }
@@ -73,6 +60,25 @@ inline WorkID createExecutorWorkID(const ExecutorInfo info) {
   workID.mutable_executor_id()->CopyFrom(info.executor_id());
 
   return workID;
+}
+
+/**
+ * TODO(skonefal): Do we need function that accepts QoSCorrection_Kill?
+ *                 Maybe we should only use ExecutorInfo parameter
+ */
+inline slave::QoSCorrection createKillQoSCorrection(
+slave::QoSCorrection_Kill kill_msg) {
+  slave::QoSCorrection correction;
+  correction.set_type(slave::QoSCorrection_Type_KILL);
+  correction.mutable_kill()->CopyFrom(kill_msg);
+
+  return correction;
+}
+
+
+static slave::QoSCorrection createKillQosCorrection(
+const ExecutorInfo& executorInfo) {
+  return createKillQoSCorrection(createKill(executorInfo));
 }
 
 }  // namespace serenity

@@ -19,8 +19,10 @@
 #include "pipeline/pipeline.hpp"
 
 #include "observers/qos_correction.hpp"
-#include "observers/strategies/seniority.hpp"
+
+#include "observers/strategies/cache_occupancy.hpp"
 #include "observers/strategies/cpu_contention.hpp"
+#include "observers/strategies/seniority.hpp"
 
 #include "serenity/config.hpp"
 #include "serenity/data_utils.hpp"
@@ -112,15 +114,22 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       ageFilter(),
       // Last item in pipeline.
       correctionMerger(
-          this, 2,  // Two producers connected. IPC & CPU observers.
+          this, 3,  // Three producers connected. IPC, CPU, Cache observers.
           Tag(QOS_CONTROLLER, "CorrectionMerger")),
-      ipcCorrectionObserver(
+//      ipcContentionObserver(
+//          &correctionMerger, 1,
+//          &ageFilter,
+//          new SeniorityStrategy(conf[SeniorityStrategy::NAME]),
+//          strategy::DEFAULT_CONTENTION_COOLDOWN,
+//          Tag(QOS_CONTROLLER, SeniorityStrategy::NAME)),
+      cacheOccupancyContentionObserver(
           &correctionMerger, 1,
           &ageFilter,
-          // TODO(Bplotka): Change to own Ipc strategy.
-          new SeniorityStrategy(conf[SeniorityStrategy::NAME])),
+          new CacheOccupancyStrategy(),
+          strategy::DEFAULT_CONTENTION_COOLDOWN,
+          Tag(QOS_CONTROLLER, CacheOccupancyStrategy::NAME)),
       ipcDropDetector(
-          &ipcCorrectionObserver,
+          &cacheOccupancyContentionObserver,
           usage::getEmaIpc,
           conf[SIGNAL_DROP_ANALYZER_NAME],
           Tag(QOS_CONTROLLER, "IPC detectorFilter"),
@@ -135,14 +144,16 @@ class CpuQoSPipeline : public QoSControllerPipeline {
           &ipcEMAFilter,
           conf[TooLowUsageFilter::NAME],
           Tag(QOS_CONTROLLER, "tooLowCPUUsageFilter")),
-      cpuCorrectionObserver(
+      cpuContentionObserver(
           &correctionMerger, 1,
           &ageFilter,
-        new CpuContentionStrategy(
+          new CpuContentionStrategy(
             conf[CpuContentionStrategy::NAME],
-            usage::getEmaCpuUsage)),
+            usage::getEmaCpuUsage),
+          strategy::DEFAULT_CONTENTION_COOLDOWN,
+          Tag(QOS_CONTROLLER, CpuContentionStrategy::NAME)),
       cpuUtilizationDetector(
-          &cpuCorrectionObserver,
+          &cpuContentionObserver,
           usage::getEmaCpuUsage,
           conf[TooHighCpuUsageDetector::NAME],
           Tag(QOS_CONTROLLER, "CPU High Usage utilization detector")),
@@ -164,9 +175,13 @@ class CpuQoSPipeline : public QoSControllerPipeline {
     // Setup starting producer.
     this->addConsumer(&ageFilter);
 
+//    cacheOccupancyContentionObserver.
+//      Producer<Contentions>::addConsumer(&ipcContentionObserver);
+
     // QoSCorrection observers needs ResourceUsage as well.
-    cumulativeFilter.addConsumer(&cpuCorrectionObserver);
-    cumulativeFilter.addConsumer(&ipcCorrectionObserver);
+    cpuEMAFilter.addConsumer(&cpuContentionObserver);
+//    cumulativeFilter.addConsumer(&ipcContentionObserver);
+    cumulativeFilter.addConsumer(&cacheOccupancyContentionObserver);
     cumulativeFilter.addConsumer(&cpuEMAFilter);
 
     // Setup Time Series export
@@ -177,8 +192,9 @@ class CpuQoSPipeline : public QoSControllerPipeline {
   }
 
   virtual Try<Nothing> postPipelineRun() {
-    this->cpuCorrectionObserver.reset();
-    this->ipcCorrectionObserver.reset();
+    this->cpuContentionObserver.reset();
+//    this->ipcContentionObserver.reset();
+    this->cacheOccupancyContentionObserver.reset();
     // Force pipeline continuation.
     // TODO(bplotka): That would not be needed if we always continue pipeline.
     return this->correctionMerger.ensure();
@@ -198,8 +214,9 @@ class CpuQoSPipeline : public QoSControllerPipeline {
   CorrectionMergerFilter correctionMerger;
 
   // --- Observers ---
-  QoSCorrectionObserver ipcCorrectionObserver;
-  QoSCorrectionObserver cpuCorrectionObserver;
+  QoSCorrectionObserver cpuContentionObserver;
+  QoSCorrectionObserver cacheOccupancyContentionObserver;
+//  QoSCorrectionObserver ipcContentionObserver;
 
   // --- Time Series Exporters ---
   ResourceUsageTimeSeriesExporter rawResourcesExporter;

@@ -20,65 +20,15 @@ Try<QoSCorrections> CpuContentionStrategy::decide(
     ExecutorAgeFilter* ageFilter,
     const Contentions& currentContentions,
     const ResourceUsage& currentUsage) {
-  if (currentContentions.empty()) {
-    // No contentions happened.
-    // It means that no interference happens or just there are no BE tasks.
-
-    // Reset cooldownCounter.
-    if (cooldownCounter.isSome()) {
-      cooldownCounter = None();
-    }
-
-    // Open Estimator Pipeline.
-    if (estimatorDisabled) {
-      StaticEventBus::publishOversubscriptionCtrlEvent(true);
-      estimatorDisabled = false;
-    }
-
-    // Return empty corrections;
-    return QoSCorrections();
-  }
-
-  // Check if cooldown is enabled.
-  if (cooldownCounter.isSome()) {
-    // TODO(bplotka): Make a separate util cooldown timer.
-    uint64_t cooldownCounterValue = cooldownCounter.get();
-    cooldownCounterValue--;
-
-    if (cooldownCounterValue > 0) {
-      // Cooldown phase - nothing to correct.
-      cooldownCounter = cooldownCounterValue;
-
-      // Return empty corrections;
-      SERENITY_LOG(INFO) << "Cooldown active. Iterations to go: "
-                         << cooldownCounterValue;
-
-      return QoSCorrections();
-    } else {
-      SERENITY_LOG(INFO) << "Cooldown ended, but we have still contention"
-        "situation! Starting new revocations.";
-    }
-  }
-
-  // ---!!!--- Contention spotted - start new cooldown. ---!!!---
-  // TODO(bplotka): Change cooldownTime dynamically (learninig).
-  cooldownCounter = this->cfgCooldownTime;
-
-  // Disable Estimator pipeline.
-  if (!estimatorDisabled) {
-    StaticEventBus::publishOversubscriptionCtrlEvent(false);
-    estimatorDisabled = true;
-  }
-
   // Product.
   QoSCorrections corrections;
 
-  // List of BE executors.
-  list<ResourceUsage_Executor> possibleAggressors =
-    DividedResourceUsage::filterPrExecutors(currentUsage);
+  // List of revocable executors.
+  list<ResourceUsage_Executor> revocableExecutors =
+    ResourceUsageHelper::getRevocableExecutors(currentUsage);
 
   // Aggressors to be killed. (empty for now).
-  std::list<slave::QoSCorrection_Kill> aggressorsToKill;
+  std::list<slave::QoSCorrection_Kill> executorsToRevoke;
 
   // Amount of CPUs to satisfy the contention.
   double_t cpuToRecover = 0.0;
@@ -88,30 +38,12 @@ Try<QoSCorrections> CpuContentionStrategy::decide(
                           << " CPU. Omitting instance";
     }
 
-    if (contention.has_aggressor()) {
-      // Find specified aggressor and push it to the aggressors list.
-      possibleAggressors.remove_if(
-        [&contention, &aggressorsToKill]
-          (ResourceUsage_Executor& possibleAggressor) {
-          if (WID(contention.aggressor())
-              != WID(possibleAggressor.executor_info())) {
-            return false;
-          }
-
-          aggressorsToKill.push_back(
-            createKill(possibleAggressor.executor_info()));
-
-          return true;
-        });
-      continue;
-    }
-
-    // In case of Contention_Type_CPU severity value means amount of CPUs to
-    // recover.
+    // In case of Contention_Type_CPU severity value
+    // means amount of CPUs to recover.
     if (contention.has_severity()) {
       cpuToRecover = std::max(contention.severity(), cpuToRecover);
     } else {
-      cpuToRecover = std::max(this->cfgDefaultSeverity, cpuToRecover);
+      cpuToRecover = std::max(this->defaultSeverity, cpuToRecover);
     }
   }
 
@@ -120,10 +52,10 @@ Try<QoSCorrections> CpuContentionStrategy::decide(
 
   // Check for cpus limits violations and set age.
   list<pair<double_t, ResourceUsage_Executor>> executors;
-  for (const ResourceUsage_Executor& executor : possibleAggressors) {
+  for (const ResourceUsage_Executor& executor : revocableExecutors) {
     if (cpuToRecover <= 0) break;
 
-    Try<double_t> value = this->cpuUsageGetFunction(executor);
+    Try<double_t> value = this->getCpuUsage(executor);
     if (value.isError()) {
       SERENITY_LOG(ERROR) << value.error();
       continue;
@@ -136,7 +68,7 @@ Try<QoSCorrections> CpuContentionStrategy::decide(
       << "' of framework '" << executorInfo.framework_id()
       << "' because of limit violation";
 
-      aggressorsToKill.push_back(createKill(executorInfo));
+      executorsToRevoke.push_back(createKill(executorInfo));
 
       // Recover cpus.
       cpuToRecover -= value.get();
@@ -172,11 +104,11 @@ Try<QoSCorrections> CpuContentionStrategy::decide(
       << "' of framework '" << executorInfo.framework_id()
       << "' age " << executor.first << "s for removal";
 
-      aggressorsToKill.push_back(createKill(executorInfo));
+      executorsToRevoke.push_back(createKill(executorInfo));
 
       // TODO(bplotka): Use Cpu Usage, EMA Cpu Usage or allocated cpus?
       // IMO EMA CPU usage is the most accurate here...
-      Try<double_t> value = this->cpuUsageGetFunction(executor.second);
+      Try<double_t> value = this->getCpuUsage(executor.second);
       double_t recoveredCpus = 0.0;
       if (value.isError()) {
         SERENITY_LOG(ERROR) << value.error();
@@ -190,7 +122,7 @@ Try<QoSCorrections> CpuContentionStrategy::decide(
   }
 
   // Create QoSCorrection from aggressors list.
-  for (auto aggressorToKill : aggressorsToKill) {
+  for (auto aggressorToKill : executorsToRevoke) {
     corrections.push_back(createKillQoSCorrection(aggressorToKill));
   }
 

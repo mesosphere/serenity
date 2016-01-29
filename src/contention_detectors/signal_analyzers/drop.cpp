@@ -84,7 +84,7 @@ Result<Detection> SignalDropAnalyzer::processSample(double_t in) {
 }
 
 
-Try<Nothing> SignalDropAnalyzer::reset() {
+Try<Nothing> SignalDropAnalyzer::resetSignalRecovering() {
   // Return detector to normal state.
   SERENITY_LOG(INFO) << "Resetting any drop tracking if exists.";
   this->valueBeforeDrop = None();
@@ -106,7 +106,7 @@ Result<Detection> SignalDropAnalyzer::_processSample(double_t in) {
     // We want to use reference Base Point instead of base point.
     if (in >= (this->valueBeforeDrop.get() - nearValue)) {
       SERENITY_LOG(INFO) << "Signal returned to established state.";
-      this->reset();
+      this->resetSignalRecovering();
     } else {
       // Create contention.
       return this->createContention(

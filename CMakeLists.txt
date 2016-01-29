@@ -10,13 +10,13 @@ if (USE_CLANG)
     set(CMAKE_C_FLAGS_RELEASE   "-O4 -DNDEBUG")
     set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g")
     set(CMAKE_CXX_COMPILER "/usr/bin/clang-3.5")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
     set(CMAKE_CXX_FLAGS_DEBUG "-g")
     set(EXTRA_LIBRARIES "stdc++ m")
 endif(USE_CLANG)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 project(serenity)
@@ -28,6 +28,14 @@ set(MESOS_INSTALLATION_DIR ${WITH_MESOS})
 message("Mesos installation directory set to: " ${MESOS_INSTALLATION_DIR})
 
 option(INTEGRATION_TESTS "Enable compilation of integration tests." OFF)
+option(CMT_ENABLED "Enable revocation based on LLC_OCCUPANCY metric." OFF)
+if(CMT_ENABLED)
+    message(WARNING "CMT SUPPORT IS ENABLED.")
+    message("It needs to have llc_occupacy metric in ResourceUsage proto.")
+    message("If Serenity does not compile, try to compile it against")
+    message("https://github.com/Bplotka/mesos/tree/perf-fix-0.24.1")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCMT_ENABLED")
+endif()
 
 # Compiler things.
 include(CheckCXXCompilerFlag)
@@ -96,6 +104,7 @@ include_directories(
     ${pbjson_SOURCE_DIR}/src/
     ${MESOS_INSTALLATION_DIR}/include/
     ${CMAKE_BINARY_DIR}/
+    $(CMAKE_INCLUDE_PATH)
 )
 
 set(SERENITY_SOURCES
@@ -115,11 +124,13 @@ set(SERENITY_SOURCES
     src/filters/valve.cpp
     src/observers/qos_correction.cpp
     src/observers/slack_resource.cpp
+    src/observers/strategies/cache_occupancy.cpp
     src/observers/strategies/cpu_contention.cpp
     src/observers/strategies/seniority.cpp
     src/qos_controller/serenity_controller.cpp
     src/qos_controller/serenity_controller_module.cpp
     src/serenity/agent_utils.cpp
+    src/serenity/resource_helper.cpp
     src/serenity/wid.cpp
     src/time_series_export/resource_usage_ts_export.cpp
     src/time_series_export/slack_ts_export.cpp
@@ -143,8 +154,11 @@ set(SERENITY_TEST_SOURCES
     src/tests/pipeline/estimator_pipeline_test.cpp
     src/tests/observers/slack_resource_test.cpp
     src/tests/observers/qos_correction_test.cpp
+    src/tests/observers/strategies/cache_occupancy_strategy_test.cpp
+    src/tests/observers/strategies/seniority_strategy_test
     src/tests/serenity/config_test.cpp
     src/tests/serenity/os_utils_tests.cpp
+    src/tests/serenity/resource_helper_test.cpp
     src/tests/sources/json_source_test.cpp
 )
 
@@ -156,7 +170,7 @@ if (INTEGRATION_TESTS)
         # Needs InfluxDB 0.8.8
         src/tests/time_series_export/resource_usage_ts_export_test.cpp
         src/tests/time_series_export/slack_ts_export_test.cpp
-    )
+       )
 endif(INTEGRATION_TESTS)
 
 # Copy fixtures.

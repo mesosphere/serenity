@@ -94,6 +94,7 @@ public:
           "      \"targetHostname\": <[Optional] target host>,\n"
           "      \"totalTasks\": <[Optional] number of tasks or if not specified - unlimited>,\n"
           "      \"priority\" : <[Optional] priority of the task>\n"
+          "      \"name\" : <[Optional] name of task in InfluxDb>\n"
           "    }\n"
           "  ]\n"
           "}");
