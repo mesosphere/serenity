@@ -205,8 +205,8 @@ target_link_libraries(serenity-tests
 add_test(serenity-tests serenity-tests)
 
 
-# Smoke-test-framework requires mesos source directory.
-# If WITH_SOURCE_MESOS is not specified, test-framework is omitted.
+# Smoke Test Framework requires mesos source directory.
+# If WITH_SOURCE_MESOS is not specified, STF is omitted.
 set(WITH_SOURCE_MESOS "" CACHE STRING "Mesos source directory")
 set(MESOS_SOURCE_DIR ${WITH_SOURCE_MESOS})
 
@@ -216,17 +216,17 @@ if (MESOS_SOURCE_DIR)
     include_directories(
         ${MESOS_SOURCE_DIR}/build/src/
         ${MESOS_SOURCE_DIR}/src/
-        src/framework/
+        src/mesos_frameworks/smoke_test/
         src/time_series_export/
     )
     # Serenity test framework exe.
-    add_executable(test-framework
-        src/framework/smoke_test_framework.cpp
+    add_executable(smoke_test_framework
+        src/mesos_frameworks/smoke_test/smoke_test_framework.cpp
         src/time_series_export/backend/influx_db8.cpp)
-    target_link_libraries(test-framework mesos protobuf glog stdc++ m curlcpp)
+    target_link_libraries(smoke_test_framework mesos protobuf glog stdc++ m curlcpp)
 
 else(MESOS_SOURCE_DIR)
     message(
         "Mesos source directory was not set. "
-        "Test-framework compilation will be omitted.")
+        "Smoke Test Framework compilation will be omitted.")
 endif(MESOS_SOURCE_DIR)
