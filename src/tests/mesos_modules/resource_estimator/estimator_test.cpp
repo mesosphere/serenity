@@ -1,16 +1,16 @@
-#include <gtest/gtest.h>
-
-#include <mesos/resources.hpp>
-
-#include <mesos/slave/resource_estimator.hpp>
-
-#include <stout/gtest.hpp>
-
-#include <process/gtest.hpp>
-
 #include <list>
 
-#include "estimator/serenity_estimator.hpp"
+#include "gtest/gtest.h"
+
+#include "mesos/resources.hpp"
+
+#include "mesos/slave/resource_estimator.hpp"
+
+#include "mesos_modules/resource_estimator/serenity_estimator.hpp"
+
+#include "stout/gtest.hpp"
+
+#include "process/gtest.hpp"
 
 #include "tests/common/usage_helper.hpp"
 
