@@ -7,7 +7,7 @@
 #include "mesos/slave/oversubscription.hpp"
 #include "mesos/slave/qos_controller.hpp"
 
-#include "mesos_module/qos_controller/serenity_controller.hpp"bn
+#include "mesos_module/qos_controller/serenity_controller.hpp"
 
 #include "process/clock.hpp"
 #include "process/gtest.hpp"
