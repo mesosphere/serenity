@@ -68,12 +68,14 @@ const constexpr char* MINIMAL_CPU_USAGE = "MINIMAL_CPU_USAGE";
 constexpr double_t DEFAULT_MINIMAL_CPU_USAGE = 0.25;  // !< per sec.
 }  // namespace too_low_usage
 
-namespace decider {
+namespace strategy {
 const constexpr char* CONTENTION_COOLDOWN = "CONTENTION_COOLDOWN";
 constexpr uint64_t DEFAULT_CONTENTION_COOLDOWN = 10;
-const constexpr char* STARTING_SEVERITY = "STARTING_SEVERITY";
+const constexpr char* DEFAULT_CPU_SEVERITY = "DEFAULT_CPU_SEVERITY";
+constexpr double_t DEFAULT_DEFAULT_CPU_SEVERITY = 1.0;
+static const constexpr char* STARTING_SEVERITY = "STARTING_SEVERITY";
 constexpr double_t DEFAULT_STARTING_SEVERITY = 0.1;
-}  // namespace decider
+}  // namespace strategy
 
 }  // namespace serenity
 }  // namespace mesos

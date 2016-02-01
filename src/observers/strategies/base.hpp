@@ -20,22 +20,22 @@
 namespace mesos {
 namespace serenity {
 
-using RevocationStrategyFunction = Try<QoSCorrections>
-    (ExecutorAgeFilter* ageFilter,
-    const Contentions& currentContentions,
-    const ResourceUsage& currentUsage);
-
 /**
- * Convenient base class for contention interpretations.
+ * Base class for contention interpretations.
  * It converts contentions & usage to QoSCorrections.
- *
- * Convenient for debugging and testing different algorithms.
  */
 class RevocationStrategy {
  public:
+  // TODO(skonefal): Abstract classes should not have tag.
   explicit RevocationStrategy(const Tag& _tag) : tag(_tag) {}
 
-  virtual RevocationStrategyFunction decide = 0;
+  virtual ~RevocationStrategy() {}
+
+  // TODO(skonefal): Executor Age should be part of Resource Usage.
+  virtual Try<QoSCorrections> decide(
+      ExecutorAgeFilter* exeutorAge,
+      const Contentions& contentions,
+      const ResourceUsage& usage) = 0;
  protected:
   const Tag tag;
 };

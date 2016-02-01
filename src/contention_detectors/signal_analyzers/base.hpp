@@ -28,9 +28,9 @@ class SignalAnalyzer {
   explicit SignalAnalyzer(const Tag& _tag) : tag(_tag) {
   }
 
-  virtual Result<Detection> processSample(double_t in) { return None(); }
+  virtual Result<Detection> processSample(double_t in) = 0;
 
-  virtual Try<Nothing> reset() { return Nothing(); }
+  virtual Try<Nothing> resetSignalRecovering() = 0;
 
  protected:
   const Tag tag;

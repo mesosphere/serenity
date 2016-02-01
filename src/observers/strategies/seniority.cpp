@@ -1,4 +1,5 @@
 #include <list>
+#include <string>
 #include <utility>
 
 #include "bus/event_bus.hpp"
@@ -13,110 +14,35 @@ namespace serenity {
 using std::list;
 using std::pair;
 
+
+
 Try<QoSCorrections> SeniorityStrategy::decide(
     ExecutorAgeFilter* ageFilter,
     const Contentions& currentContentions,
     const ResourceUsage& currentUsage) {
-  if (currentContentions.empty()) {
-    // No contentions happened.
-    // It means that no interference happens or just there are no BE tasks.
-
-    // Reset cooldownCounter.
-    if (cooldownCounter.isSome()) {
-      cooldownCounter = None();
-    }
-
-    // Open Estimator Pipeline.
-    if (estimatorDisabled) {
-      StaticEventBus::publishOversubscriptionCtrlEvent(true);
-      estimatorDisabled = false;
-    }
-
-    // Return empty corrections;
-    return QoSCorrections();
-  }
-
-  // Check if cooldown is enabled.
-  if (cooldownCounter.isSome()) {
-    // TODO(bplotka): Make a separate util cooldown timer.
-    uint64_t cooldownCounterValue = cooldownCounter.get();
-    cooldownCounterValue--;
-
-    if (cooldownCounterValue > 0) {
-      // Cooldown phase - nothing to correct.
-      cooldownCounter = cooldownCounterValue;
-
-      // Return empty corrections;
-      SERENITY_LOG(INFO) << "Cooldown active. Iterations to go: "
-                         << cooldownCounterValue;
-      return QoSCorrections();
-    } else {
-      SERENITY_LOG(INFO) << "Cooldown ended, but we have still contention"
-        "situation! Starting new revocations.";
-      // TODO(bplotka): Change defaultSeverity to steer the revocation number.
-      // this->defaultSeverity++; ?
-    }
-  }
-
-  // ---!!!--- Contention spotted - start new cooldown. ---!!!---
-  // TODO(bplotka): Change cooldownTime dynamically (learninig).
-  cooldownCounter = this->cfgCooldownTime;
-  // Disable Estimator pipeline.
-  if (!estimatorDisabled) {
-    StaticEventBus::publishOversubscriptionCtrlEvent(false);
-    estimatorDisabled = true;
-  }
-
-  // Product.
-  QoSCorrections corrections;
 
   // List of BE executors.
   list<ResourceUsage_Executor> possibleAggressors =
-    DividedResourceUsage::filterPrExecutors(currentUsage);
+  ResourceUsageHelper::getRevocableExecutors(currentUsage);
 
   // Aggressors to be killed. (empty for now).
   std::list<slave::QoSCorrection_Kill> aggressorsToKill;
 
-  double_t meanSeverity = 0;
+  double_t maxSeverity = this->severity;
   for (const Contention contention : currentContentions) {
-    if (contention.has_aggressor()) {
-      // Find specified aggressor and push it to the aggressors list.
-      possibleAggressors.remove_if(
-        [&contention, &aggressorsToKill]
-          (ResourceUsage_Executor& possibleAggressor) {
-          if (WID(contention.aggressor())
-              != WID(possibleAggressor.executor_info())) {
-            return false;
-          }
-
-          aggressorsToKill.push_back(
-            createKill(possibleAggressor.executor_info()));
-
-          return true;
-        });
-      continue;
-    }
-
-    // Most of contention will not have severity specified since it's
-    // difficult to match severity with number aggressors to kill!
     if (contention.has_severity()) {
-      meanSeverity += contention.severity();
-    } else {
-      meanSeverity += this->cfgDefaultSeverity;
+      if (contention.severity() > maxSeverity) {
+        maxSeverity = contention.severity();
+      }
     }
   }
 
-  meanSeverity /= currentContentions.size();
-
-  SERENITY_LOG(INFO) << "MeanSeverity: " << meanSeverity;
   // TODO(nnielsen): Made gross assumption about homogenous best-effort tasks.
-  size_t killCount = possibleAggressors.size() * meanSeverity;
-  if (killCount == 0 && (possibleAggressors.size() * meanSeverity) > 0) {
-    killCount++;
+  size_t executorsToRevokeCnt = ceil(possibleAggressors.size() * maxSeverity);
+  if (executorsToRevokeCnt == 0) {
+    return QoSCorrections();
   }
 
-  SERENITY_LOG(INFO) << "Decided to kill " << killCount << "/"
-                     << possibleAggressors.size() << "executors";
   // Get ages for executors.
   list<pair<double_t, ResourceUsage_Executor>> executors;
   for (const ResourceUsage_Executor& executor : possibleAggressors) {
@@ -125,7 +51,6 @@ Try<QoSCorrections> SeniorityStrategy::decide(
       LOG(WARNING) << age.error();
       continue;
     }
-
     executors.push_back(
       pair<double_t, ResourceUsage_Executor>(age.get(), executor));
   }
@@ -138,28 +63,20 @@ Try<QoSCorrections> SeniorityStrategy::decide(
     return left.first < right.first;
   });
 
-  // Kill first N executors (by age, youngest to oldest).
-  list<pair<double_t, ResourceUsage_Executor>>::iterator executorIterator =
-                                                           executors.begin();
-  for (int i = 0; i < killCount; i++) {
-    if (executorIterator == executors.end()) {
+  QoSCorrections corrections;
+  SERENITY_LOG(INFO) << "Revoking " << executorsToRevokeCnt << " executors";
+  for (const auto& pair : executors) {
+    slave::QoSCorrection correction =
+      createKillQosCorrection(pair.second.executor_info());
+    corrections.push_back(correction);
+
+    std::string executorName = pair.second.executor_info().name();
+    SERENITY_LOG(INFO) << "Marked " << executorName << "to revoke";
+
+    executorsToRevokeCnt -= 1;
+    if (executorsToRevokeCnt == 0) {
       break;
     }
-
-    const ExecutorInfo& executorInfo =
-      (executorIterator->second).executor_info();
-
-    SERENITY_LOG(INFO) << "Marked executor '" << executorInfo.executor_id()
-    << "' of framework '" << executorInfo.framework_id()
-    << "' age " << executorIterator->first << "s for removal";
-
-    aggressorsToKill.push_back(createKill(executorInfo));
-    executorIterator++;
-  }
-
-  // Create QoSCorrection from aggressors list.
-  for (auto aggressorToKill : aggressorsToKill) {
-    corrections.push_back(createKillQoSCorrection(aggressorToKill));
   }
 
   return corrections;

@@ -46,18 +46,19 @@ class SyncConsumer : public Consumer<T> {
   Try<Nothing> consume(const T& in) {
     this->products.push_back(in);
 
-    if (this->products.size() == this->producentsToWaitFor) {
+    if (consumedAllNeededProducts()) {
       // Run virtual function which should be implemented in derived
       // class.
-      this->_syncConsume(this->products);
+      this->syncConsume(this->products);
 
-      this->reset();
+      // Reset need to be done explicitly.
+      // this->reset();
     }
 
     return Nothing();
   }
 
-  virtual Try<Nothing> _syncConsume(const std::vector<T> products) = 0;
+  virtual Try<Nothing> syncConsume(const std::vector<T> products) = 0;
 
   // Currently we don't ensure that for in every iteration we fill consumer,
   // so we have to reset counter in every iteration.
@@ -68,9 +69,24 @@ class SyncConsumer : public Consumer<T> {
     return Nothing();
   }
 
- private:
+  // You can enforce pipeline to continue the flow even if only some
+  // of the producents produced the needed object.
+  Try<Nothing> ensure() {
+    // We do syncConsume only when it wasn't done earlier.
+    if (!consumedAllNeededProducts()) {
+      this->syncConsume(this->products);
+    }
+
+    return this->reset();
+  }
+
+ protected:
   uint64_t producentsToWaitFor;
   std::vector<T> products;
+
+  bool consumedAllNeededProducts() {
+    return (this->products.size() == this->producentsToWaitFor);
+  }
 };
 
 template<typename T>

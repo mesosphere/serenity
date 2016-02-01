@@ -1,6 +1,7 @@
 #ifndef SERENITY_SMOKE_JOB_HPP
 #define SERENITY_SMOKE_JOB_HPP
 
+#include <atomic>
 #include <list>
 #include <string>
 
@@ -18,6 +19,7 @@ inline Option<T> getOption(Result<JSONType> result) {
   return (result.isSome() ? Option<T>(result.get().value) : None());
 };
 
+using std::atomic_int;
 
 /**
  * Smoke URI.
@@ -79,6 +81,7 @@ class SmokeJob {
     const std::string& _command,
     const mesos::Resources& _taskResources,
     const Option<size_t>& _totalTasks,
+    const std::string& _name,
     const Option<std::string>& _targetHostname = None(),
     const Option<SmokeURI>& _uri = None(),
     const size_t& _shares = 1)
@@ -88,10 +91,15 @@ class SmokeJob {
       totalTasks(_totalTasks),
       targetHostname(_targetHostname),
       uri(_uri),
+      name(_name),
       shares(_shares),
+      runningTasks(0),
+      failedTasks(0),
+      revokedTasks(0),
+      finishedTasks(0),
       tasksLaunched(0u),
       probability(1.0),
-      scheduled(false) {}
+      scheduled(false) { }
 
   const size_t id;
   const std::string command;
@@ -99,6 +107,7 @@ class SmokeJob {
   const Option<size_t> totalTasks;
   const Option<std::string> targetHostname;
   const Option<SmokeURI> uri;
+  const std::string name;
   const size_t shares;
 
   double_t probability;
@@ -106,6 +115,12 @@ class SmokeJob {
   // Stats
   size_t tasksLaunched;
   bool scheduled;
+
+  // InfluxDb
+  atomic_int runningTasks;
+  atomic_int failedTasks;
+  atomic_int revokedTasks;
+  atomic_int finishedTasks;
 
   bool isEndless() const {
     return this->totalTasks.isNone();
@@ -122,7 +137,8 @@ class SmokeJob {
     mesos::TaskInfo task;
     // Generate Task ID.
     task.mutable_task_id()->set_value(
-      stringify(this->id) + "_" + stringify(this->tasksLaunched));
+      stringify(this->id) + "_" + stringify(this->tasksLaunched)
+      + "_" + this->name);
     // Add Name.
     task.set_name(stringify(this->id) + "_" + this->command);
     // Add Slave id.
@@ -154,6 +170,7 @@ class SmokeJob {
         std::to_string(job.totalTasks.get()) : "<none>")
     << "; Target hostname: "
     << (job.targetHostname.isSome() ? job.targetHostname.get() : "<all>")
+    << "; Name: " << job.name
     << "; Shares: " << job.shares
     << "|";
     return stream;
@@ -197,6 +214,15 @@ class SmokeJob {
         EXIT(EXIT_FAILURE)
         << flags.usage(
           "JSON task " + stringify(i) + "does not contain command");
+      }
+
+      // Get name
+      std::string name = optionCommand.get().value;
+      Result<JSON::String> optionName =
+        json.get().find<JSON::String>("tasks[" + stringify(i) +"].name");
+
+      if (optionName.isSome()) {
+        name = optionName.get().value;
       }
 
       // Get URI.
@@ -302,11 +328,12 @@ class SmokeJob {
         optionShares = _shares.get().value;
       }
 
-      jobs.push_back(std::make_shared<SmokeJob>(
-        SmokeJob(i,
+      jobs.push_back(std::shared_ptr<SmokeJob>(
+        new SmokeJob(i,
                  optionCommand.get().value,
                  optionResources.get(),
                  optionTotalTasks,
+                 name,
                  optionTargetHostname,
                  optionUri,
                  optionShares)));
@@ -315,6 +342,17 @@ class SmokeJob {
 
     return jobs;
   }
+};
+
+
+class SmokeTask {
+ public:
+  SmokeTask(std::shared_ptr<SmokeJob>& _jobPtr,
+            const std::string _hostname)
+    : jobPtr(_jobPtr), hostname(_hostname) {}
+
+  std::shared_ptr<SmokeJob> jobPtr;
+  const std::string hostname;
 };
 
 #endif //SERENITY_SMOKE_JOB_HPP

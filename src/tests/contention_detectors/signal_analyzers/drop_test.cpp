@@ -127,7 +127,7 @@ TEST(SignalDropAnalyzerTest, StableLoadOneBigDropWithReset) {
     // 4 checkpoints with quorum 3 (so we look in the past T-4 iterations).
     if (signalGen.iteration >= 10 && signalGen.iteration < (10+4)) {
       EXPECT_SOME(result);
-      signalDropAnalyzer.reset();
+      signalDropAnalyzer.resetSignalRecovering();
     } else {
       EXPECT_NONE(result);
     }

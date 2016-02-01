@@ -22,7 +22,8 @@ Try<Nothing> TooHighCpuUsageDetector::consume(const ResourceUsage& in) {
     return Error(std::string(NAME) + " No total cpus in ResourceUsage");
   }
 
-  double_t agentSumValue = 0;
+  double_t thresholdCpus = this->cfgUtilizationThreshold * totalAgentCpus.get();
+  double_t agentSumCpus = 0;
   uint64_t beExecutors = 0;
 
   for (const ResourceUsage_Executor& inExec : in.executors()) {
@@ -46,27 +47,26 @@ Try<Nothing> TooHighCpuUsageDetector::consume(const ResourceUsage& in) {
       continue;
     }
 
-    agentSumValue += value.get();
+    agentSumCpus += value.get();
 
     if (!Resources(inExec.allocated()).revocable().empty()) {
       beExecutors++;
     }
   }
 
-  // Debug only
-  SERENITY_LOG(INFO) << "Sum = " << agentSumValue << " vs total = "
-                     << totalAgentCpus.get();
-  double_t lvl = agentSumValue / totalAgentCpus.get();
+  SERENITY_LOG(INFO) << "Sum = " << agentSumCpus << " vs total = "
+    << totalAgentCpus.get() << " [threshold = " << thresholdCpus << "]";
 
-  if (lvl > this->cfgUtilizationThreshold) {
+  if (agentSumCpus > thresholdCpus) {
     if (beExecutors == 0) {
       SERENITY_LOG(INFO) << "No BE tasks - only high host utilization";
     } else {
-      SERENITY_LOG(INFO) << "Creating CPU contention, because of the value"
-                         << " above the threshold. " << agentSumValue << "/"
-                         << totalAgentCpus.get();
-      product.push_back(createContention(totalAgentCpus.get() - agentSumValue,
-                                         Contention_Type_CPU));
+      // Severity is the amount of the CPUs above the threshold.
+      double_t severity = agentSumCpus - thresholdCpus;
+      SERENITY_LOG(INFO) << "Creating CPU contention, because of the "
+                         << severity << " CPUs above the threshold. ";
+
+      product.push_back(createContention(severity, Contention_Type_CPU));
     }
   }
 

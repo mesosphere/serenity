@@ -26,78 +26,105 @@ namespace mesos {
 namespace serenity {
 
 /**
- * QoSCorrectionObserver observes incoming Contentions and
- * ResourceUsage and produces QoSCorrections.
+ * TODO(skonefal): create proper documentation from this rough draft.
  *
- * Currently Slave understand only kill correction action.
+ * QoSCorrection consumes Contentions and passes them to Strategy
+ * to produce revocations.
+ *
+ * When new contention appears, it sends "Disable" message to
+ * Estimator pipeline to make environment stable.
+ *
+ * When strategy generates QoSCorrections, OoSCorrectionObserver starts
+ * CooldownCounter, to give platform time to stabilize.
+ * During cooldown, QoSCorrectionObserved does not produce new Corrections.
+ *
+ * When strategy does not yield any Corrections, QoSCorrectionObserver
+ * passes Contentions to next QoSCorrectionObserver in pipeline (and,
+ * produces empty Corrections).
  */
 class QoSCorrectionObserver : public SyncConsumer<Contentions>,
                               public Consumer<ResourceUsage>,
-                              public Producer<QoSCorrections> {
+                              public Producer<QoSCorrections>,
+                              public Producer<Contentions> {
  public:
   explicit QoSCorrectionObserver(
       Consumer<QoSCorrections>* _consumer,
       uint64_t _contentionProducents,
-      const SerenityConfig& _config,
       ExecutorAgeFilter* _ageFilter = new ExecutorAgeFilter(),
-      RevocationStrategy* _revStrategy = nullptr)
+      RevocationStrategy* _revStrategy =
+          new SeniorityStrategy(SerenityConfig()),
+      uint32_t _cooldownIterations = strategy::DEFAULT_CONTENTION_COOLDOWN,
+      const Tag& _tag = Tag(QOS_CONTROLLER, NAME))
     : SyncConsumer<Contentions>(_contentionProducents),
       Producer<QoSCorrections>(_consumer),
-      currentContentions(None()),
-      currentUsage(None()),
-      revStrategy(_revStrategy),
-      ageFilter(_ageFilter),
-      config(_config) {
-
-    if (revStrategy == nullptr) {
-      revStrategy = new SeniorityStrategy(this->config);
-    }
-  }
+      contentions(None()),
+      usage(None()),
+      revocationStrategy(_revStrategy),
+      executorAgeFilter(_ageFilter),
+      cooldownIterations(_cooldownIterations),
+      tag(_tag) {}
 
   ~QoSCorrectionObserver();
 
-  Try<Nothing> _syncConsume(const std::vector<Contentions> products) override;
-
+  Try<Nothing> syncConsume(const std::vector<Contentions> products) override;
   Try<Nothing> consume(const ResourceUsage& usage) override;
 
-  static bool compareSeverity(
-      const Contention& first, const Contention& second) {
-    if (!second.has_severity())
-      return true;
-    if (!first.has_severity())
-      return false;
-
-    return (first.severity() > second.severity());
+  template <typename T>
+  Try<Nothing> addConsumer(T* consumer) {
+    return Producer<T>::addConsumer(consumer);
   }
 
-  static bool compareCpuAllocated(
-      const ResourceUsage_Executor& first,
-      const ResourceUsage_Executor& second) {
-    // TODO(bplotka) decide if we want to validate fields here.
-    Resources secondAllocation(second.allocated());
-    if (secondAllocation.cpus().isNone())
-      return true;
-
-    Resources firstAllocation(first.allocated());
-    if (firstAllocation.cpus().isNone())
-      return false;
-
-    return (firstAllocation.cpus().get() > secondAllocation.cpus().get());
-  }
-
-  static constexpr const char* NAME = "CorrectionObserver: ";
-  static constexpr const char* name = "[SerenityQoS] CorrectionObserver: ";
+  static constexpr const char* NAME = "QoSCorrectionObserver";
 
  protected:
-  Option<Contentions> currentContentions;
-  Option<ResourceUsage> currentUsage;
-  RevocationStrategy* revStrategy;
-  ExecutorAgeFilter* ageFilter;
+  Try<Nothing> doQosDecision();
 
-  const SerenityConfig config;
+  void emptyContentionsReceived();
 
-  //! Run when all required info are gathered.
-  Try<Nothing> __correctSlave();
+  Try<QoSCorrections> newContentionsReceived();
+
+  void cooldownPhase();
+
+  bool isAllDataForCorrectionGathered();
+
+  void produceResultsAndClearConsumedData(
+                        QoSCorrections _corrections = QoSCorrections(),
+                        Contentions _contentions = Contentions());
+
+  RevocationStrategy* revocationStrategy;
+
+  ExecutorAgeFilter* executorAgeFilter;
+
+  const Tag tag;
+
+  Option<Contentions> contentions;  //!< Contention resources from other filters
+  Option<ResourceUsage> usage;  //!< Resource usage from other filters
+
+  template <typename T>
+  Try<Nothing> produce(T product) {
+    return Producer<T>::produce(product);
+  }
+
+  /**
+   *  QoSCorrectionObserver correction observer sends 'disable'
+   *  message to valve in Estimator pipeline when contention arises.
+   *
+   *  If this happens, this variable is 'TRUE'
+   */
+  bool estimatorPipelineDisabled;
+
+  /**
+   * Counter (in iterations) until next revocation.
+   * It used to create some time for system to stabilize.
+   */
+  Option<uint64_t> iterationCooldownCounter;
+
+  // Configuration parameters.
+
+  /**
+   * Default iterationCooldownCounter start value.
+   */
+  uint64_t cooldownIterations;
 };
 
 }  // namespace serenity

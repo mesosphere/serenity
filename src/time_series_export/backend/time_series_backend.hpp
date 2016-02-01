@@ -28,7 +28,11 @@ enum class Series : uint8_t {
   CPI,
   IPC,
   CACHE_MISSES,
-  REVOCATED_TASKS
+  STARTED_TASKS,
+  RUNNING_TASKS,
+  FINISHED_TASKS,
+  REVOKED_TASKS,
+  FAILED_TASKS
 };
 
 
@@ -44,7 +48,11 @@ static std::string SeriesString(Series series) {
     case Series::CPI:             return "cpi";
     case Series::IPC:             return "ipc";
     case Series::CACHE_MISSES:    return "cache_misses";
-    case Series::REVOCATED_TASKS: return "revocated_tasks";
+    case Series::STARTED_TASKS:   return "started_tasks";
+    case Series::RUNNING_TASKS:   return "running_tasks";
+    case Series::FINISHED_TASKS:  return "finished_tasks";
+    case Series::REVOKED_TASKS:   return "revoked_tasks";
+    case Series::FAILED_TASKS:    return "failed_tasks";
   }
 }
 
@@ -57,6 +65,7 @@ enum class TsTag : uint8_t {
   EXECUTOR_ID,
   FRAMEWORK_ID,
   HOSTNAME,
+  TASK_NAME,
   AGENT_ID,
   TAG,
   VALUE,
@@ -68,6 +77,7 @@ static std::string TagString(TsTag tag) {
     case TsTag::EXECUTOR_ID:  return "executorId";
     case TsTag::FRAMEWORK_ID: return "frameworkId";
     case TsTag::HOSTNAME:     return "node";
+    case TsTag::TASK_NAME:    return "task_name";
     case TsTag::AGENT_ID:     return "agentId";
     case TsTag::TAG:          return "tag";
     case TsTag::VALUE:        return "value";
