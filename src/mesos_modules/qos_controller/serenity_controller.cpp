@@ -3,6 +3,8 @@
 
 #include "glog/logging.h"
 
+#include "mesos_modules/qos_controller/serenity_controller.hpp"
+
 #include "messages/serenity.hpp"
 
 #include "pipeline/qos_pipeline.hpp"
@@ -13,8 +15,6 @@
 #include "process/process.hpp"
 
 #include "stout/error.hpp"
-
-#include "qos_controller/serenity_controller.hpp"
 
 // TODO(nnielsen): Break up with explicit using-declarations instead.
 using namespace process;  // NOLINT(build/namespaces)

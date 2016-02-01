@@ -1,9 +1,9 @@
 #include <list>
 #include <memory>
 
-#include "estimator/serenity_estimator.hpp"
-
 #include "glog/logging.h"
+
+#include "mesos_modules/resource_estimator/serenity_estimator.hpp"
 
 #include "pipeline/estimator_pipeline.hpp"
 

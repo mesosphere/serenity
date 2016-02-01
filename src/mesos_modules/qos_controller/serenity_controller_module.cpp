@@ -7,13 +7,13 @@
 #include "mesos/module/qos_controller.hpp"
 #include "mesos/slave/qos_controller.hpp"
 
+#include "mesos_modules/qos_controller/serenity_controller.hpp"
+
 #include "pipeline/qos_pipeline.hpp"
 
 #include "serenity/config.hpp"
 
 #include "stout/try.hpp"
-
-#include "qos_controller/serenity_controller.hpp"
 
 // TODO(nnielsen): Should be explicit using-directives.
 using namespace mesos;  // NOLINT(build/namespaces)
