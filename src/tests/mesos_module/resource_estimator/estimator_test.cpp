@@ -4,13 +4,14 @@
 
 #include <mesos/slave/resource_estimator.hpp>
 
+#include "mesos_module/resource_estimator/serenity_estimator.hpp"
+
 #include <stout/gtest.hpp>
 
 #include <process/gtest.hpp>
 
 #include <list>
 
-#include "estimator/serenity_estimator.hpp"
 
 #include "tests/common/usage_helper.hpp"
 

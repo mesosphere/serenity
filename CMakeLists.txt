@@ -109,8 +109,6 @@ include_directories(
 
 set(SERENITY_SOURCES
     src/bus/event_bus.cpp
-    src/estimator/serenity_estimator.cpp
-    src/estimator/serenity_estimator_module.cpp
     src/contention_detectors/signal_based.cpp
     src/contention_detectors/signal_analyzers/drop.cpp
     src/contention_detectors/too_high_cpu.cpp
@@ -122,13 +120,15 @@ set(SERENITY_SOURCES
     src/filters/too_low_usage.cpp
     src/filters/utilization_threshold.cpp
     src/filters/valve.cpp
+    src/mesos_module/qos_controller/serenity_controller.cpp
+    src/mesos_module/qos_controller/serenity_controller_module.cpp
+    src/mesos_module/resource_estimator/serenity_estimator.cpp
+    src/mesos_module/resource_estimator/serenity_estimator_module.cpp
     src/observers/qos_correction.cpp
     src/observers/slack_resource.cpp
     src/observers/strategies/cache_occupancy.cpp
     src/observers/strategies/cpu_contention.cpp
     src/observers/strategies/seniority.cpp
-    src/qos_controller/serenity_controller.cpp
-    src/qos_controller/serenity_controller_module.cpp
     src/serenity/agent_utils.cpp
     src/serenity/resource_helper.cpp
     src/serenity/wid.cpp
@@ -141,16 +141,16 @@ set(SERENITY_TEST_SOURCES
     src/tests/main.cpp
     src/tests/bus/event_bus_tests.cpp
     src/tests/common/sources/json_source.cpp
-    src/tests/controllers/qos_controller_test.cpp
     src/tests/contention_detectors/signal_analyzers/drop_test.cpp
     src/tests/contention_detectors/too_high_cpu_usage_test.cpp
-    src/tests/estimators/estimator_test.cpp
     src/tests/filters/correction_merger_test.cpp
     src/tests/filters/ema_test.cpp
     src/tests/filters/ignore_new_executors_test.cpp
     src/tests/filters/pr_executor_pass_test.cpp
     src/tests/filters/utilization_threshold_test.cpp
     src/tests/filters/valve_test.cpp
+    src/tests/mesos_module/qos_controller/qos_controller_test.cpp
+    src/tests/mesos_module/resource_estimator/estimator_test.cpp
     src/tests/pipeline/estimator_pipeline_test.cpp
     src/tests/observers/slack_resource_test.cpp
     src/tests/observers/qos_correction_test.cpp
