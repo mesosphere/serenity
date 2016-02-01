@@ -7,7 +7,7 @@
 #include "mesos/module/resource_estimator.hpp"
 #include "mesos/slave/resource_estimator.hpp"
 
-#include "mesos_module/resource_estimator/serenity_estimator.hpp"
+#include "mesos_modules/resource_estimator/serenity_estimator.hpp"
 
 #include "pipeline/estimator_pipeline.hpp"
 

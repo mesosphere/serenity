@@ -3,7 +3,7 @@
 
 #include "glog/logging.h"
 
-#include "mesos_module/qos_controller/serenity_controller.hpp"
+#include "mesos_modules/qos_controller/serenity_controller.hpp"
 
 #include "messages/serenity.hpp"
 

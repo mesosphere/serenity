@@ -6,7 +6,7 @@
 
 #include "mesos/slave/resource_estimator.hpp"
 
-#include "mesos_module/resource_estimator/serenity_estimator.hpp"
+#include "mesos_modules/resource_estimator/serenity_estimator.hpp"
 
 #include "stout/gtest.hpp"
 

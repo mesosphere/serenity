@@ -3,7 +3,7 @@
 
 #include "glog/logging.h"
 
-#include "mesos_module/resource_estimator/serenity_estimator.hpp"
+#include "mesos_modules/resource_estimator/serenity_estimator.hpp"
 
 #include "pipeline/estimator_pipeline.hpp"
 

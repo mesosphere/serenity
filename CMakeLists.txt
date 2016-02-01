@@ -120,10 +120,10 @@ set(SERENITY_SOURCES
     src/filters/too_low_usage.cpp
     src/filters/utilization_threshold.cpp
     src/filters/valve.cpp
-    src/mesos_module/qos_controller/serenity_controller.cpp
-    src/mesos_module/qos_controller/serenity_controller_module.cpp
-    src/mesos_module/resource_estimator/serenity_estimator.cpp
-    src/mesos_module/resource_estimator/serenity_estimator_module.cpp
+    src/mesos_modules/qos_controller/serenity_controller.cpp
+    src/mesos_modules/qos_controller/serenity_controller_module.cpp
+    src/mesos_modules/resource_estimator/serenity_estimator.cpp
+    src/mesos_modules/resource_estimator/serenity_estimator_module.cpp
     src/observers/qos_correction.cpp
     src/observers/slack_resource.cpp
     src/observers/strategies/cache_occupancy.cpp
@@ -149,8 +149,8 @@ set(SERENITY_TEST_SOURCES
     src/tests/filters/pr_executor_pass_test.cpp
     src/tests/filters/utilization_threshold_test.cpp
     src/tests/filters/valve_test.cpp
-    src/tests/mesos_module/qos_controller/qos_controller_test.cpp
-    src/tests/mesos_module/resource_estimator/estimator_test.cpp
+    src/tests/mesos_modules/qos_controller/qos_controller_test.cpp
+    src/tests/mesos_modules/resource_estimator/estimator_test.cpp
     src/tests/pipeline/estimator_pipeline_test.cpp
     src/tests/observers/slack_resource_test.cpp
     src/tests/observers/qos_correction_test.cpp
