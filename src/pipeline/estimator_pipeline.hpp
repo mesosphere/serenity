@@ -90,17 +90,17 @@ class CpuEstimatorPipeline : public ResourceEstimatorPipeline {
   }
 
  private:
-  // --- Filters ---
-  PrExecutorPassFilter prExecutorPassFilter;
-  IgnoreNewExecutorsFilter ignoreNewExecutorsFilter;
-  UtilizationThresholdFilter utilizationFilter;
-  ValveFilter valveFilter;
+  // --- Time Series Exporters ---
+  SlackTimeSeriesExporter slackTimeSeriesExporter;
 
   // --- Observers ---
   SlackResourceObserver slackObserver;
 
-  // --- Time Series Exporters ---
-  SlackTimeSeriesExporter slackTimeSeriesExporter;
+  // --- Filters ---
+  IgnoreNewExecutorsFilter ignoreNewExecutorsFilter;
+  PrExecutorPassFilter prExecutorPassFilter;
+  UtilizationThresholdFilter utilizationFilter;
+  ValveFilter valveFilter;
 };
 
 }  // namespace serenity

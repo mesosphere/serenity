@@ -12,20 +12,121 @@
 namespace mesos {
 namespace serenity {
 
+class BaseFilter {
+  template <typename T>
+  friend class Consumer;
+  template <typename T>
+  friend class Producer;
+ public:
+  /**
+   * Function invoked when filter consumes all products in iteration.
+   * When filter consumes more than one product, this function should
+   * be overriden.
+   */
+  virtual Try<Nothing> allProductsReady() {
+    return Nothing();
+  }
 
-/**
- * The bus socket allows peers to communicate (subscribe and publish)
- *  asynchronously.
- */
-class BusSocket {};
+  /**
+   * Function invoked when filter consumes all the products in iteration
+   * after 'consumeAllProducts'. Developer can override it to clean
+   * data after computations.
+   */
+  virtual void cleanup() {
+    return;
+  }
+
+ protected:
+  BaseFilter() : producerCount(0),
+                 productsConsumedCounter(0) {}
+
+  virtual ~BaseFilter() {}
+
+ private:
+  void registerProducer() {
+    producerCount += 1;
+  }
+
+  void newProductForConsumption() {
+    productsConsumedCounter += 1;
+  }
+
+  bool isAllProductsConsumed() {
+    return productsConsumedCounter == producerCount;
+  }
+
+  void cleanAfterIteration() {
+    cleanup();
+    productsConsumedCounter = 0;
+  }
+
+  uint32_t producerCount;
+  uint32_t productsConsumedCounter;
+};
 
 
 template<typename T>
-class Consumer : public BusSocket {
- public:
+class Consumer : virtual public BaseFilter {
+  template <typename F>
+  friend class Producer;
+ protected:
+  virtual Try<Nothing> consume(const T& in) = 0;
+
+  Consumer() : BaseFilter() {}
+
   virtual ~Consumer() {}
 
-  virtual Try<Nothing> consume(const T& in) = 0;
+ private:
+  Try<Nothing> _consume(const T& in) {
+    newProductForConsumption();
+    // let derived class consume the product
+    Try<Nothing> result = consume(in);
+    if (isAllProductsConsumed() && !result.isError()) {
+      result = allProductsReady();
+    }
+    cleanAfterIteration();
+    return result;
+  }
+};
+
+
+template<typename T>
+class Producer : virtual public BaseFilter {
+ public:
+  Try<Nothing> addConsumer(Consumer<T>* consumer) {
+    if (consumer != nullptr) {
+      consumers.push_back(consumer);
+      consumer->registerProducer();
+    } else {
+      LOG(ERROR) << "Consumer must not be null.";
+    }
+    return Nothing();
+  }
+
+protected:
+  Producer() {}
+
+  explicit Producer(Consumer<T>* consumer) {
+    addConsumer(consumer);
+  }
+
+  virtual ~Producer() {}
+
+  Try<Nothing> produce(T out) {
+    for (auto consumer : consumers) {
+      Try<Nothing> ret = consumer->_consume(out);
+
+      // Stop the pipeline in case of error.
+      if (ret.isError()) {
+        LOG(ERROR) << ret.error() << " | Error during produce";
+        return ret;
+      }
+    }
+    return Nothing();
+  }
+
+private:
+  std::vector<Consumer<T>*> consumers;
 };
 
 
@@ -36,8 +137,8 @@ class Consumer : public BusSocket {
 template<typename T>
 class SyncConsumer : public Consumer<T> {
  public:
-  explicit SyncConsumer(uint64_t _producentsToWaitFor)
-    : producentsToWaitFor(_producentsToWaitFor) {
+  explicit SyncConsumer(uint64_t _producentsToWaitFor) : Consumer<T>(),
+    producentsToWaitFor(_producentsToWaitFor) {
     CHECK_ERR(_producentsToWaitFor > 0);
   }
 
@@ -89,46 +190,6 @@ class SyncConsumer : public Consumer<T> {
   }
 };
 
-template<typename T>
-class Producer : public BusSocket {
- public:
-  Producer() {}
-
-  explicit Producer(Consumer<T>* consumer) {
-    addConsumer(consumer);
-  }
-
-  explicit Producer(std::vector<Consumer<T>*> consumers_)
-    : consumers(consumers_) {}
-
-  virtual ~Producer() {}
-
-  Try<Nothing> addConsumer(Consumer<T>* consumer) {
-    if (consumer != nullptr) {
-      consumers.push_back(consumer);
-    } else {
-      LOG(ERROR) << "Consumer must not be null.";
-    }
-    return Nothing();
-  }
-
- protected:
-  std::vector<Consumer<T>*> consumers;
-
-  Try<Nothing> produce(T out) {
-    for (auto c : consumers) {
-      Try<Nothing> ret = c->consume(out);
-
-      // Stop the pipeline in case of error.
-      if (ret.isError()) {
-        LOG(ERROR) << ret.error() << " Stopping pipeline.";
-        return ret;
-      }
-    }
-    return Nothing();
-  }
-};
-
 
 enum ModuleType {
   RESOURCE_ESTIMATOR,
@@ -136,58 +197,50 @@ enum ModuleType {
   UNDEFINED,
 };
 
-
 #define SERENITY_LOG(severity) LOG(severity) << tag.NAME()
 
+// TODO(skonefal): Tag class should overload operator <<
 class Tag {
  public:
   Tag(const ModuleType& _type, const std::string& _name)
-      : type(_type), name(_name) {
-    this->fullName = this->init();
+      : type(_type) {
+    this->name = getPrefix() + ": ";
   }
 
   explicit Tag(const std::string& _name)
-    : type(UNDEFINED), name(_name) {
-    this->fullName = this->init();
-  }
-
-  const std::string init() {
-    switch (this->type) {
-      case RESOURCE_ESTIMATOR:
-        this->prefix = "[SerenityEstimator] ";
-        this->aim = "Slack estimation";
-        break;
-      case QOS_CONTROLLER:
-        this->prefix = "[SerenityQoS] ";
-        this->aim = "QoS assurance";
-        break;
-      default:
-        this->prefix = "[Serenity] ";
-        this->aim = "";
-        break;
-    }
-
-    return this->prefix + this->name + ": ";
+    : type(UNDEFINED) {
+    std::string prefix = getPrefix();
+    this->name = prefix + _name + ": ";
   }
 
   const inline std::string NAME() const {
-    return fullName;
+    return name;
   }
 
   const inline ModuleType TYPE() const {
     return type;
   }
 
-  const inline std::string AIM() const {
-    return aim;
+ private:
+  const std::string getPrefix() {
+    std::string prefix;
+    switch (this->type) {
+      case RESOURCE_ESTIMATOR:
+        prefix = "[SerenityEstimator] ";;
+        break;
+      case QOS_CONTROLLER:
+        prefix = "[SerenityQoS] ";
+        break;
+      default:
+        prefix = "[Serenity] ";
+        break;
+    }
+
+    return prefix;
   }
 
- protected:
-  const std::string name;
   const ModuleType type;
-  std::string fullName;
-  std::string prefix;
-  std::string aim;
+  std::string name;
 };
 
 }  // namespace serenity

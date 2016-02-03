@@ -202,25 +202,29 @@ class CpuQoSPipeline : public QoSControllerPipeline {
 
  private:
   SerenityConfig conf;
-  // --- Filters ---
-  ExecutorAgeFilter ageFilter;
-  CumulativeFilter cumulativeFilter;
-  EMAFilter cpuEMAFilter;
-  EMAFilter ipcEMAFilter;
-  SignalBasedDetector ipcDropDetector;
-  TooHighCpuUsageDetector cpuUtilizationDetector;
-  TooLowUsageFilter tooLowUsageFilter;
-  ValveFilter valveFilter;
-  CorrectionMergerFilter correctionMerger;
-
-  // --- Observers ---
-  QoSCorrectionObserver cpuContentionObserver;
-  QoSCorrectionObserver cacheOccupancyContentionObserver;
-//  QoSCorrectionObserver ipcContentionObserver;
 
   // --- Time Series Exporters ---
   ResourceUsageTimeSeriesExporter rawResourcesExporter;
   ResourceUsageTimeSeriesExporter emaFilteredResourcesExporter;
+
+  // --- Shared resource contention QoS
+  CorrectionMergerFilter correctionMerger;
+  // QoSCorrectionObserver ipcContentionObserver;
+  QoSCorrectionObserver cacheOccupancyContentionObserver;
+
+  SignalBasedDetector ipcDropDetector;
+  EMAFilter ipcEMAFilter;
+  TooLowUsageFilter tooLowUsageFilter;
+
+  // --- Node overload QoS
+  QoSCorrectionObserver cpuContentionObserver;
+  TooHighCpuUsageDetector cpuUtilizationDetector;
+  EMAFilter cpuEMAFilter;
+
+  CumulativeFilter cumulativeFilter;
+  ExecutorAgeFilter ageFilter;
+
+  ValveFilter valveFilter;
 };
 
 }  // namespace serenity
