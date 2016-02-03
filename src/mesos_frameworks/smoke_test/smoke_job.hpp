@@ -314,7 +314,7 @@ class SmokeJob {
           "tasks[" + stringify(i) +"].totalTasks");
 
       if (_totalTasks.isSome()) {
-        optionTotalTasks = _totalTasks.get().value;
+        optionTotalTasks = _totalTasks.get().as<size_t>();
       }
 
       // Get priority.
@@ -325,7 +325,7 @@ class SmokeJob {
           "tasks[" + stringify(i) +"].shares");
 
       if (_shares.isSome()) {
-        optionShares = _shares.get().value;
+        optionShares = _shares.get().as<size_t>();
       }
 
       jobs.push_back(std::shared_ptr<SmokeJob>(

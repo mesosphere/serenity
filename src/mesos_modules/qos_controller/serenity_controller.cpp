@@ -15,6 +15,7 @@
 #include "process/process.hpp"
 
 #include "stout/error.hpp"
+#include "stout/os.hpp"
 
 // TODO(nnielsen): Break up with explicit using-declarations instead.
 using namespace process;  // NOLINT(build/namespaces)

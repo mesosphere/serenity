@@ -327,7 +327,7 @@ class SerenityNoExecutorScheduler : public Scheduler
 
     switch(status.state()) {
       case TASK_LOST:
-        if (status.reason() == TaskStatus::REASON_EXECUTOR_PREEMPTED) {
+        if (status.reason() == TaskStatus::REASON_CONTAINER_PREEMPTED) {
           // Executor was preempted.
           LOG(INFO) << "Task '" << status.task_id() << "'"
                     << " is in state " << status.state() << " and was REVOKED";
