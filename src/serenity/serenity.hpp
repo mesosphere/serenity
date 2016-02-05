@@ -22,19 +22,10 @@ class BaseFilter {
    * Function invoked when filter consumes all products in iteration.
    * When filter consumes more than one product, this function should
    * be overriden.
+   *
+   * TODO(skonefal): After consume deprecation, this should be abstract.
    */
-  virtual Try<Nothing> allProductsReady() {
-    return Nothing();
-  }
-
-  /**
-   * Function invoked when filter consumes all the products in iteration
-   * after 'consumeAllProducts'. Developer can override it to clean
-   * data after computations.
-   */
-  virtual void cleanup() {
-    return;
-  }
+  virtual void allProductsReady() {}
 
  protected:
   BaseFilter() : producerCount(0),
@@ -47,16 +38,23 @@ class BaseFilter {
     producerCount += 1;
   }
 
-  void newProductForConsumption() {
+  void newProductConsumed() {
     productsConsumedCounter += 1;
+    if (isAllProductsConsumed()) {
+      allProductsConsumed();
+    }
   }
 
   bool isAllProductsConsumed() {
     return productsConsumedCounter == producerCount;
   }
 
+  void allProductsConsumed() {
+    allProductsReady();
+    cleanAfterIteration();
+  }
+
   void cleanAfterIteration() {
-    cleanup();
     productsConsumedCounter = 0;
   }
 
@@ -70,40 +68,91 @@ class Consumer : virtual public BaseFilter {
   template <typename F>
   friend class Producer;
  protected:
-  virtual Try<Nothing> consume(const T& in) = 0;
-
-  Consumer() : BaseFilter() {}
+  Consumer() : BaseFilter(),
+               productsPerIteration(0),
+               cleanConsumables(false) {}
 
   virtual ~Consumer() {}
 
- private:
-  Try<Nothing> _consume(const T& in) {
-    newProductForConsumption();
-    // let derived class consume the product
-    Try<Nothing> result = consume(in);
-    if (isAllProductsConsumed() && !result.isError()) {
-      result = allProductsReady();
-    }
-    cleanAfterIteration();
-    return result;
+  // TODO(skonefal): consume method should be deprecated
+  // and allProductsReady should be only exposed to users.
+  virtual Try<Nothing> consume(const T& in) {
+    return Nothing();
   }
+
+  /**
+   * Returns vector of products that came to Consumer.
+   * TODO(skonefal): Should we only return iterator to consumables?
+   */
+  const std::vector<T>& getConsumables() const {
+    return consumables;
+  }
+
+  /**
+   * Returns first product that came to consumer, or None if not available.
+   */
+  const Option<T> getConsumable() const {
+    if (consumables.size() > 0) {
+      return consumables[0];
+    } else {
+      return None();
+    }
+  }
+
+ private:
+  void registerProducer() {
+    productsPerIteration += 1;
+    BaseFilter::registerProducer();
+  }
+
+  void _consume(const T& in) {
+    if (cleanConsumables) {
+      consumables.clear();
+    }
+
+    consumables.push_back(in);
+    // Let derived class consume the product.
+    // TODO(skonefal): We should deprecate that.
+    consume(in);
+
+    if (isAllProductsConsumed()) {
+      cleanConsumables = true;
+    }
+
+    // Inform base filter that new product is consumed.
+    newProductConsumed();
+  }
+
+  void addProductToConsumables(const T &in) {
+    if (cleanConsumables) {
+      consumables.clear();
+    }
+  }
+
+  bool isAllProductsConsumed() {
+    return consumables.size() == productsPerIteration;
+  }
+
+  uint32_t productsPerIteration;  //!< Number of products we expect.
+  bool cleanConsumables;
+
+  std::vector<T> consumables;
 };
 
 
 template<typename T>
 class Producer : virtual public BaseFilter {
  public:
-  Try<Nothing> addConsumer(Consumer<T>* consumer) {
+  void addConsumer(Consumer<T>* consumer) {
     if (consumer != nullptr) {
       consumers.push_back(consumer);
       consumer->registerProducer();
     } else {
       LOG(ERROR) << "Consumer must not be null.";
     }
-    return Nothing();
   }
 
-protected:
+ protected:
   Producer() {}
 
   explicit Producer(Consumer<T>* consumer) {
@@ -114,18 +163,12 @@ protected:
 
   Try<Nothing> produce(T out) {
     for (auto consumer : consumers) {
-      Try<Nothing> ret = consumer->_consume(out);
-
-      // Stop the pipeline in case of error.
-      if (ret.isError()) {
-        LOG(ERROR) << ret.error() << " | Error during produce";
-        return ret;
-      }
+      consumer->_consume(out);
     }
     return Nothing();
   }
 
-private:
+ private:
   std::vector<Consumer<T>*> consumers;
 };
 
