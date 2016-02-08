@@ -2,6 +2,7 @@
 #define SERENITY_MESSAGES_SERENITY_HPP
 
 #include <list>
+#include <vector>
 
 #include "mesos/slave/oversubscription.hpp"
 #include "mesos/mesos.hpp"

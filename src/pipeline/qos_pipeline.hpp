@@ -117,13 +117,13 @@ class CpuQoSPipeline : public QoSControllerPipeline {
           this, 3,  // Three producers connected. IPC, CPU, Cache observers.
           Tag(QOS_CONTROLLER, "CorrectionMerger")),
 //      ipcContentionObserver(
-//          &correctionMerger, 1,
+//          &correctionMerger,
 //          &ageFilter,
 //          new SeniorityStrategy(conf[SeniorityStrategy::NAME]),
 //          strategy::DEFAULT_CONTENTION_COOLDOWN,
 //          Tag(QOS_CONTROLLER, SeniorityStrategy::NAME)),
       cacheOccupancyContentionObserver(
-          &correctionMerger, 1,
+          &correctionMerger,
           &ageFilter,
           new CacheOccupancyStrategy(),
           strategy::DEFAULT_CONTENTION_COOLDOWN,
@@ -145,7 +145,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
           conf[TooLowUsageFilter::NAME],
           Tag(QOS_CONTROLLER, "tooLowCPUUsageFilter")),
       cpuContentionObserver(
-          &correctionMerger, 1,
+          &correctionMerger,
           &ageFilter,
           new CpuContentionStrategy(
             conf[CpuContentionStrategy::NAME],
@@ -192,9 +192,9 @@ class CpuQoSPipeline : public QoSControllerPipeline {
   }
 
   virtual Try<Nothing> postPipelineRun() {
-    this->cpuContentionObserver.reset();
+//    this->cpuContentionObserver.reset();
 //    this->ipcContentionObserver.reset();
-    this->cacheOccupancyContentionObserver.reset();
+//    this->cacheOccupancyContentionObserver.reset();
     // Force pipeline continuation.
     // TODO(bplotka): That would not be needed if we always continue pipeline.
     return this->correctionMerger.ensure();

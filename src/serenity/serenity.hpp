@@ -74,7 +74,9 @@ class BaseFilter {
     // If allProductsReady didn't produced all products - log error.
     if (notAllProductsProduced()) {
       // TODO(skonefal): Make '<<' virutal, so we could log component name.
-      LOG(ERROR) << "Not all products has been produced!";
+      LOG(ERROR) << "Component has produced "
+                 << productionsInCurrentIterationCount << " products. "
+                 <<  "It should produce " << productionsPerIteration;
     }
 
     cleanAfterIteration();

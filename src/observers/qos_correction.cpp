@@ -7,65 +7,66 @@
 #include "observers/qos_correction.hpp"
 
 #include "serenity/resource_helper.hpp"
-
+#include "serenity/utils.hpp"
 
 namespace mesos {
 namespace serenity {
 
 QoSCorrectionObserver::~QoSCorrectionObserver() {}
 
-Try<Nothing> QoSCorrectionObserver::doQosDecision() {
-  if (contentions.get().empty() ||
+void QoSCorrectionObserver::allProductsReady() {
+  Contentions contentions = flattenListsInsideVector<Contentions>(
+      Consumer<Contentions>::getConsumables());
+  Option<ResourceUsage> usage = Consumer<ResourceUsage>::getConsumable();
+
+  if (contentions.size() == 0  ||
       ResourceUsageHelper::getRevocableExecutors(usage.get()).empty()) {
     SERENITY_LOG(INFO) << "Empty contentions received.";
     emptyContentionsReceived();
-    // Produce empty corrections and contentions
 
-    produceResultsAndClearConsumedData();
-    return Nothing();
+    // Produce empty corrections and contentions
+    produceResults();
+    return;
   }
 
+  // We have contentions, but we are in "stablisation" phase.
   if (iterationCooldownCounter.isSome()) {
     SERENITY_LOG(INFO) << "QoS Correction observer is in cooldown phase";
     cooldownPhase();
+
     // Produce empty corrections and contentions
-    produceResultsAndClearConsumedData();
-    return Nothing();
+    produceResults();
+    return;
   }
 
   Try<QoSCorrections> corrections = newContentionsReceived();
   if (corrections.isError()) {
     SERENITY_LOG(INFO) << "corrections returned error: " << corrections.error();
     // Produce empty corrections and contentions
-    produceResultsAndClearConsumedData();
-    return Error(corrections.error());
+    produceResults();
+    return;
   }
 
   if (corrections.get().empty()) {
     SERENITY_LOG(INFO) << "Strategy didn't found aggressors";
     // Strategy didn't found aggressors.
     // Passing contentions to next QoS Controller.
-    produceResultsAndClearConsumedData(QoSCorrections(),
-                                       this->contentions.get());
-    return Nothing();
+    produceResults(QoSCorrections(), contentions);
+    return;
   }
 
   // Strategy has pointed aggressors, so don't pass
   // current contentions to next QoS Controller.
   iterationCooldownCounter = this->cooldownIterations;
-  produceResultsAndClearConsumedData(corrections.get(),
-                                     Contentions());
-  return Nothing();
+  produceResults(corrections.get(), Contentions());
+  return;
 }
 
-void QoSCorrectionObserver::produceResultsAndClearConsumedData(
+void QoSCorrectionObserver::produceResults(
     QoSCorrections _qosCorrections,
     Contentions _contentions) {
   produce<QoSCorrections>(_qosCorrections);
   produce<Contentions>(_contentions);
-
-  this->contentions = None();
-  this->usage = None();
 }
 
 void QoSCorrectionObserver::emptyContentionsReceived() {
@@ -100,39 +101,13 @@ Try<QoSCorrections> QoSCorrectionObserver::newContentionsReceived() {
     StaticEventBus::publishOversubscriptionCtrlEvent(false);
     estimatorPipelineDisabled = true;
   }
+
+  Contentions contentions = flattenListsInsideVector<Contentions>(
+      Consumer<Contentions>::getConsumables());
+  Option<ResourceUsage> usage = Consumer<ResourceUsage>::getConsumable();
   return this->revocationStrategy->decide(this->executorAgeFilter,
-                                          this->contentions.get(),
-                                          this->usage.get());
-}
-
-Try<Nothing> QoSCorrectionObserver::syncConsume(
-    const std::vector<Contentions> products) {
-  this->contentions = Contentions();
-  for (Contentions contentions : products) {
-    for (Contention contention : contentions) {
-      this->contentions.get().push_back(contention);
-    }
-  }
-
-  if (isAllDataForCorrectionGathered()) {
-    this->doQosDecision();
-  }
-
-  return Nothing();
-}
-
-Try<Nothing> QoSCorrectionObserver::consume(const ResourceUsage& usage) {
-  this->usage = usage;
-
-  if (isAllDataForCorrectionGathered()) {
-    this->doQosDecision();
-  }
-
-  return Nothing();
-}
-
-bool QoSCorrectionObserver::isAllDataForCorrectionGathered() {
-  return this->contentions.isSome() && this->usage.isSome();
+                                          contentions,
+                                          usage.get());
 }
 
 }  // namespace serenity

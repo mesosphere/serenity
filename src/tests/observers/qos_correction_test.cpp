@@ -43,8 +43,8 @@ const int PR_2CPUS = 4;
 
 class MockQosController : public QoSCorrectionObserver {
  public:
-  explicit MockQosController(size_t _syncConsumers) :
-    QoSCorrectionObserver(nullptr, _syncConsumers) {}
+  MockQosController() :
+    QoSCorrectionObserver(nullptr) {}
 
   MOCK_METHOD0(emptyContentionsReceived, void());
   MOCK_METHOD0(doQosDecision, void());
@@ -64,14 +64,14 @@ class MockQosRevocationStrategy : public RevocationStrategy {
  * Check if getRevocableExecutors function properly filters out PR executors.
  */
 TEST(QosControllerTest, emptyContentionsReceived) {
-  MockQosController qosController(1);
+  MockQosController qosController;
   MockQosRevocationStrategy qosStrategy;
 
   const ResourceUsage usage;
   std::vector<Contentions> syncContenions;
 
-  qosController.consume(usage);
-  qosController.syncConsume(syncContenions);
+//  qosController.consume(usage);
+//  qosController.consume(syncContenions);
 
 //  EXPECT_CALL(qosController, doQosDecision());
 //  EXPECT_CALL(qosController, emptyContentionsReceived());
