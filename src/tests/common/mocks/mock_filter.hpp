@@ -16,7 +16,6 @@ class MockFilter : public Producer<P>,
                    public Consumer<C> {
  public:
   MOCK_METHOD0(allProductsReady, void());
-  MOCK_METHOD0(cleanup, void());
   MOCK_METHOD1_T(consume, Try<Nothing>(const C&));
 
   const std::vector<C>&getConsumables() const {

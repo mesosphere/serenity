@@ -11,6 +11,7 @@
 
 #include "serenity/serenity.hpp"
 
+#include "tests/common/mocks/mock_consumer.hpp"
 #include "tests/common/mocks/mock_filter.hpp"
 #include "tests/common/mocks/mock_multiple_consumer.hpp"
 
@@ -26,29 +27,28 @@ using ::testing::InSequence;
 
 TEST(SerenityFrameworkTests, SingleConsumerAllMethodsRun) {
   MockFilter<int, int> producer;
-  MockFilter<int, int> consumer;
+  MockConsumer<int> consumer;
 
   producer.addConsumer(&consumer);
 
   // Consumer is empty in the begining.
-  ASSERT_TRUE(consumer.getConsumable().isNone());
+  ASSERT_TRUE(consumer.getConsumable<int>().isNone());
 
   int product_42 = 42;
   int product_84 = 84;
 
-  // Consume, allProductsReady, and cleanup will be invoked.
+  // Consume and allProductsReady will be invoked.
   {
     InSequence seq;
     EXPECT_CALL(consumer, consume(42)).Times(Exactly(1)).
       WillRepeatedly(Return(Nothing()));
     EXPECT_CALL(consumer, allProductsReady()).Times(Exactly(1));
-    EXPECT_CALL(consumer, cleanup()).Times(Exactly(1));
   }
   producer.produce(product_42);
 
   // Consumer is has the product in memory
-  ASSERT_TRUE(consumer.getConsumable().isSome());
-  ASSERT_EQ(product_42, consumer.getConsumable().get());
+  ASSERT_TRUE(consumer.getConsumable<int>().isSome());
+  ASSERT_EQ(product_42, consumer.getConsumable<int>().get());
 
   // After second consumption, client will have new value in memory
   {
@@ -56,25 +56,24 @@ TEST(SerenityFrameworkTests, SingleConsumerAllMethodsRun) {
     EXPECT_CALL(consumer, consume(84)).Times(Exactly(1)).
       WillRepeatedly(Return(Nothing()));
     EXPECT_CALL(consumer, allProductsReady()).Times(Exactly(1));
-    EXPECT_CALL(consumer, cleanup()).Times(Exactly(1));
   }
   producer.produce(product_84);
 
-  ASSERT_TRUE(consumer.getConsumable().isSome());
-  ASSERT_EQ(product_84, consumer.getConsumable().get());
+  ASSERT_TRUE(consumer.getConsumable<int>().isSome());
+  ASSERT_EQ(product_84, consumer.getConsumable<int>().get());
 }
 
 
 TEST(SerenityFrameworkTests, MulitpleProducersSingleConsumer) {
   MockFilter<int, int> firstProducer;
   MockFilter<int, int> secondProducer;
-  MockFilter<int, int> consumer;
+  MockConsumer<int> consumer;
 
   firstProducer.addConsumer(&consumer);
   secondProducer.addConsumer(&consumer);
 
   // Consumer is empty in the begining.
-  ASSERT_TRUE(consumer.getConsumable().isNone());
+  ASSERT_TRUE(consumer.getConsumable<int>().isNone());
 
   int firstProduct = 42;
   int secondProduct = 84;
@@ -82,44 +81,43 @@ TEST(SerenityFrameworkTests, MulitpleProducersSingleConsumer) {
   {
     InSequence seq;
 
-    // Consume, allProductsReady, and cleanup will be invoked.
+    // Consume and allProductsReady will be invoked.
     EXPECT_CALL(consumer, consume(firstProduct)).Times(Exactly(1))
       .WillOnce(Return(Nothing()));
     EXPECT_CALL(consumer, consume(secondProduct)).Times(Exactly(1))
       .WillOnce(Return(Nothing()));
     EXPECT_CALL(consumer, allProductsReady()).Times(Exactly(1));
-    EXPECT_CALL(consumer, cleanup()).Times(Exactly(1));
   }
   firstProducer.produce(firstProduct);
-  ASSERT_TRUE(consumer.getConsumable().isSome());
-  ASSERT_EQ(firstProduct, consumer.getConsumable().get());
-  ASSERT_EQ(1, consumer.getConsumables().size());
-  ASSERT_EQ(firstProduct, consumer.getConsumables()[0]);
+  ASSERT_TRUE(consumer.getConsumable<int>().isSome());
+  ASSERT_EQ(firstProduct, consumer.getConsumable<int>().get());
+  ASSERT_EQ(1, consumer.getConsumables<int>().size());
+  ASSERT_EQ(firstProduct, consumer.getConsumables<int>()[0]);
 
   // After second produce, Consumer is has two values in memory.
   secondProducer.produce(secondProduct);
 
-  ASSERT_TRUE(consumer.getConsumable().isSome());
-  ASSERT_EQ(firstProduct, consumer.getConsumable().get());
+  ASSERT_TRUE(consumer.getConsumable<int>().isSome());
+  ASSERT_EQ(firstProduct, consumer.getConsumable<int>().get());
 
-  ASSERT_EQ(PRODUCERS_COUNT, consumer.getConsumables().size());
-  ASSERT_EQ(firstProduct, consumer.getConsumables()[0]);
-  ASSERT_EQ(secondProduct, consumer.getConsumables()[1]);
+  ASSERT_EQ(PRODUCERS_COUNT, consumer.getConsumables<int>().size());
+  ASSERT_EQ(firstProduct, consumer.getConsumables<int>()[0]);
+  ASSERT_EQ(secondProduct, consumer.getConsumables<int>()[1]);
 
   // New iteration - consumer should have new value in memory.
   int thirdProduct = 144;
   {
     InSequence seq;
 
-    // Consume, allProductsReady, and cleanup will be invoked.
+    // Consume and allProductsReady will be invoked.
     EXPECT_CALL(consumer, consume(thirdProduct)).Times(Exactly(1))
       .WillOnce(Return(Nothing()));
   }
   firstProducer.produce(thirdProduct);
-  ASSERT_TRUE(consumer.getConsumable().isSome());
-  ASSERT_EQ(thirdProduct, consumer.getConsumable().get());
-  ASSERT_EQ(1, consumer.getConsumables().size());
-  ASSERT_EQ(thirdProduct, consumer.getConsumables()[0]);
+  ASSERT_TRUE(consumer.getConsumable<int>().isSome());
+  ASSERT_EQ(thirdProduct, consumer.getConsumable<int>().get());
+  ASSERT_EQ(1, consumer.getConsumables<int>().size());
+  ASSERT_EQ(thirdProduct, consumer.getConsumables<int>()[0]);
 }
 
 
@@ -146,13 +144,12 @@ TEST(SerenityFrameworkTests, MultiProductTypesConsumer) {
   {
     InSequence seq;
 
-    // Consume, allProductsReady, and cleanup will be invoked.
+    // Consume and allProductsReady will be invoked.
     EXPECT_CALL(consumer, consume(FIRST_INT_PRODUCT)).Times(Exactly(1))
       .WillOnce(Return(Nothing()));
     EXPECT_CALL(consumer, consume(FIRST_STRING_PRODUCT)).Times(Exactly(1))
       .WillOnce(Return(Nothing()));
     EXPECT_CALL(consumer, allProductsReady()).Times(Exactly(1));
-    EXPECT_CALL(consumer, cleanup()).Times(Exactly(1));
   }
 
   // First product is in memory.
@@ -179,13 +176,12 @@ TEST(SerenityFrameworkTests, MultiProductTypesConsumer) {
   {
     InSequence seq;
 
-    // Consume, allProductsReady, and cleanup will be invoked.
+    // Consume and allProductsReady will be invoked.
     EXPECT_CALL(consumer, consume(SECOND_INT_PRODUCT)).Times(Exactly(1))
     .WillOnce(Return(Nothing()));
     EXPECT_CALL(consumer, consume(SECOND_STRING_PRODUCT)).Times(Exactly(1))
     .WillOnce(Return(Nothing()));
     EXPECT_CALL(consumer, allProductsReady()).Times(Exactly(1));
-    EXPECT_CALL(consumer, cleanup()).Times(Exactly(1));
   }
 
   intProducer.produce(SECOND_INT_PRODUCT);

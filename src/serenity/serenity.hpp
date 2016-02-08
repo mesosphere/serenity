@@ -28,38 +28,68 @@ class BaseFilter {
   virtual void allProductsReady() {}
 
  protected:
-  BaseFilter() : producerCount(0),
-                 productsConsumedCounter(0) {}
+  BaseFilter() : consumablesPerIteration(0),
+                 consumablesInCurrentIterationCount(0),
+                 productionsPerIteration(0),
+                 productionsInCurrentIterationCount(0) {}
 
   virtual ~BaseFilter() {}
 
  private:
+  void registerProductForConsumption() {
+    consumablesPerIteration += 1;
+  }
+
   void registerProducer() {
-    producerCount += 1;
+    productionsPerIteration += 1;
   }
 
   void newProductConsumed() {
-    productsConsumedCounter += 1;
+    consumablesInCurrentIterationCount += 1;
     if (isAllProductsConsumed()) {
       allProductsConsumed();
     }
   }
 
+  void productProduced() {
+    productionsInCurrentIterationCount += 1;
+  }
+
   bool isAllProductsConsumed() {
-    return productsConsumedCounter == producerCount;
+    return consumablesInCurrentIterationCount == consumablesPerIteration;
+  }
+
+  bool isAllProductsProduced() {
+    return productionsInCurrentIterationCount == productionsPerIteration;
+  }
+
+  bool notAllProductsProduced() {
+    return !isAllProductsProduced();
   }
 
   void allProductsConsumed() {
+    // Invoke virtual allProductsReady in derived class.
     allProductsReady();
+
+    // If allProductsReady didn't produced all products - log error.
+    if (notAllProductsProduced()) {
+      // TODO(skonefal): Make '<<' virutal, so we could log component name.
+      LOG(ERROR) << "Not all products has been produced!";
+    }
+
     cleanAfterIteration();
   }
 
   void cleanAfterIteration() {
-    productsConsumedCounter = 0;
+    consumablesInCurrentIterationCount = 0;
+    productionsInCurrentIterationCount = 0;
   }
 
-  uint32_t producerCount;
-  uint32_t productsConsumedCounter;
+  uint32_t consumablesPerIteration;  //!< Number of expected consumables
+  uint32_t consumablesInCurrentIterationCount;  //!< Consumables in Iteration
+
+  uint32_t productionsPerIteration;  //!< Nubmer of expected productions
+  uint32_t productionsInCurrentIterationCount;  //!< Productions in iteration
 };
 
 
@@ -100,11 +130,12 @@ class Consumer : virtual public BaseFilter {
   }
 
  private:
-  void registerProducer() {
+  void registerProductForConsumption() {
     productsPerIteration += 1;
-    BaseFilter::registerProducer();
+    BaseFilter::registerProductForConsumption();
   }
 
+  //TODO(skonefal): Rename to 'consume' after current 'consume' deprecation.
   void _consume(const T& in) {
     if (cleanConsumables) {
       consumables.clear();
@@ -112,9 +143,10 @@ class Consumer : virtual public BaseFilter {
 
     consumables.push_back(in);
     // Let derived class consume the product.
-    // TODO(skonefal): We should deprecate that.
+    // TODO(skonefal): We should deprecate consume method.
     consume(in);
 
+    // Consumer has it's own track of consumed products.
     if (isAllProductsConsumed()) {
       cleanConsumables = true;
     }
@@ -146,16 +178,19 @@ class Producer : virtual public BaseFilter {
   void addConsumer(Consumer<T>* consumer) {
     if (consumer != nullptr) {
       consumers.push_back(consumer);
-      consumer->registerProducer();
+      consumer->registerProductForConsumption();
     } else {
       LOG(ERROR) << "Consumer must not be null.";
     }
   }
 
  protected:
-  Producer() {}
+  Producer() {
+    intialize();
+  }
 
   explicit Producer(Consumer<T>* consumer) {
+    intialize();
     addConsumer(consumer);
   }
 
@@ -165,10 +200,15 @@ class Producer : virtual public BaseFilter {
     for (auto consumer : consumers) {
       consumer->_consume(out);
     }
+    BaseFilter::productProduced();
     return Nothing();
   }
 
  private:
+  void intialize() {
+    BaseFilter::registerProducer();
+  }
+
   std::vector<Consumer<T>*> consumers;
 };
 

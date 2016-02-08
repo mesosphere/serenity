@@ -1,5 +1,5 @@
-#ifndef SERENITY_MOCK_MULTIPLE_CONSUMER_HPP
-#define SERENITY_MOCK_MULTIPLE_CONSUMER_HPP
+#ifndef SERENITY_MOCK_CONSUMER_HPP
+#define SERENITY_MOCK_CONSUMER_HPP
 
 #include <vector>
 
@@ -11,13 +11,11 @@ namespace mesos {
 namespace serenity {
 namespace tests {
 
-template <typename C1, typename C2>
-class MockMulitpleConsumer : public Consumer<C1>,
-                             public Consumer<C2> {
+template <typename C1>
+class MockConsumer : public Consumer<C1> {
  public:
   MOCK_METHOD0(allProductsReady, void());
   MOCK_METHOD1_T(consume, Try<Nothing>(const C1&));
-  MOCK_METHOD1_T(consume, Try<Nothing>(const C2&));
 
   template <typename T>
   const std::vector<T>&getConsumables() const {
@@ -34,4 +32,4 @@ class MockMulitpleConsumer : public Consumer<C1>,
 }  // namespace serenity
 }  // namespace mesos
 
-#endif  // SERENITY_MOCK_MULTIPLE_CONSUMER_HPP
+#endif  // SERENITY_MOCK_CONSUMER_HPP
