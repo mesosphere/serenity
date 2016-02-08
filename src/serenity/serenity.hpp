@@ -17,7 +17,7 @@ class BaseFilter {
   friend class Consumer;
   template <typename T>
   friend class Producer;
- public:
+ protected:
   /**
    * Function invoked when filter consumes all products in iteration.
    * When filter consumes more than one product, this function should
@@ -27,7 +27,6 @@ class BaseFilter {
    */
   virtual void allProductsReady() {}
 
- protected:
   BaseFilter() : consumablesPerIteration(0),
                  consumablesInCurrentIterationCount(0),
                  productionsPerIteration(0),
@@ -212,67 +211,6 @@ class Producer : virtual public BaseFilter {
   }
 
   std::vector<Consumer<T>*> consumers;
-};
-
-
-/**
- * This consumer requires that all producents will run consume on
- * this instance. (Even during error flow).
- */
-template<typename T>
-class SyncConsumer : public Consumer<T> {
- public:
-  explicit SyncConsumer(uint64_t _producentsToWaitFor) : Consumer<T>(),
-    producentsToWaitFor(_producentsToWaitFor) {
-    CHECK_ERR(_producentsToWaitFor > 0);
-  }
-
-  virtual ~SyncConsumer() {}
-
-  Try<Nothing> consume(const T& in) {
-    this->products.push_back(in);
-
-    if (consumedAllNeededProducts()) {
-      // Run virtual function which should be implemented in derived
-      // class.
-      this->syncConsume(this->products);
-
-      // Reset need to be done explicitly.
-      // this->reset();
-    }
-
-    return Nothing();
-  }
-
-  virtual Try<Nothing> syncConsume(const std::vector<T> products) = 0;
-
-  // Currently we don't ensure that for in every iteration we fill consumer,
-  // so we have to reset counter in every iteration.
-  // TODO(bplotka): That would not be needed if we continue pipeline always.
-  virtual Try<Nothing> reset() {
-    this->products.clear();
-
-    return Nothing();
-  }
-
-  // You can enforce pipeline to continue the flow even if only some
-  // of the producents produced the needed object.
-  Try<Nothing> ensure() {
-    // We do syncConsume only when it wasn't done earlier.
-    if (!consumedAllNeededProducts()) {
-      this->syncConsume(this->products);
-    }
-
-    return this->reset();
-  }
-
- protected:
-  uint64_t producentsToWaitFor;
-  std::vector<T> products;
-
-  bool consumedAllNeededProducts() {
-    return (this->products.size() == this->producentsToWaitFor);
-  }
 };
 
 

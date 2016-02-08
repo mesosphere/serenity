@@ -114,7 +114,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       ageFilter(),
       // Last item in pipeline.
       correctionMerger(
-          this, 3,  // Three producers connected. IPC, CPU, Cache observers.
+          this,
           Tag(QOS_CONTROLLER, "CorrectionMerger")),
 //      ipcContentionObserver(
 //          &correctionMerger,
@@ -189,15 +189,6 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       this->addConsumer(&rawResourcesExporter);
       ipcEMAFilter.addConsumer(&emaFilteredResourcesExporter);
     }
-  }
-
-  virtual Try<Nothing> postPipelineRun() {
-//    this->cpuContentionObserver.reset();
-//    this->ipcContentionObserver.reset();
-//    this->cacheOccupancyContentionObserver.reset();
-    // Force pipeline continuation.
-    // TODO(bplotka): That would not be needed if we always continue pipeline.
-    return this->correctionMerger.ensure();
   }
 
  private:

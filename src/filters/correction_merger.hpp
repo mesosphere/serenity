@@ -21,46 +21,42 @@ namespace serenity {
  * Merges several observer's corrections into one. Checks for duplicates.
  */
 class CorrectionMergerFilter:
-  public SyncConsumer<QoSCorrections>, public Producer<QoSCorrections> {
+  public Consumer<QoSCorrections>, public Producer<QoSCorrections> {
  public:
   explicit CorrectionMergerFilter(
     Consumer<QoSCorrections>* _consumer,
-    uint64_t _correctionProducents,
     const Tag& _tag = Tag(QOS_CONTROLLER, NAME))
-  : SyncConsumer<QoSCorrections>(_correctionProducents),
-    Producer<QoSCorrections>(_consumer), tag(_tag) {}
+    : Producer<QoSCorrections>(_consumer),
+      tag(_tag) {}
 
   ~CorrectionMergerFilter() {}
 
-  static const constexpr char* NAME = "CorrectionMerger";
-
-  virtual Try<Nothing> syncConsume(
-    const std::vector<QoSCorrections> products) {
+  virtual void allProductsReady() {
+    std::vector<QoSCorrections> qosCorrectionsVector =
+        Consumer<QoSCorrections>::getConsumables();
     QoSCorrections corrections;
 
     uint64_t receivedCententionNum = 0;
-    for (QoSCorrections product : products) {
+    for (QoSCorrections product : qosCorrectionsVector) {
       receivedCententionNum += product.size();
       for (slave::QoSCorrection correction : product) {
         if (checkForDuplicates(correction, corrections)) {
           // Filter out duplicated value.
           continue;
         }
-
         corrections.push_back(correction);
       }
     }
 
-    SERENITY_LOG(INFO) << "Received " << receivedCententionNum << " corrections"
-      << " and merged to " << corrections.size() << " corrections.";
-
+    SERENITY_LOG(INFO) << "Received " << corrections.size() << " corrections";
     produce(corrections);
-
-    return Nothing();
+    return;
   }
 
  private:
   const Tag tag;
+
+  static const constexpr char* NAME = "CorrectionMerger";
 
   // Returns True when value is duplicated in list.
   // TODO(bplotka): Move to QoSCorrections std::set in future.
@@ -87,7 +83,6 @@ class CorrectionMergerFilter:
           << "Received correction without all required data.";
       }
     }
-
     return false;
   }
 };

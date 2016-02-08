@@ -8,7 +8,7 @@
 
 #include "process/future.hpp"
 
-#include "tests/common/sinks/mock_sink.hpp"
+#include "tests/common/mocks/mock_sink.hpp"
 #include "tests/common/sources/json_source.hpp"
 
 namespace mesos {

@@ -11,7 +11,7 @@
 #include "serenity/math_utils.hpp"
 
 #include "tests/common/sources/json_source.hpp"
-#include "tests/common/sinks/mock_sink.hpp"
+#include "tests/common/mocks/mock_sink.hpp"
 
 namespace mesos {
 namespace serenity {
