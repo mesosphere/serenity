@@ -168,7 +168,7 @@ class ValveFilterEndpointProcess
     hashmap<string, string> values = decode.get();
 
     string enabled_param;
-    Option<string> pipeline_enable = request.query.get(PIPELINE_ENABLE_KEY);
+    Option<string> pipeline_enable = request.url.query.get(PIPELINE_ENABLE_KEY);
 
     if (pipeline_enable.isSome()) {
       enabled_param = pipeline_enable.get();
