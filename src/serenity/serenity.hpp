@@ -135,7 +135,7 @@ class Consumer : virtual public BaseFilter {
     BaseFilter::registerProductForConsumption();
   }
 
-  //TODO(skonefal): Rename to 'consume' after current 'consume' deprecation.
+  // TODO(skonefal): Rename to 'consume' after current 'consume' deprecation.
   void _consume(const T& in) {
     if (cleanConsumables) {
       consumables.clear();
