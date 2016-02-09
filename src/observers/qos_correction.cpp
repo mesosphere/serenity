@@ -59,7 +59,6 @@ void QoSCorrectionObserver::allProductsReady() {
   // current contentions to next QoS Controller.
   iterationCooldownCounter = this->cooldownIterations;
   produceResults(corrections.get(), Contentions());
-  return;
 }
 
 void QoSCorrectionObserver::produceResults(

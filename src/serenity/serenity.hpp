@@ -72,7 +72,7 @@ class BaseFilter {
 
     // If allProductsReady didn't produced all products - log error.
     if (notAllProductsProduced()) {
-      // TODO(skonefal): Make '<<' virutal, so we could log component name.
+      // TODO(skonefal): Make '<<' virtual, so we could log component name.
       LOG(ERROR) << "Component has produced "
                  << productionsInCurrentIterationCount << " products. "
                  <<  "It should produce " << productionsPerIteration;
@@ -89,7 +89,7 @@ class BaseFilter {
   uint32_t consumablesPerIteration;  //!< Number of expected consumables
   uint32_t consumablesInCurrentIterationCount;  //!< Consumables in Iteration
 
-  uint32_t productionsPerIteration;  //!< Nubmer of expected productions
+  uint32_t productionsPerIteration;  //!< Number of expected productions
   uint32_t productionsInCurrentIterationCount;  //!< Productions in iteration
 };
 
