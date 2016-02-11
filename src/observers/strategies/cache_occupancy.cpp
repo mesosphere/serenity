@@ -66,9 +66,11 @@ CacheOccupancyStrategy::getCmtEnabledExecutors(
 double_t CacheOccupancyStrategy::countMeanCacheOccupancy(
     const std::vector<ResourceUsage_Executor>& _executors) const {
   double_t cacheOccupacySum = 0.0;
+#ifdef CMT_ENABLED
   for (const ResourceUsage_Executor& executor : _executors) {
     cacheOccupacySum += executor.statistics().perf().llc_occupancy();
   }
+#endif
   return cacheOccupacySum / _executors.size();
 }
 
@@ -77,6 +79,7 @@ CacheOccupancyStrategy::getExecutorsAboveMinimalAndMeanOccupancy(
     const std::vector<ResourceUsage_Executor>& _executors,
     const double_t _cacheOccupancyMean) const {
   std::vector<ResourceUsage_Executor> product;
+#ifdef CMT_ENABLED
   for (const ResourceUsage_Executor& executor : _executors) {
     uint64_t cacheOccupancy = executor.statistics().perf().llc_occupancy();
     if (cacheOccupancy >= _cacheOccupancyMean &&
@@ -84,6 +87,7 @@ CacheOccupancyStrategy::getExecutorsAboveMinimalAndMeanOccupancy(
       product.push_back(executor);
     }
   }
+#endif
   return product;
 }
 
