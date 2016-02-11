@@ -32,7 +32,7 @@ TEST(SerenityFrameworkTests, SingleConsumerAllMethodsRun) {
   producer.addConsumer(&consumer);
 
   // Consumer is empty in the begining.
-  ASSERT_TRUE(consumer.getConsumable<int>().isNone());
+  ASSERT_TRUE(consumer.getConsumable().isNone());
 
   int product_42 = 42;
   int product_84 = 84;
@@ -47,8 +47,9 @@ TEST(SerenityFrameworkTests, SingleConsumerAllMethodsRun) {
   producer.produce(product_42);
 
   // Consumer is has the product in memory
-  ASSERT_TRUE(consumer.getConsumable<int>().isSome());
-  ASSERT_EQ(product_42, consumer.getConsumable<int>().get());
+  ASSERT_TRUE(consumer.getConsumable().isSome());
+
+  ASSERT_EQ(product_42, consumer.getConsumable().get());
 
   // After second consumption, client will have new value in memory
   {
@@ -59,8 +60,8 @@ TEST(SerenityFrameworkTests, SingleConsumerAllMethodsRun) {
   }
   producer.produce(product_84);
 
-  ASSERT_TRUE(consumer.getConsumable<int>().isSome());
-  ASSERT_EQ(product_84, consumer.getConsumable<int>().get());
+  ASSERT_TRUE(consumer.getConsumable().isSome());
+  ASSERT_EQ(product_84, consumer.getConsumable().get());
 }
 
 
@@ -73,7 +74,7 @@ TEST(SerenityFrameworkTests, MulitpleProducersSingleConsumer) {
   secondProducer.addConsumer(&consumer);
 
   // Consumer is empty in the begining.
-  ASSERT_TRUE(consumer.getConsumable<int>().isNone());
+  ASSERT_TRUE(consumer.getConsumable().isNone());
 
   int firstProduct = 42;
   int secondProduct = 84;
@@ -89,20 +90,20 @@ TEST(SerenityFrameworkTests, MulitpleProducersSingleConsumer) {
     EXPECT_CALL(consumer, allProductsReady()).Times(Exactly(1));
   }
   firstProducer.produce(firstProduct);
-  ASSERT_TRUE(consumer.getConsumable<int>().isSome());
-  ASSERT_EQ(firstProduct, consumer.getConsumable<int>().get());
-  ASSERT_EQ(1, consumer.getConsumables<int>().size());
-  ASSERT_EQ(firstProduct, consumer.getConsumables<int>()[0]);
+  ASSERT_TRUE(consumer.getConsumable().isSome());
+  ASSERT_EQ(firstProduct, consumer.getConsumable().get());
+  ASSERT_EQ(1, consumer.getConsumables().size());
+  ASSERT_EQ(firstProduct, consumer.getConsumables()[0]);
 
   // After second produce, Consumer is has two values in memory.
   secondProducer.produce(secondProduct);
 
-  ASSERT_TRUE(consumer.getConsumable<int>().isSome());
-  ASSERT_EQ(firstProduct, consumer.getConsumable<int>().get());
+  ASSERT_TRUE(consumer.getConsumable().isSome());
+  ASSERT_EQ(firstProduct, consumer.getConsumable().get());
 
-  ASSERT_EQ(PRODUCERS_COUNT, consumer.getConsumables<int>().size());
-  ASSERT_EQ(firstProduct, consumer.getConsumables<int>()[0]);
-  ASSERT_EQ(secondProduct, consumer.getConsumables<int>()[1]);
+  ASSERT_EQ(PRODUCERS_COUNT, consumer.getConsumables().size());
+  ASSERT_EQ(firstProduct, consumer.getConsumables()[0]);
+  ASSERT_EQ(secondProduct, consumer.getConsumables()[1]);
 
   // New iteration - consumer should have new value in memory.
   int thirdProduct = 144;
@@ -114,10 +115,10 @@ TEST(SerenityFrameworkTests, MulitpleProducersSingleConsumer) {
       .WillOnce(Return(Nothing()));
   }
   firstProducer.produce(thirdProduct);
-  ASSERT_TRUE(consumer.getConsumable<int>().isSome());
-  ASSERT_EQ(thirdProduct, consumer.getConsumable<int>().get());
-  ASSERT_EQ(1, consumer.getConsumables<int>().size());
-  ASSERT_EQ(thirdProduct, consumer.getConsumables<int>()[0]);
+  ASSERT_TRUE(consumer.getConsumable().isSome());
+  ASSERT_EQ(thirdProduct, consumer.getConsumable().get());
+  ASSERT_EQ(1, consumer.getConsumables().size());
+  ASSERT_EQ(thirdProduct, consumer.getConsumables()[0]);
 }
 
 

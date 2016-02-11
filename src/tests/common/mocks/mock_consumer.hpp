@@ -17,14 +17,12 @@ class MockConsumer : public Consumer<C1> {
   MOCK_METHOD0(allProductsReady, void());
   MOCK_METHOD1_T(consume, Try<Nothing>(const C1&));
 
-  template <typename T>
-  const std::vector<T>&getConsumables() const {
-    return Consumer<T>::getConsumables();
+  const std::vector<C1>& getConsumables() const {
+    return Consumer<C1>::getConsumables();
   }
 
-  template <typename T>
-  const Option<T> getConsumable() const {
-    return Consumer<T>::getConsumable();
+  Option<C1> getConsumable() const {
+    return Consumer<C1>::getConsumable();
   }
 };
 
