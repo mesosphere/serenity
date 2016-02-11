@@ -20,12 +20,12 @@ class MockMulitpleConsumer : public Consumer<C1>,
   MOCK_METHOD1_T(consume, Try<Nothing>(const C2&));
 
   template <typename T>
-  const std::vector<T>& getBaseConsumables() const {
+  const std::vector<T>& getConsumables() const {
     return Consumer<T>::getConsumables();
   }
 
   template <typename T>
-  Option<T> getBaseConsumable() const {
+  Option<T> getConsumable() const {
     return Consumer<T>::getConsumable();
   }
 };

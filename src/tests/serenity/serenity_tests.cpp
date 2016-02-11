@@ -32,7 +32,7 @@ TEST(SerenityFrameworkTests, SingleConsumerAllMethodsRun) {
   producer.addConsumer(&consumer);
 
   // Consumer is empty in the begining.
-  ASSERT_TRUE(consumer.getBaseConsumable().isNone());
+  ASSERT_TRUE(consumer.getConsumable().isNone());
 
   int product_42 = 42;
   int product_84 = 84;
@@ -47,9 +47,9 @@ TEST(SerenityFrameworkTests, SingleConsumerAllMethodsRun) {
   producer.produce(product_42);
 
   // Consumer is has the product in memory
-  ASSERT_TRUE(consumer.getBaseConsumable().isSome());
+  ASSERT_TRUE(consumer.getConsumable().isSome());
 
-  ASSERT_EQ(product_42, consumer.getBaseConsumable().get());
+  ASSERT_EQ(product_42, consumer.getConsumable().get());
 
   // After second consumption, client will have new value in memory
   {
@@ -60,8 +60,8 @@ TEST(SerenityFrameworkTests, SingleConsumerAllMethodsRun) {
   }
   producer.produce(product_84);
 
-  ASSERT_TRUE(consumer.getBaseConsumable().isSome());
-  ASSERT_EQ(product_84, consumer.getBaseConsumable().get());
+  ASSERT_TRUE(consumer.getConsumable().isSome());
+  ASSERT_EQ(product_84, consumer.getConsumable().get());
 }
 
 
@@ -74,7 +74,7 @@ TEST(SerenityFrameworkTests, MulitpleProducersSingleConsumer) {
   secondProducer.addConsumer(&consumer);
 
   // Consumer is empty in the begining.
-  ASSERT_TRUE(consumer.getBaseConsumable().isNone());
+  ASSERT_TRUE(consumer.getConsumable().isNone());
 
   int firstProduct = 42;
   int secondProduct = 84;
@@ -90,20 +90,20 @@ TEST(SerenityFrameworkTests, MulitpleProducersSingleConsumer) {
     EXPECT_CALL(consumer, allProductsReady()).Times(Exactly(1));
   }
   firstProducer.produce(firstProduct);
-  ASSERT_TRUE(consumer.getBaseConsumable().isSome());
-  ASSERT_EQ(firstProduct, consumer.getBaseConsumable().get());
-  ASSERT_EQ(1, consumer.getBaseConsumables().size());
-  ASSERT_EQ(firstProduct, consumer.getBaseConsumables()[0]);
+  ASSERT_TRUE(consumer.getConsumable().isSome());
+  ASSERT_EQ(firstProduct, consumer.getConsumable().get());
+  ASSERT_EQ(1, consumer.getConsumables().size());
+  ASSERT_EQ(firstProduct, consumer.getConsumables()[0]);
 
   // After second produce, Consumer is has two values in memory.
   secondProducer.produce(secondProduct);
 
-  ASSERT_TRUE(consumer.getBaseConsumable().isSome());
-  ASSERT_EQ(firstProduct, consumer.getBaseConsumable().get());
+  ASSERT_TRUE(consumer.getConsumable().isSome());
+  ASSERT_EQ(firstProduct, consumer.getConsumable().get());
 
-  ASSERT_EQ(PRODUCERS_COUNT, consumer.getBaseConsumables().size());
-  ASSERT_EQ(firstProduct, consumer.getBaseConsumables()[0]);
-  ASSERT_EQ(secondProduct, consumer.getBaseConsumables()[1]);
+  ASSERT_EQ(PRODUCERS_COUNT, consumer.getConsumables().size());
+  ASSERT_EQ(firstProduct, consumer.getConsumables()[0]);
+  ASSERT_EQ(secondProduct, consumer.getConsumables()[1]);
 
   // New iteration - consumer should have new value in memory.
   int thirdProduct = 144;
@@ -115,10 +115,10 @@ TEST(SerenityFrameworkTests, MulitpleProducersSingleConsumer) {
       .WillOnce(Return(Nothing()));
   }
   firstProducer.produce(thirdProduct);
-  ASSERT_TRUE(consumer.getBaseConsumable().isSome());
-  ASSERT_EQ(thirdProduct, consumer.getBaseConsumable().get());
-  ASSERT_EQ(1, consumer.getBaseConsumables().size());
-  ASSERT_EQ(thirdProduct, consumer.getBaseConsumables()[0]);
+  ASSERT_TRUE(consumer.getConsumable().isSome());
+  ASSERT_EQ(thirdProduct, consumer.getConsumable().get());
+  ASSERT_EQ(1, consumer.getConsumables().size());
+  ASSERT_EQ(thirdProduct, consumer.getConsumables()[0]);
 }
 
 
@@ -134,8 +134,8 @@ TEST(SerenityFrameworkTests, MultiProductTypesConsumer) {
   intProducer.addConsumer(&consumer);
 
   // Consumer is empty in the beginning.
-  ASSERT_TRUE(consumer.getBaseConsumable<int>().isNone());
-  ASSERT_TRUE(consumer.getBaseConsumable<std::string>().isNone());
+  ASSERT_TRUE(consumer.getConsumable<int>().isNone());
+  ASSERT_TRUE(consumer.getConsumable<std::string>().isNone());
 
   const int FIRST_INT_PRODUCT = 42;
   const std::string FIRST_STRING_PRODUCT = "first";
@@ -155,23 +155,23 @@ TEST(SerenityFrameworkTests, MultiProductTypesConsumer) {
 
   // First product is in memory.
   intProducer.produce(FIRST_INT_PRODUCT);
-  ASSERT_TRUE(consumer.getBaseConsumable<int>().isSome());
-  ASSERT_TRUE(consumer.getBaseConsumable<std::string>().isNone());
-  ASSERT_EQ(PRODUCT_PER_TYPE, consumer.getBaseConsumables<int>().size());
-  ASSERT_EQ(FIRST_INT_PRODUCT, consumer.getBaseConsumables<int>()[0]);
-  ASSERT_EQ(FIRST_INT_PRODUCT, consumer.getBaseConsumable<int>().get());
+  ASSERT_TRUE(consumer.getConsumable<int>().isSome());
+  ASSERT_TRUE(consumer.getConsumable<std::string>().isNone());
+  ASSERT_EQ(PRODUCT_PER_TYPE, consumer.getConsumables<int>().size());
+  ASSERT_EQ(FIRST_INT_PRODUCT, consumer.getConsumables<int>()[0]);
+  ASSERT_EQ(FIRST_INT_PRODUCT, consumer.getConsumable<int>().get());
 
   stringProducer.produce(FIRST_STRING_PRODUCT);
-  ASSERT_TRUE(consumer.getBaseConsumable<int>().isSome());
-  ASSERT_EQ(PRODUCT_PER_TYPE, consumer.getBaseConsumables<int>().size());
-  ASSERT_EQ(FIRST_INT_PRODUCT, consumer.getBaseConsumables<int>()[0]);
-  ASSERT_EQ(FIRST_INT_PRODUCT, consumer.getBaseConsumable<int>().get());
+  ASSERT_TRUE(consumer.getConsumable<int>().isSome());
+  ASSERT_EQ(PRODUCT_PER_TYPE, consumer.getConsumables<int>().size());
+  ASSERT_EQ(FIRST_INT_PRODUCT, consumer.getConsumables<int>()[0]);
+  ASSERT_EQ(FIRST_INT_PRODUCT, consumer.getConsumable<int>().get());
 
-  ASSERT_TRUE(consumer.getBaseConsumable<std::string>().isSome());
-  ASSERT_EQ(1, consumer.getBaseConsumables<std::string>().size());
-  ASSERT_EQ(FIRST_STRING_PRODUCT, consumer.getBaseConsumable<std::string>().get());
-  ASSERT_EQ(FIRST_STRING_PRODUCT, consumer.getBaseConsumables<std::string>()[0]);
-  ASSERT_EQ(FIRST_STRING_PRODUCT, consumer.getBaseConsumable<std::string>().get());
+  ASSERT_TRUE(consumer.getConsumable<std::string>().isSome());
+  ASSERT_EQ(1, consumer.getConsumables<std::string>().size());
+  ASSERT_EQ(FIRST_STRING_PRODUCT, consumer.getConsumable<std::string>().get());
+  ASSERT_EQ(FIRST_STRING_PRODUCT, consumer.getConsumables<std::string>()[0]);
+  ASSERT_EQ(FIRST_STRING_PRODUCT, consumer.getConsumable<std::string>().get());
 
   // Second interation
   {
@@ -186,30 +186,30 @@ TEST(SerenityFrameworkTests, MultiProductTypesConsumer) {
   }
 
   intProducer.produce(SECOND_INT_PRODUCT);
-  ASSERT_TRUE(consumer.getBaseConsumable<int>().isSome());
-  ASSERT_EQ(PRODUCT_PER_TYPE, consumer.getBaseConsumables<int>().size());
-  ASSERT_EQ(SECOND_INT_PRODUCT, consumer.getBaseConsumables<int>()[0]);
-  ASSERT_EQ(SECOND_INT_PRODUCT, consumer.getBaseConsumable<int>().get());
+  ASSERT_TRUE(consumer.getConsumable<int>().isSome());
+  ASSERT_EQ(PRODUCT_PER_TYPE, consumer.getConsumables<int>().size());
+  ASSERT_EQ(SECOND_INT_PRODUCT, consumer.getConsumables<int>()[0]);
+  ASSERT_EQ(SECOND_INT_PRODUCT, consumer.getConsumable<int>().get());
 
   // String consumer should still have previous value in memory
-  ASSERT_TRUE(consumer.getBaseConsumable<std::string>().isSome());
-  ASSERT_EQ(PRODUCT_PER_TYPE, consumer.getBaseConsumables<std::string>().size());
-  ASSERT_EQ(FIRST_STRING_PRODUCT, consumer.getBaseConsumable<std::string>().get());
-  ASSERT_EQ(FIRST_STRING_PRODUCT, consumer.getBaseConsumables<std::string>()[0]);
-  ASSERT_EQ(FIRST_STRING_PRODUCT, consumer.getBaseConsumable<std::string>().get());
+  ASSERT_TRUE(consumer.getConsumable<std::string>().isSome());
+  ASSERT_EQ(PRODUCT_PER_TYPE, consumer.getConsumables<std::string>().size());
+  ASSERT_EQ(FIRST_STRING_PRODUCT, consumer.getConsumable<std::string>().get());
+  ASSERT_EQ(FIRST_STRING_PRODUCT, consumer.getConsumables<std::string>()[0]);
+  ASSERT_EQ(FIRST_STRING_PRODUCT, consumer.getConsumable<std::string>().get());
 
   // Production of second product
   stringProducer.produce(SECOND_STRING_PRODUCT);
-  ASSERT_TRUE(consumer.getBaseConsumable<int>().isSome());
-  ASSERT_TRUE(consumer.getBaseConsumable<std::string>().isSome());
-  ASSERT_EQ(1, consumer.getBaseConsumables<int>().size());
-  ASSERT_EQ(SECOND_INT_PRODUCT, consumer.getBaseConsumables<int>()[0]);
-  ASSERT_EQ(SECOND_INT_PRODUCT, consumer.getBaseConsumable<int>().get());
+  ASSERT_TRUE(consumer.getConsumable<int>().isSome());
+  ASSERT_TRUE(consumer.getConsumable<std::string>().isSome());
+  ASSERT_EQ(1, consumer.getConsumables<int>().size());
+  ASSERT_EQ(SECOND_INT_PRODUCT, consumer.getConsumables<int>()[0]);
+  ASSERT_EQ(SECOND_INT_PRODUCT, consumer.getConsumable<int>().get());
 
-  ASSERT_EQ(1, consumer.getBaseConsumables<std::string>().size());
-  ASSERT_EQ(SECOND_STRING_PRODUCT, consumer.getBaseConsumable<std::string>().get());
-  ASSERT_EQ(SECOND_STRING_PRODUCT, consumer.getBaseConsumables<std::string>()[0]);
-  ASSERT_EQ(SECOND_STRING_PRODUCT, consumer.getBaseConsumable<std::string>().get());
+  ASSERT_EQ(1, consumer.getConsumables<std::string>().size());
+  ASSERT_EQ(SECOND_STRING_PRODUCT, consumer.getConsumable<std::string>().get());
+  ASSERT_EQ(SECOND_STRING_PRODUCT, consumer.getConsumables<std::string>()[0]);
+  ASSERT_EQ(SECOND_STRING_PRODUCT, consumer.getConsumable<std::string>().get());
 }
 
 }  // namespace tests
