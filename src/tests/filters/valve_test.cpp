@@ -11,7 +11,7 @@
 #include "process/http.hpp"
 #include "process/pid.hpp"
 
-#include "tests/common/sinks/mock_sink.hpp"
+#include "tests/common/mocks/mock_sink.hpp"
 #include "tests/common/sources/mock_source.hpp"
 
 namespace mesos {

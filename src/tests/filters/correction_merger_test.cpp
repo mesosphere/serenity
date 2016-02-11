@@ -4,7 +4,8 @@
 
 #include "messages/serenity.hpp"
 
-#include "tests/common/sinks/mock_sink.hpp"
+#include "tests/common/mocks/mock_sink.hpp"
+#include "tests/common/mocks/mock_filter.hpp"
 
 namespace mesos {
 namespace serenity {
@@ -15,8 +16,10 @@ namespace tests {
  */
 TEST(CorrectonMergerTest, MergingCorrections) {
   MockSink<QoSCorrections> mockSink;
-  CorrectionMergerFilter correctionMerger(&mockSink, 1);
+  MockFilter<QoSCorrections, QoSCorrections> producer;
+  CorrectionMergerFilter correctionMerger(&mockSink);
 
+  producer.addConsumer(&correctionMerger);
   QoSCorrections corrections;
 
   // First correction.
@@ -40,10 +43,9 @@ TEST(CorrectonMergerTest, MergingCorrections) {
   executorInfo.mutable_executor_id()->set_value("Executor1");
   corrections.push_back(createKillQoSCorrection(createKill(executorInfo)));
 
-  EXPECT_FALSE(correctionMerger.consume(corrections).isError());
+  producer.produce(corrections);
 
   EXPECT_EQ(1, mockSink.numberOfMessagesConsumed);
-
   EXPECT_EQ(3, mockSink.currentConsumedT.size());
 }
 

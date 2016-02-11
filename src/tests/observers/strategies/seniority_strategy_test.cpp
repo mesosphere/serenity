@@ -16,7 +16,7 @@
 #include "serenity/resource_helper.hpp"
 
 #include "tests/common/usage_helper.hpp"
-#include "tests/common/sinks/mock_sink.hpp"
+#include "tests/common/mocks/mock_sink.hpp"
 #include "tests/common/sources/mock_source.hpp"
 
 namespace mesos {
@@ -50,7 +50,7 @@ TEST(QoSCorrectionObserverSeniorityDeciderTest, EmptyContentions) {
   ExecutorAgeFilter age;
 
   QoSCorrectionObserver observer(
-  &mockSink, 2, &age, new SeniorityStrategy(SerenityConfig()));
+  &mockSink, &age, new SeniorityStrategy(SerenityConfig()));
 
   age.addConsumer(&observer);
 
@@ -104,7 +104,7 @@ TEST(QoSCorrectionObserverSeniorityDeciderTest, OneContentionSmallSeverity) {
   ExecutorAgeFilter age;
 
   QoSCorrectionObserver observer(
-  &mockSink, 2, &age, new SeniorityStrategy(SerenityConfig()));
+  &mockSink, &age, new SeniorityStrategy(SerenityConfig()));
 
   age.addConsumer(&observer);
 

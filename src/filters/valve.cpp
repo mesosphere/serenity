@@ -116,7 +116,8 @@ class ValveFilterEndpointProcess
 
   void setOpen(bool open) {
     // NOTE: In future we may want to trigger some actions here.
-    SERENITY_LOG(INFO) << (open?"Enabling":"Disabling") << " " << tag.AIM();
+    std::string action = open ? "Enabling" : "Disabling";
+    SERENITY_LOG(INFO) << action << "  pipeline";
 
     if (open) {
       ++openedCounter;

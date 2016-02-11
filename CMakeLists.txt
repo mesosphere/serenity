@@ -159,6 +159,7 @@ set(SERENITY_TEST_SOURCES
     src/tests/serenity/config_test.cpp
     src/tests/serenity/os_utils_tests.cpp
     src/tests/serenity/resource_helper_test.cpp
+    src/tests/serenity/serenity_tests.cpp
     src/tests/sources/json_source_test.cpp
 )
 

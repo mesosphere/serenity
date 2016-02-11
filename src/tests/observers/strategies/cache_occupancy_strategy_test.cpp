@@ -5,13 +5,7 @@
 
 #include "observers/slack_resource.hpp"
 
-#include "stout/try.hpp"
-#include "stout/nothing.hpp"
-
 #include "serenity/math_utils.hpp"
-
-#include "tests/common/sources/json_source.hpp"
-#include "tests/common/sinks/mock_sink.hpp"
 
 namespace mesos {
 namespace serenity {

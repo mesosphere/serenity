@@ -32,16 +32,11 @@ class Pipeline : public Producer<Product>, public Consumer<Consumable> {
     this->result = None();
 
     // Start pipeline.
+    // TODO(skonefal): Pipeline should not "return" with error.
     Try<Nothing> ret = this->produce(_product);
-
-    Try<Nothing> retPostRun = this->postPipelineRun();
 
     if (ret.isError()) {
       return Error(ret.error());
-    }
-
-    if (retPostRun.isError()) {
-      return Error(retPostRun.error());
     }
 
     return this->result;
@@ -51,16 +46,6 @@ class Pipeline : public Producer<Product>, public Consumer<Consumable> {
     // Save consumed product at the end of pipeline as a result.
     this->result = in;
 
-    return Nothing();
-  }
-
-  //! Place for additional logic after pipeline run.
-  // Usually we need to ensure that in case of error or empty result we reset
-  // sync consumers to be ready for next iteration. Some of them are crucial
-  // and need to forced to continue the pipeline.
-  // Override if you have sync consumers in you pipeline.
-  // TODO(bplotka): That would not be needed if we continue pipeline always.
-  virtual Try<Nothing> postPipelineRun() {
     return Nothing();
   }
 

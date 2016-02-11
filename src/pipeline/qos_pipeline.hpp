@@ -114,16 +114,16 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       ageFilter(),
       // Last item in pipeline.
       correctionMerger(
-          this, 3,  // Three producers connected. IPC, CPU, Cache observers.
+          this,
           Tag(QOS_CONTROLLER, "CorrectionMerger")),
 //      ipcContentionObserver(
-//          &correctionMerger, 1,
+//          &correctionMerger,
 //          &ageFilter,
 //          new SeniorityStrategy(conf[SeniorityStrategy::NAME]),
 //          strategy::DEFAULT_CONTENTION_COOLDOWN,
 //          Tag(QOS_CONTROLLER, SeniorityStrategy::NAME)),
       cacheOccupancyContentionObserver(
-          &correctionMerger, 1,
+          &correctionMerger,
           &ageFilter,
           new CacheOccupancyStrategy(),
           strategy::DEFAULT_CONTENTION_COOLDOWN,
@@ -145,7 +145,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
           conf[TooLowUsageFilter::NAME],
           Tag(QOS_CONTROLLER, "tooLowCPUUsageFilter")),
       cpuContentionObserver(
-          &correctionMerger, 1,
+          &correctionMerger,
           &ageFilter,
           new CpuContentionStrategy(
             conf[CpuContentionStrategy::NAME],
@@ -191,36 +191,31 @@ class CpuQoSPipeline : public QoSControllerPipeline {
     }
   }
 
-  virtual Try<Nothing> postPipelineRun() {
-    this->cpuContentionObserver.reset();
-//    this->ipcContentionObserver.reset();
-    this->cacheOccupancyContentionObserver.reset();
-    // Force pipeline continuation.
-    // TODO(bplotka): That would not be needed if we always continue pipeline.
-    return this->correctionMerger.ensure();
-  }
-
  private:
   SerenityConfig conf;
-  // --- Filters ---
-  ExecutorAgeFilter ageFilter;
-  CumulativeFilter cumulativeFilter;
-  EMAFilter cpuEMAFilter;
-  EMAFilter ipcEMAFilter;
-  SignalBasedDetector ipcDropDetector;
-  TooHighCpuUsageDetector cpuUtilizationDetector;
-  TooLowUsageFilter tooLowUsageFilter;
-  ValveFilter valveFilter;
-  CorrectionMergerFilter correctionMerger;
-
-  // --- Observers ---
-  QoSCorrectionObserver cpuContentionObserver;
-  QoSCorrectionObserver cacheOccupancyContentionObserver;
-//  QoSCorrectionObserver ipcContentionObserver;
 
   // --- Time Series Exporters ---
   ResourceUsageTimeSeriesExporter rawResourcesExporter;
   ResourceUsageTimeSeriesExporter emaFilteredResourcesExporter;
+
+  // --- Shared resource contention QoS
+  CorrectionMergerFilter correctionMerger;
+  // QoSCorrectionObserver ipcContentionObserver;
+  QoSCorrectionObserver cacheOccupancyContentionObserver;
+
+  SignalBasedDetector ipcDropDetector;
+  EMAFilter ipcEMAFilter;
+  TooLowUsageFilter tooLowUsageFilter;
+
+  // --- Node overload QoS
+  QoSCorrectionObserver cpuContentionObserver;
+  TooHighCpuUsageDetector cpuUtilizationDetector;
+  EMAFilter cpuEMAFilter;
+
+  CumulativeFilter cumulativeFilter;
+  ExecutorAgeFilter ageFilter;
+
+  ValveFilter valveFilter;
 };
 
 }  // namespace serenity

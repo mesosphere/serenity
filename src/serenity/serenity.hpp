@@ -12,121 +12,205 @@
 namespace mesos {
 namespace serenity {
 
+class BaseFilter {
+  template <typename T>
+  friend class Consumer;
+  template <typename T>
+  friend class Producer;
+ protected:
+  /**
+   * Function invoked when filter consumes all products in iteration.
+   * When filter consumes more than one product, this function should
+   * be overriden.
+   *
+   * TODO(skonefal): After consume deprecation, this should be abstract.
+   */
+  virtual void allProductsReady() {}
 
-/**
- * The bus socket allows peers to communicate (subscribe and publish)
- *  asynchronously.
- */
-class BusSocket {};
+  BaseFilter() : consumablesPerIteration(0),
+                 consumablesInCurrentIterationCount(0),
+                 productionsPerIteration(0),
+                 productionsInCurrentIterationCount(0) {}
+
+  virtual ~BaseFilter() {}
+
+ private:
+  void registerProductForConsumption() {
+    consumablesPerIteration += 1;
+  }
+
+  void registerProducer() {
+    productionsPerIteration += 1;
+  }
+
+  void newProductConsumed() {
+    consumablesInCurrentIterationCount += 1;
+    if (isAllProductsConsumed()) {
+      allProductsConsumed();
+    }
+  }
+
+  void productProduced() {
+    productionsInCurrentIterationCount += 1;
+  }
+
+  bool isAllProductsConsumed() {
+    return consumablesInCurrentIterationCount == consumablesPerIteration;
+  }
+
+  bool isAllProductsProduced() {
+    return productionsInCurrentIterationCount == productionsPerIteration;
+  }
+
+  bool notAllProductsProduced() {
+    return !isAllProductsProduced();
+  }
+
+  void allProductsConsumed() {
+    // Invoke virtual allProductsReady in derived class.
+    allProductsReady();
+
+    // If allProductsReady didn't produced all products - log error.
+    if (notAllProductsProduced()) {
+      // TODO(skonefal): Make '<<' virtual, so we could log component name.
+      LOG(ERROR) << "Component has produced "
+                 << productionsInCurrentIterationCount << " products. "
+                 <<  "It should produce " << productionsPerIteration;
+    }
+
+    cleanAfterIteration();
+  }
+
+  void cleanAfterIteration() {
+    consumablesInCurrentIterationCount = 0;
+    productionsInCurrentIterationCount = 0;
+  }
+
+  uint32_t consumablesPerIteration;  //!< Number of expected consumables
+  uint32_t consumablesInCurrentIterationCount;  //!< Consumables in Iteration
+
+  uint32_t productionsPerIteration;  //!< Number of expected productions
+  uint32_t productionsInCurrentIterationCount;  //!< Productions in iteration
+};
 
 
 template<typename T>
-class Consumer : public BusSocket {
- public:
+class Consumer : virtual public BaseFilter {
+  template <typename F>
+  friend class Producer;
+ protected:
+  Consumer() : BaseFilter(),
+               productsPerIteration(0),
+               cleanConsumables(false) {}
+
   virtual ~Consumer() {}
 
-  virtual Try<Nothing> consume(const T& in) = 0;
-};
-
-
-/**
- * This consumer requires that all producents will run consume on
- * this instance. (Even during error flow).
- */
-template<typename T>
-class SyncConsumer : public Consumer<T> {
- public:
-  explicit SyncConsumer(uint64_t _producentsToWaitFor)
-    : producentsToWaitFor(_producentsToWaitFor) {
-    CHECK_ERR(_producentsToWaitFor > 0);
-  }
-
-  virtual ~SyncConsumer() {}
-
-  Try<Nothing> consume(const T& in) {
-    this->products.push_back(in);
-
-    if (consumedAllNeededProducts()) {
-      // Run virtual function which should be implemented in derived
-      // class.
-      this->syncConsume(this->products);
-
-      // Reset need to be done explicitly.
-      // this->reset();
-    }
-
+  // TODO(skonefal): consume method should be deprecated
+  // and allProductsReady should be only exposed to users.
+  virtual Try<Nothing> consume(const T& in) {
     return Nothing();
   }
 
-  virtual Try<Nothing> syncConsume(const std::vector<T> products) = 0;
-
-  // Currently we don't ensure that for in every iteration we fill consumer,
-  // so we have to reset counter in every iteration.
-  // TODO(bplotka): That would not be needed if we continue pipeline always.
-  virtual Try<Nothing> reset() {
-    this->products.clear();
-
-    return Nothing();
+  /**
+   * Returns vector of products that came to Consumer.
+   * TODO(skonefal): Should we only return iterator to consumables?
+   */
+  const std::vector<T>& getConsumables() const {
+    return consumables;
   }
 
-  // You can enforce pipeline to continue the flow even if only some
-  // of the producents produced the needed object.
-  Try<Nothing> ensure() {
-    // We do syncConsume only when it wasn't done earlier.
-    if (!consumedAllNeededProducts()) {
-      this->syncConsume(this->products);
+  /**
+   * Returns first product that came to consumer, or None if not available.
+   */
+  const Option<T> getConsumable() const {
+    if (consumables.size() > 0) {
+      return consumables[0];
+    } else {
+      return None();
+    }
+  }
+
+ private:
+  void registerProductForConsumption() {
+    productsPerIteration += 1;
+    BaseFilter::registerProductForConsumption();
+  }
+
+  // TODO(skonefal): Rename to 'consume' after current 'consume' deprecation.
+  void _consume(const T& in) {
+    if (cleanConsumables) {
+      consumables.clear();
     }
 
-    return this->reset();
+    consumables.push_back(in);
+    // Let derived class consume the product.
+    // TODO(skonefal): We should deprecate consume method.
+    consume(in);
+
+    // Consumer has it's own track of consumed products.
+    if (isAllProductsConsumed()) {
+      cleanConsumables = true;
+    }
+
+    // Inform base filter that new product is consumed.
+    newProductConsumed();
   }
 
- protected:
-  uint64_t producentsToWaitFor;
-  std::vector<T> products;
-
-  bool consumedAllNeededProducts() {
-    return (this->products.size() == this->producentsToWaitFor);
+  void addProductToConsumables(const T &in) {
+    if (cleanConsumables) {
+      consumables.clear();
+    }
   }
+
+  bool isAllProductsConsumed() {
+    return consumables.size() == productsPerIteration;
+  }
+
+  uint32_t productsPerIteration;  //!< Number of products we expect.
+  bool cleanConsumables;
+
+  std::vector<T> consumables;
 };
 
+
 template<typename T>
-class Producer : public BusSocket {
+class Producer : virtual public BaseFilter {
  public:
-  Producer() {}
-
-  explicit Producer(Consumer<T>* consumer) {
-    addConsumer(consumer);
-  }
-
-  explicit Producer(std::vector<Consumer<T>*> consumers_)
-    : consumers(consumers_) {}
-
-  virtual ~Producer() {}
-
-  Try<Nothing> addConsumer(Consumer<T>* consumer) {
+  void addConsumer(Consumer<T>* consumer) {
     if (consumer != nullptr) {
       consumers.push_back(consumer);
+      consumer->registerProductForConsumption();
     } else {
       LOG(ERROR) << "Consumer must not be null.";
     }
-    return Nothing();
   }
 
  protected:
-  std::vector<Consumer<T>*> consumers;
+  Producer() {
+    intialize();
+  }
+
+  explicit Producer(Consumer<T>* consumer) {
+    intialize();
+    addConsumer(consumer);
+  }
+
+  virtual ~Producer() {}
 
   Try<Nothing> produce(T out) {
-    for (auto c : consumers) {
-      Try<Nothing> ret = c->consume(out);
-
-      // Stop the pipeline in case of error.
-      if (ret.isError()) {
-        LOG(ERROR) << ret.error() << " Stopping pipeline.";
-        return ret;
-      }
+    for (auto consumer : consumers) {
+      consumer->_consume(out);
     }
+    BaseFilter::productProduced();
     return Nothing();
   }
+
+ private:
+  void intialize() {
+    BaseFilter::registerProducer();
+  }
+
+  std::vector<Consumer<T>*> consumers;
 };
 
 
@@ -136,58 +220,50 @@ enum ModuleType {
   UNDEFINED,
 };
 
-
 #define SERENITY_LOG(severity) LOG(severity) << tag.NAME()
 
+// TODO(skonefal): Tag class should overload operator <<
 class Tag {
  public:
   Tag(const ModuleType& _type, const std::string& _name)
-      : type(_type), name(_name) {
-    this->fullName = this->init();
+      : type(_type) {
+    this->name = getPrefix() + ": ";
   }
 
   explicit Tag(const std::string& _name)
-    : type(UNDEFINED), name(_name) {
-    this->fullName = this->init();
-  }
-
-  const std::string init() {
-    switch (this->type) {
-      case RESOURCE_ESTIMATOR:
-        this->prefix = "[SerenityEstimator] ";
-        this->aim = "Slack estimation";
-        break;
-      case QOS_CONTROLLER:
-        this->prefix = "[SerenityQoS] ";
-        this->aim = "QoS assurance";
-        break;
-      default:
-        this->prefix = "[Serenity] ";
-        this->aim = "";
-        break;
-    }
-
-    return this->prefix + this->name + ": ";
+    : type(UNDEFINED) {
+    std::string prefix = getPrefix();
+    this->name = prefix + _name + ": ";
   }
 
   const inline std::string NAME() const {
-    return fullName;
+    return name;
   }
 
   const inline ModuleType TYPE() const {
     return type;
   }
 
-  const inline std::string AIM() const {
-    return aim;
+ private:
+  const std::string getPrefix() {
+    std::string prefix;
+    switch (this->type) {
+      case RESOURCE_ESTIMATOR:
+        prefix = "[SerenityEstimator] ";;
+        break;
+      case QOS_CONTROLLER:
+        prefix = "[SerenityQoS] ";
+        break;
+      default:
+        prefix = "[Serenity] ";
+        break;
+    }
+
+    return prefix;
   }
 
- protected:
-  const std::string name;
   const ModuleType type;
-  std::string fullName;
-  std::string prefix;
-  std::string aim;
+  std::string name;
 };
 
 }  // namespace serenity

@@ -42,32 +42,25 @@ namespace serenity {
  * passes Contentions to next QoSCorrectionObserver in pipeline (and,
  * produces empty Corrections).
  */
-class QoSCorrectionObserver : public SyncConsumer<Contentions>,
+class QoSCorrectionObserver : public Consumer<Contentions>,
                               public Consumer<ResourceUsage>,
                               public Producer<QoSCorrections>,
                               public Producer<Contentions> {
  public:
   explicit QoSCorrectionObserver(
       Consumer<QoSCorrections>* _consumer,
-      uint64_t _contentionProducents,
       ExecutorAgeFilter* _ageFilter = new ExecutorAgeFilter(),
       RevocationStrategy* _revStrategy =
           new SeniorityStrategy(SerenityConfig()),
       uint32_t _cooldownIterations = strategy::DEFAULT_CONTENTION_COOLDOWN,
-      const Tag& _tag = Tag(QOS_CONTROLLER, NAME))
-    : SyncConsumer<Contentions>(_contentionProducents),
-      Producer<QoSCorrections>(_consumer),
-      contentions(None()),
-      usage(None()),
-      revocationStrategy(_revStrategy),
-      executorAgeFilter(_ageFilter),
-      cooldownIterations(_cooldownIterations),
-      tag(_tag) {}
+      const Tag& _tag = Tag(QOS_CONTROLLER, NAME)) :
+        Producer<QoSCorrections>(_consumer),
+        revocationStrategy(_revStrategy),
+        executorAgeFilter(_ageFilter),
+        cooldownIterations(_cooldownIterations),
+        tag(_tag) {}
 
   ~QoSCorrectionObserver();
-
-  Try<Nothing> syncConsume(const std::vector<Contentions> products) override;
-  Try<Nothing> consume(const ResourceUsage& usage) override;
 
   template <typename T>
   Try<Nothing> addConsumer(T* consumer) {
@@ -77,7 +70,7 @@ class QoSCorrectionObserver : public SyncConsumer<Contentions>,
   static constexpr const char* NAME = "QoSCorrectionObserver";
 
  protected:
-  Try<Nothing> doQosDecision();
+  void allProductsReady() override;
 
   void emptyContentionsReceived();
 
@@ -85,20 +78,14 @@ class QoSCorrectionObserver : public SyncConsumer<Contentions>,
 
   void cooldownPhase();
 
-  bool isAllDataForCorrectionGathered();
-
-  void produceResultsAndClearConsumedData(
-                        QoSCorrections _corrections = QoSCorrections(),
-                        Contentions _contentions = Contentions());
+  void produceResults(QoSCorrections _corrections = QoSCorrections(),
+                      Contentions _contentions = Contentions());
 
   RevocationStrategy* revocationStrategy;
 
   ExecutorAgeFilter* executorAgeFilter;
 
   const Tag tag;
-
-  Option<Contentions> contentions;  //!< Contention resources from other filters
-  Option<ResourceUsage> usage;  //!< Resource usage from other filters
 
   template <typename T>
   Try<Nothing> produce(T product) {
