@@ -1,5 +1,5 @@
-#ifndef SERENITY_TOO_HIGH_CPU_USAGE_DETECTOR_HPP
-#define SERENITY_TOO_HIGH_CPU_USAGE_DETECTOR_HPP
+#ifndef SERENITY_OVERLOAD_DETECTOR_HPP
+#define SERENITY_OVERLOAD_DETECTOR_HPP
 
 #include <list>
 #include <string>
@@ -20,11 +20,11 @@
 namespace mesos {
 namespace serenity {
 
-class TooHighCpuUsageDetectorConfig : public SerenityConfig {
+class OverloadDetectorConfig : public SerenityConfig {
  public:
-  TooHighCpuUsageDetectorConfig() { }
+  OverloadDetectorConfig() { }
 
-  explicit TooHighCpuUsageDetectorConfig(const SerenityConfig& customCfg) {
+  explicit OverloadDetectorConfig(const SerenityConfig& customCfg) {
     this->initDefaults();
     this->applyConfig(customCfg);
   }
@@ -38,14 +38,14 @@ class TooHighCpuUsageDetectorConfig : public SerenityConfig {
 };
 
 /**
- * TooHighCpuUsageDetector is able to create contention if utilization is above
+ * OverloadDetector is able to create contention if utilization is above
  * given thresholds.
  */
-class TooHighCpuUsageDetector :
+class OverloadDetector :
     public Consumer<ResourceUsage>,
     public Producer<Contentions> {
  public:
-  TooHighCpuUsageDetector(
+  OverloadDetector(
       Consumer<Contentions>* _consumer,
       const lambda::function<usage::GetterFunction>& _cpuUsageGetFunction,
       SerenityConfig _conf,
@@ -62,7 +62,7 @@ class TooHighCpuUsageDetector :
 
   Try<Nothing> consume(const ResourceUsage& in) override;
 
-  static const constexpr char* NAME = "TooHighCpuUsageDetector";
+  static const constexpr char* NAME = "OverloadDetector";
 
  protected:
   const Tag tag;

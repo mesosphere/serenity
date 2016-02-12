@@ -1,7 +1,7 @@
 #include <list>
 #include <string>
 
-#include "contention_detectors/too_high_cpu.hpp"
+#include "overload.hpp"
 
 #include "filters/cumulative.hpp"
 #include "filters/ema.hpp"

@@ -109,9 +109,9 @@ include_directories(
 
 set(SERENITY_SOURCES
     src/bus/event_bus.cpp
+    src/contention_detectors/overload.cpp
     src/contention_detectors/signal_based.cpp
     src/contention_detectors/signal_analyzers/drop.cpp
-    src/contention_detectors/too_high_cpu.cpp
     src/filters/cumulative.cpp
     src/filters/ema.cpp
     src/filters/executor_age.cpp

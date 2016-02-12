@@ -2,7 +2,7 @@
 #define SERENITY_QOS_PIPELINE_HPP
 
 #include "contention_detectors/signal_based.hpp"
-#include "contention_detectors/too_high_cpu.hpp"
+#include "contention_detectors/overload.hpp"
 #include "contention_detectors/signal_analyzers/drop.hpp"
 
 #include "filters/correction_merger.hpp"
@@ -152,13 +152,13 @@ class CpuQoSPipeline : public QoSControllerPipeline {
             usage::getEmaCpuUsage),
           strategy::DEFAULT_CONTENTION_COOLDOWN,
           Tag(QOS_CONTROLLER, CpuContentionStrategy::NAME)),
-      cpuUtilizationDetector(
+      overloadDetector(
           &cpuContentionObserver,
           usage::getEmaCpuUsage,
-          conf[TooHighCpuUsageDetector::NAME],
+          conf[OverloadDetector::NAME],
           Tag(QOS_CONTROLLER, "CPU High Usage utilization detector")),
       cpuEMAFilter(
-          &cpuUtilizationDetector,
+          &overloadDetector,
           usage::getCpuUsage,
           usage::setEmaCpuUsage,
           conf.getD(ema::ALPHA_CPU),
@@ -209,7 +209,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
 
   // --- Node overload QoS
   QoSCorrectionObserver cpuContentionObserver;
-  TooHighCpuUsageDetector cpuUtilizationDetector;
+  OverloadDetector overloadDetector;
   EMAFilter cpuEMAFilter;
 
   CumulativeFilter cumulativeFilter;
