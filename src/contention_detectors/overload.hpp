@@ -53,12 +53,12 @@ class OverloadDetector :
     : tag(_tag),
       cpuUsageGetFunction(_cpuUsageGetFunction),
       Producer<Contentions>(_consumer) {
-    SerenityConfig config = TooHighCpuUsageDetectorConfig(_conf);
+    SerenityConfig config = OverloadDetectorConfig(_conf);
     this->cfgUtilizationThreshold =
       config.getD(detector::THRESHOLD);
   }
 
-  ~TooHighCpuUsageDetector() {}
+  ~OverloadDetector() {}
 
   Try<Nothing> consume(const ResourceUsage& in) override;
 

@@ -142,7 +142,7 @@ set(SERENITY_TEST_SOURCES
     src/tests/bus/event_bus_tests.cpp
     src/tests/common/sources/json_source.cpp
     src/tests/contention_detectors/signal_analyzers/drop_test.cpp
-    src/tests/contention_detectors/too_high_cpu_usage_test.cpp
+    src/tests/contention_detectors/overload_test.cpp
     src/tests/filters/correction_merger_test.cpp
     src/tests/filters/ema_test.cpp
     src/tests/filters/ignore_new_executors_test.cpp

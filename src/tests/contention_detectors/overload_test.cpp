@@ -1,7 +1,7 @@
 #include <list>
 #include <string>
 
-#include "overload.hpp"
+#include "contention_detectors/overload.hpp"
 
 #include "filters/cumulative.hpp"
 #include "filters/ema.hpp"
@@ -37,10 +37,10 @@ using std::string;
 
 /**
  * In this test we generate stable cpu utilization and
- * test the TooHighCpuUsageDetector.
+ * test the OverloadDetector.
  * We don't expect any contention.
  */
-TEST(TooHighCpuUtilizationTest, LowUtilization) {
+TEST(OverloadDetectorTest, LowUtilization) {
   const double_t UTIL_THRESHOLD = 0.72;
   const uint64_t ITERATIONS = 50;
   // End of pipeline.
@@ -48,13 +48,13 @@ TEST(TooHighCpuUtilizationTest, LowUtilization) {
   EXPECT_CALL(mockSink, consume(_))
     .Times(ITERATIONS);
 
-  TooHighCpuUsageDetector tooHighCpuUsageDetector(
+  OverloadDetector overloadDetector(
     &mockSink, usage::getCpuUsage,
     createThresholdDetectorCfg(
       UTIL_THRESHOLD));
 
   // Fake slave ResourceUsage source.
-  MockSource<ResourceUsage> usageSource(&tooHighCpuUsageDetector);
+  MockSource<ResourceUsage> usageSource(&overloadDetector);
 
   Try<mesos::FixtureResourceUsage> usages =
     JsonUsage::ReadJson("tests/fixtures/be_start_json_test.json");
@@ -88,10 +88,10 @@ TEST(TooHighCpuUtilizationTest, LowUtilization) {
 /**
  * In this test we generate stable cpu utilization and increase it after 20
  * iteration.
- * We expect that TooHighCpuUsageDetector will trigger revoke all contention
+ * We expect that OverloadDetector will trigger revoke all contention
  * after these 20 iterations.
  */
-TEST(TooHighCpuUtilizationTest, HighUtilization) {
+TEST(OverloadDetectorTest, HighUtilization) {
   const double_t UTIL_THRESHOLD = 0.72;
   const uint64_t ITERATIONS = 50;
   // End of pipeline.
@@ -99,13 +99,13 @@ TEST(TooHighCpuUtilizationTest, HighUtilization) {
   EXPECT_CALL(mockSink, consume(_))
     .Times(ITERATIONS);
 
-  TooHighCpuUsageDetector tooHighCpuUsageDetector(
+  OverloadDetector overloadDetector(
     &mockSink, usage::getCpuUsage,
     createThresholdDetectorCfg(
       UTIL_THRESHOLD));
 
   // Fake slave ResourceUsage source.
-  MockSource<ResourceUsage> usageSource(&tooHighCpuUsageDetector);
+  MockSource<ResourceUsage> usageSource(&overloadDetector);
 
   Try<mesos::FixtureResourceUsage> usages =
     JsonUsage::ReadJson("tests/fixtures/be_start_json_test.json");
@@ -144,10 +144,10 @@ TEST(TooHighCpuUtilizationTest, HighUtilization) {
 /**
  * In this test we generate stable cpu utilization and increase it after 20
  * iteration. We use all stack with EMA & Cumulative filters.
- * We expect that TooHighCpuUsageDetector will trigger revoke all contention
+ * We expect that OverloadDetector will trigger revoke all contention
  * after these 20 iterations.
  */
-TEST(TooHighCpuUtilizationTest, IntegrationTest) {
+TEST(OverloadDetectorTest, IntegrationTest) {
   const double_t UTIL_THRESHOLD = 0.72;
   const uint64_t ITERATIONS = 50;
   // End of pipeline.
@@ -155,13 +155,13 @@ TEST(TooHighCpuUtilizationTest, IntegrationTest) {
   EXPECT_CALL(mockSink, consume(_))
     .Times(ITERATIONS-1);
 
-  TooHighCpuUsageDetector tooHighCpuUsageDetector(
+  OverloadDetector overloadDetector(
     &mockSink, usage::getEmaCpuUsage,
     createThresholdDetectorCfg(
       UTIL_THRESHOLD));
 
 
-  EMAFilter cpuEMAFilter(&tooHighCpuUsageDetector,
+  EMAFilter cpuEMAFilter(&overloadDetector,
                          usage::getCpuUsage,
                          usage::setEmaCpuUsage,
                          0.9);
