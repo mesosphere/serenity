@@ -75,4 +75,4 @@ class OverloadDetector :
 }  // namespace serenity
 }  // namespace mesos
 
-#endif  // SERENITY_TOO_HIGH_CPU_USAGE_DETECTOR_HPP
+#endif  // SERENITY_OVERLOAD_DETECTOR_HPP
