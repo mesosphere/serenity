@@ -20,22 +20,6 @@
 namespace mesos {
 namespace serenity {
 
-class OverloadDetectorConfig : public SerenityConfig {
- public:
-  OverloadDetectorConfig() { }
-
-  explicit OverloadDetectorConfig(const SerenityConfig& customCfg) {
-    this->initDefaults();
-    this->applyConfig(customCfg);
-  }
-
-  void initDefaults() {
-    //! double_t
-    //! Detector threshold.
-    this->fields[detector::THRESHOLD] =
-      detector::DEFAULT_UTILIZATION_THRESHOLD;
-  }
-};
 
 /**
  * OverloadDetector is able to create contention if utilization is above
@@ -48,23 +32,34 @@ class OverloadDetector :
   OverloadDetector(
       Consumer<Contentions>* _consumer,
       const lambda::function<usage::GetterFunction>& _cpuUsageGetFunction,
-      SerenityConfig _conf,
+      const SerenityConfig& _conf,
       const Tag& _tag = Tag(QOS_CONTROLLER, NAME))
     : tag(_tag),
       cpuUsageGetFunction(_cpuUsageGetFunction),
       Producer<Contentions>(_consumer) {
-    SerenityConfig config = OverloadDetectorConfig(_conf);
-    this->cfgUtilizationThreshold =
-      config.getD(detector::THRESHOLD);
+    configure(_conf);
   }
 
   ~OverloadDetector() {}
 
-  Try<Nothing> consume(const ResourceUsage& in) override;
-
   static const constexpr char* NAME = "OverloadDetector";
 
  protected:
+  void configure(const SerenityConfig& externalConf) {
+    SerenityConfig config = SerenityConfig();
+
+    //! double_t
+    //! Detector threshold.
+    config.set(detector::THRESHOLD, detector::DEFAULT_UTILIZATION_THRESHOLD);
+
+    config.applyConfig(externalConf);
+
+    // cfgUtilizationThreshold = config.getD(detector::THRESHOLD).get();
+  }
+
+  void allProductsReady() override;
+  bool validate(const ResourceUsage_Executor& inExec);
+
   const Tag tag;
   const lambda::function<usage::GetterFunction> cpuUsageGetFunction;
 

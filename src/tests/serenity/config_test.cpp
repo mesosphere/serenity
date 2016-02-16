@@ -11,7 +11,7 @@ namespace mesos {
 namespace serenity {
 namespace tests {
 
-// TestConfig required fields & default values using different types.
+// TestConfig required items & default values using different types.
 const constexpr char* FIELD_STR = "FIELD_STR";
 const constexpr char* DEFAULT_FIELD_STR = "default";
 const constexpr char* MODIFIED_FIELD_STR = "modified";
@@ -33,49 +33,51 @@ const constexpr double_t DEFAULT_FIELD_DOUBLE = 0.345345;
 const constexpr double_t MODIFIED_FIELD_DOUBLE = 3.432;
 
 
-class TestConfig : public SerenityConfig {
+class TestConfigFilter {
  public:
-  TestConfig() {
-    this->initDefaults();
+  explicit TestConfigFilter(const SerenityConfig& customCfg) {
+    configure(customCfg);
   }
 
-  /**
-   * This constructor enables run-time overlapping of default
-   * configuration records.
-   */
-  explicit TestConfig(const SerenityConfig& customCfg) {
-    this->initDefaults();
-    this->applyConfig(customCfg);
+  void configure(const SerenityConfig& externalConf) {
+    config = SerenityConfig();
+
+    config.set(FIELD_STR, (std::string)DEFAULT_FIELD_STR);
+    config.set(FIELD_BOOL, DEFAULT_FIELD_BOOL);
+    config.set(FIELD_UINT, DEFAULT_FIELD_UINT);
+    config.set(FIELD_INT, DEFAULT_FIELD_INT);
+    config.set(FIELD_DOUBLE, DEFAULT_FIELD_DOUBLE);
+
+    config.applyConfig(externalConf);
   }
 
-  /**
-   * Init default values for Test configuration.
-   */
-  void initDefaults() {
-    this->set(FIELD_STR, (std::string)DEFAULT_FIELD_STR);
-    this->set(FIELD_BOOL, DEFAULT_FIELD_BOOL);
-    this->set(FIELD_UINT, DEFAULT_FIELD_UINT);
-    this->set(FIELD_INT, DEFAULT_FIELD_INT);
-    this->set(FIELD_DOUBLE, DEFAULT_FIELD_DOUBLE);
-  }
+  SerenityConfig config;
 };
 
 
 TEST(SerenityConfigTest, DefaultValuesAvailable) {
-  // Create empty config with no configuration fields.
+  // Create empty config with no configuration items.
   SerenityConfig newConfig;
 
-  TestConfig internalConfig = TestConfig(newConfig);
-  EXPECT_EQ(internalConfig.getS(FIELD_STR), (std::string)DEFAULT_FIELD_STR);
-  EXPECT_EQ(internalConfig.getB(FIELD_BOOL), DEFAULT_FIELD_BOOL);
-  EXPECT_EQ(internalConfig.getU64(FIELD_UINT), DEFAULT_FIELD_UINT);
-  EXPECT_EQ(internalConfig.getI64(FIELD_INT), DEFAULT_FIELD_INT);
-  EXPECT_EQ(internalConfig.getD(FIELD_DOUBLE), DEFAULT_FIELD_DOUBLE);
+  TestConfigFilter testFilter = TestConfigFilter(newConfig);
+  EXPECT_EQ(testFilter.config.item<std::string>(FIELD_STR).get(),
+            (std::string) DEFAULT_FIELD_STR);
+  EXPECT_EQ(testFilter.config.item<bool>(FIELD_BOOL).get(),
+            DEFAULT_FIELD_BOOL);
+  EXPECT_EQ(testFilter.config.item<uint64_t>(FIELD_UINT).get(),
+            DEFAULT_FIELD_UINT);
+  EXPECT_EQ(testFilter.config.item<int64_t>(FIELD_INT).get(),
+            DEFAULT_FIELD_INT);
+  EXPECT_EQ(testFilter.config.item<double_t>(FIELD_DOUBLE).get(),
+            DEFAULT_FIELD_DOUBLE);
+
+  EXPECT_EQ(testFilter.config.item<bool>(FIELD_BOOL).get(), DEFAULT_FIELD_BOOL);
+
 }
 
 
 TEST(SerenityConfigTest, ModifiedValuesAvailable) {
-  // Create config with custom configuration fields.
+  // Create config with custom configuration items.
   SerenityConfig newConfig;
   newConfig.set(FIELD_STR, (std::string)MODIFIED_FIELD_STR);
   newConfig.set(FIELD_BOOL, MODIFIED_FIELD_BOOL);
@@ -83,15 +85,20 @@ TEST(SerenityConfigTest, ModifiedValuesAvailable) {
   newConfig.set(FIELD_INT, MODIFIED_FIELD_INT);
   newConfig.set(FIELD_DOUBLE, MODIFIED_FIELD_DOUBLE);
 
-  SerenityConfig internalConfig = TestConfig(newConfig);
-  EXPECT_EQ(internalConfig.getS(FIELD_STR), (std::string)MODIFIED_FIELD_STR);
-  EXPECT_EQ(internalConfig.getB(FIELD_BOOL), MODIFIED_FIELD_BOOL);
-  EXPECT_EQ(internalConfig.getU64(FIELD_UINT), MODIFIED_FIELD_UINT);
-  EXPECT_EQ(internalConfig.getI64(FIELD_INT), MODIFIED_FIELD_INT);
-  EXPECT_EQ(internalConfig.getD(FIELD_DOUBLE), MODIFIED_FIELD_DOUBLE);
+  TestConfigFilter testFilter = TestConfigFilter(newConfig);
+
+  EXPECT_EQ(testFilter.config.item<std::string>(FIELD_STR).get(),
+            (std::string) MODIFIED_FIELD_STR);
+  EXPECT_EQ(testFilter.config.item<bool>(FIELD_BOOL).get(),
+            MODIFIED_FIELD_BOOL);
+  EXPECT_EQ(testFilter.config.item<uint64_t>(FIELD_UINT).get(),
+            MODIFIED_FIELD_UINT);
+  EXPECT_EQ(testFilter.config.item<int64_t>(FIELD_INT).get(),
+            MODIFIED_FIELD_INT);
+  EXPECT_EQ(testFilter.config.item<double_t>(FIELD_DOUBLE).get(),
+            MODIFIED_FIELD_DOUBLE);
 }
 
 }  // namespace tests
 }  // namespace serenity
 }  // namespace mesos
-

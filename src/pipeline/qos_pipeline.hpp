@@ -48,9 +48,9 @@ class QoSPipelineConfig : public SerenityConfig {
     // Used sections: QoSCorrectionObserver, AssuranceDetector,
     // UtilizationDetector
     // TODO(bplotka): Move EMA conf to separate section.
-    this->fields[ema::ALPHA] = ema::DEFAULT_ALPHA;
-    this->fields[VALVE_OPENED] = DEFAULT_VALVE_OPENED;
-    this->fields[ENABLED_VISUALISATION] = DEFAULT_ENABLED_VISUALISATION;
+    this->items[ema::ALPHA] = ema::DEFAULT_ALPHA;
+    this->items[VALVE_OPENED] = DEFAULT_VALVE_OPENED;
+    this->items[ENABLED_VISUALISATION] = DEFAULT_ENABLED_VISUALISATION;
   }
 };
 
@@ -138,7 +138,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
           &ipcDropDetector,
           usage::getIpc,
           usage::setEmaIpc,
-          conf.getD(ema::ALPHA_IPC),
+          conf.item<double_t>(ema::ALPHA_IPC).get(),
           Tag(QOS_CONTROLLER, "ipcEMAFilter")),
       tooLowUsageFilter(
           &ipcEMAFilter,
@@ -161,7 +161,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
           &overloadDetector,
           usage::getCpuUsage,
           usage::setEmaCpuUsage,
-          conf.getD(ema::ALPHA_CPU),
+          conf.item<double_t>(ema::ALPHA_CPU).get(),
           Tag(QOS_CONTROLLER, "cpuEMAFilter")),
       cumulativeFilter(
           &tooLowUsageFilter,
@@ -169,7 +169,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       // First item in pipeline. For now, close the pipeline for QoS.
       valveFilter(
           &cumulativeFilter,
-          conf.getB(VALVE_OPENED),
+          conf.item<bool>(VALVE_OPENED).get(),
           Tag(QOS_CONTROLLER, "valveFilter")) {
     this->ageFilter.addConsumer(&valveFilter);
     // Setup starting producer.
@@ -185,7 +185,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
     cumulativeFilter.addConsumer(&cpuEMAFilter);
 
     // Setup Time Series export
-    if (conf.getB(ENABLED_VISUALISATION)) {
+    if (conf.item<bool>(ENABLED_VISUALISATION).get()) {
       this->addConsumer(&rawResourcesExporter);
       ipcEMAFilter.addConsumer(&emaFilteredResourcesExporter);
     }

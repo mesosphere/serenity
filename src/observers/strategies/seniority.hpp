@@ -32,7 +32,7 @@ class SeniorityStrategy : public RevocationStrategy {
       : RevocationStrategy(Tag(QOS_CONTROLLER, NAME)) {
     initialize();
     if (_config.hasKey(STARTING_SEVERITY_KEY)) {
-       severity = _config.getD(STARTING_SEVERITY_KEY);
+       severity = _config.item<double_t>(STARTING_SEVERITY_KEY).get();
     }
   }
 

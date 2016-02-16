@@ -34,18 +34,14 @@ class ResourceUsageHelper {
       getProductionAndRevocableExecutors(const ResourceUsage&);
 
   /**
-  * Checks if executor has empty revocable resources.
-  *
-  * Returns error when executor has no allocated resources.
-  */
-  static Try<bool> isProductionExecutor(const ResourceUsage_Executor&);
+   * Checks if executor has empty revocable resources.
+   */
+  static bool isProductionExecutor(const ResourceUsage_Executor&);
 
   /**
-  * Checks if executor has revocable resources.
-  *
-  * Returns error when executor has no allocated resources.
-  */
-  static Try<bool> isRevocableExecutor(const ResourceUsage_Executor&);
+   * Checks if executor has revocable resources.
+   */
+  static bool isRevocableExecutor(const ResourceUsage_Executor&);
 
   static bool isExecutorHasStatistics(const ResourceUsage_Executor&);
 

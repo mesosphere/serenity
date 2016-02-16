@@ -11,25 +11,24 @@
 #include "serenity/serenity.hpp"
 
 #include "stout/option.hpp"
+#include "stout/result.hpp"
 
 namespace mesos {
 namespace serenity {
 
 /**
  * Global Serenity Config class which implements basic mechanism
- * to support specifying config parameters via string key map.
+ * to support specifying config parameters via string key map & sections.
  *
  * Check config_test.cpp to see example usage.
- *
- * TODO(skonefal): every getter should pack result in Try<T>.
  */
 class SerenityConfig {
  public:
   SerenityConfig() {}
 
   /**
-  * Variant type for storing multiple types of data in configuration.
-  */
+   * Variant type for storing multiple types of data in configuration.
+   */
   using CfgVariant = boost::variant<
     bool, int64_t, uint64_t, double_t, std::string>;
 
@@ -37,14 +36,32 @@ class SerenityConfig {
    * Overlapping custom configuration options using recursive copy.
    */
   void applyConfig(const SerenityConfig& customCfg) {
-    this->recursiveCfgCopy(this, customCfg);
+    recursiveCfgCopy(this, customCfg);
   }
 
   /**
-   * Gets variant config value.
+   * Templated, safe getter for item in config.
    */
-  Option<SerenityConfig::CfgVariant> operator()(std::string key) const {
-    return getField(key);
+  template <typename T>
+  const Result<T> item(std::string key) const {
+    Result<T> result = None();
+
+    // Get item from items map.
+    Option<SerenityConfig::CfgVariant> variantResult = getItem(key);
+
+    if (variantResult.isSome()) {
+      // When item is found, try to parse it to the specified T type.
+      try {
+        result = boost::get<T>(variantResult.get());
+      } catch (std::exception& e) {
+        // NOTE(bplotka): Log here????
+        LOG(ERROR) << "Failed to parse " << key
+        << " field: " << e.what();
+        result = Result<T>::error(e.what());
+      }
+    }
+
+    return result;
   }
 
   /**
@@ -55,42 +72,6 @@ class SerenityConfig {
     return *getSection(key);
   }
 
-  // -- unsafe getters --
-
-  /**
-   * Unsafe getter for string
-   */
-  std::string getS(std::string key) {
-    return boost::get<std::string>(this->fields[key]);
-  }
-
-  /**
-   * Unsafe getter for int64_t
-   */
-  int64_t getI64(std::string key) {
-    return boost::get<int64_t>(this->fields[key]);
-  }
-
-  /**
-   * Unsafe getter for uint64_t
-   */
-  uint64_t getU64(std::string key) {
-    return boost::get<uint64_t>(this->fields[key]);
-  }
-
-  /**
-   * Unsafe getter for double_t
-   */
-  double_t getD(std::string key) {
-    return boost::get<double_t>(this->fields[key]);
-  }
-
-  /**
-   * Unsafe getter for bool
-   */
-  bool getB(std::string key) {
-    return boost::get<bool>(this->fields[key]);
-  }
 
   // -- setters --
 
@@ -140,11 +121,11 @@ class SerenityConfig {
    * Sets CfgVariant config value.
    */
   void setVariant(std::string key, SerenityConfig::CfgVariant value) {
-    this->fields[key] = value;
+    this->items[key] = value;
   }
 
-  bool hasKey(std::string key) {
-    return fields.find(key) != fields.end();
+  bool hasKey(std::string key) const {
+    return items.find(key) != items.end();
   }
 
   /**
@@ -159,7 +140,7 @@ class SerenityConfig {
   };
 
  protected:
-  std::unordered_map<std::string, SerenityConfig::CfgVariant> fields;
+  std::unordered_map<std::string, SerenityConfig::CfgVariant> items;
 
   /**
    * Support for hierarchical configuration sections.
@@ -186,9 +167,9 @@ class SerenityConfig {
   /**
    * Getter for field.
    */
-  Option<SerenityConfig::CfgVariant> getField(std::string fieldKey) const {
-    auto mapItem = this->fields.find(fieldKey);
-    if (mapItem != this->fields.end()) {
+  Option<SerenityConfig::CfgVariant> getItem(std::string itemKey) const {
+    auto mapItem = this->items.find(itemKey);
+    if (mapItem != this->items.end()) {
       return mapItem->second;
     }
 
@@ -201,8 +182,8 @@ class SerenityConfig {
    */
   void recursiveCfgCopy(SerenityConfig* base,
                         const SerenityConfig& customCfg) const {
-    for (auto customItem : customCfg.fields) {
-      base->fields[customItem.first] = customItem.second;
+    for (auto customItem : customCfg.items) {
+      base->items[customItem.first] = customItem.second;
     }
 
     for (auto customSection : customCfg.sections) {

@@ -26,7 +26,7 @@ class TooLowUsageFilterConfig : public SerenityConfig {
   void initDefaults() {
     //! double_t
     //! Minimal cpu usage
-    this->fields[too_low_usage::MINIMAL_CPU_USAGE] =
+    this->items[too_low_usage::MINIMAL_CPU_USAGE] =
       too_low_usage::DEFAULT_MINIMAL_CPU_USAGE;
   }
 };
@@ -48,7 +48,8 @@ class TooLowUsageFilter :
       const Tag& _tag = Tag(QOS_CONTROLLER, NAME))
       : Producer<ResourceUsage>(_consumer), tag(_tag) {
     SerenityConfig config = TooLowUsageFilterConfig(_conf);
-    this->cfgMinimalCpuUsage = config.getD(too_low_usage::MINIMAL_CPU_USAGE);
+    this->cfgMinimalCpuUsage =
+      config.item<double_t>(too_low_usage::MINIMAL_CPU_USAGE).get();
   }
 
   ~TooLowUsageFilter();

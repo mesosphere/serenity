@@ -40,28 +40,28 @@ class SignalDropAnalyzerConfig : public SerenityConfig {
   }
 
   void initDefaults() {
-    this->fields[detector::ANALYZER_TYPE] = SIGNAL_DROP_ANALYZER_NAME;
+    this->items[detector::ANALYZER_TYPE] = SIGNAL_DROP_ANALYZER_NAME;
     //! uint64_t
     //! How far in the past we look.
-    this->fields[detector::WINDOW_SIZE] =
+    this->items[detector::WINDOW_SIZE] =
       detector::DEFAULT_WINDOW_SIZE;
 
     //! double_t
     //! Defines how much (relatively to base point) value must drop to trigger
     //! contention.
     //! Most signal_analyzer will use that.
-    this->fields[detector::FRACTIONAL_THRESHOLD] =
+    this->items[detector::FRACTIONAL_THRESHOLD] =
       detector::DEFAULT_FRACTIONAL_THRESHOLD;
 
     //! double_t
     //! You can adjust how big severity is created for a defined drop.
     //! if -1 then unknown severity will be reported.
-    this->fields[detector::SEVERITY_FRACTION] = (double_t) -1;
+    this->items[detector::SEVERITY_FRACTION] = (double_t) -1;
 
     //! double_t
     //! Tolerance fraction of threshold if signal is accepted as returned to
     //! previous state after drop.
-    this->fields[detector::NEAR_FRACTION] =
+    this->items[detector::NEAR_FRACTION] =
       detector::DEFAULT_NEAR_FRACTION;
 
     //! uint64_t
@@ -69,12 +69,12 @@ class SignalDropAnalyzerConfig : public SerenityConfig {
     //! Checkpoints are the reference assurance_test(base) points which we refer
     //! to in the past when detecting drop or not.
     //! It needs to be 0 < < WINDOW_SIZE
-    this->fields[detector::MAX_CHECKPOINTS] =
+    this->items[detector::MAX_CHECKPOINTS] =
       detector::DEFAULT_MAX_CHECKPOINTS;
 
     //! double_t
     //! Fraction of checkpoints' votes that important decision needs to obtain.
-    this->fields[detector::QUORUM] =
+    this->items[detector::QUORUM] =
       detector::DEFAULT_QUORUM;
   }
 };
@@ -110,12 +110,16 @@ class SignalDropAnalyzer : public SignalAnalyzer {
       valueBeforeDrop(None()),
       quorumNum(0) {
     SerenityConfig config = SignalDropAnalyzerConfig(_config);
-    this->cfgWindowSize = config.getU64(detector::WINDOW_SIZE);
-    this->cfgMaxCheckpoints = config.getU64(detector::MAX_CHECKPOINTS);
-    this->cfgQuroum = config.getD(detector::QUORUM);
-    this->cfgFractionalThreshold = config.getD(detector::FRACTIONAL_THRESHOLD);
-    this->cfgNearFraction = config.getD(detector::NEAR_FRACTION);
-    this->cfgSeverityFraction = config.getD(detector::SEVERITY_FRACTION);
+    this->cfgWindowSize = config.item<uint64_t>(detector::WINDOW_SIZE).get();
+    this->cfgMaxCheckpoints =
+      config.item<uint64_t>(detector::MAX_CHECKPOINTS).get();
+    this->cfgQuroum = config.item<double_t>(detector::QUORUM).get();
+    this->cfgFractionalThreshold =
+      config.item<double_t>(detector::FRACTIONAL_THRESHOLD).get();
+    this->cfgNearFraction =
+      config.item<double_t>(detector::NEAR_FRACTION).get();
+    this->cfgSeverityFraction =
+      config.item<double_t>(detector::SEVERITY_FRACTION).get();
 
     this->recalculateParams();
   }

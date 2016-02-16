@@ -5,39 +5,36 @@
 
 #include "mesos/resources.hpp"
 
+#include "serenity/resource_helper.hpp"
+
 namespace mesos {
 namespace serenity {
 
-Try<Nothing> OverloadDetector::consume(const ResourceUsage& in) {
+void OverloadDetector::allProductsReady() {
   Contentions product;
+  ResourceUsage usage = getConsumable().get();
 
-  if (in.total_size() == 0) {
-    return Error(std::string(NAME) + " No total in ResourceUsage");
+  if (usage.total_size() == 0) {
+    SERENITY_LOG(ERROR) << std::string(NAME) << " No total in ResourceUsage";
+    produce(product);
   }
 
-  Resources totalAgentResources(in.total());
+  Resources totalAgentResources(usage.total());
   Option<double_t> totalAgentCpus = totalAgentResources.cpus();
 
   if (totalAgentCpus.isNone()) {
-    return Error(std::string(NAME) + " No total cpus in ResourceUsage");
+    SERENITY_LOG(ERROR) << std::string(NAME)
+    << " No total cpus in ResourceUsage";
+    produce(product);
   }
 
   double_t thresholdCpus = this->cfgUtilizationThreshold * totalAgentCpus.get();
   double_t agentSumCpus = 0;
   uint64_t beExecutors = 0;
 
-  for (const ResourceUsage_Executor& inExec : in.executors()) {
-    if (!inExec.has_executor_info()) {
-      SERENITY_LOG(ERROR) << "Executor <unknown>"
-      << " does not include executor_info";
-      // Filter out these executors.
-      continue;
-    }
-    if (!inExec.has_statistics()) {
-      SERENITY_LOG(ERROR) << "Executor "
-      << inExec.executor_info().executor_id().value()
-      << " does not include statistics.";
-      // Filter out these executors.
+  for (const ResourceUsage_Executor& inExec : usage.executors()) {
+    // Validate for statistics and executor info.
+    if (!validate(inExec)) {
       continue;
     }
 
@@ -49,13 +46,14 @@ Try<Nothing> OverloadDetector::consume(const ResourceUsage& in) {
 
     agentSumCpus += value.get();
 
-    if (!Resources(inExec.allocated()).revocable().empty()) {
+    if (ResourceUsageHelper::isRevocableExecutor(inExec)) {
       beExecutors++;
     }
   }
 
   SERENITY_LOG(INFO) << "Sum = " << agentSumCpus << " vs total = "
-    << totalAgentCpus.get() << " [threshold = " << thresholdCpus << "]";
+                     << totalAgentCpus.get() << " [threshold = "
+                     << thresholdCpus << "]";
 
   if (agentSumCpus > thresholdCpus) {
     if (beExecutors == 0) {
@@ -70,12 +68,27 @@ Try<Nothing> OverloadDetector::consume(const ResourceUsage& in) {
     }
   }
 
-  // Continue pipeline.
-  this->produce(product);
-
-  return Nothing();
+  produce(product);
 }
 
+bool OverloadDetector::validate(const ResourceUsage_Executor& inExec) {
+  if (!inExec.has_executor_info()) {
+    SERENITY_LOG(ERROR) << "Executor <unknown>"
+    << " does not include executor_info";
+    // Filter out these executors.
+    return false;
+  }
+
+  if (!inExec.has_statistics()) {
+    SERENITY_LOG(ERROR) << "Executor "
+    << inExec.executor_info().executor_id().value()
+    << " does not include statistics.";
+    // Filter out these executors.
+    return false;
+  }
+
+  return true;
+}
 
 }  // namespace serenity
 }  // namespace mesos

@@ -27,10 +27,10 @@ class CpuContentionStrategyConfig : public SerenityConfig {
     // uint64_t
     // Specify the initial value of iterations we should wait until
     // we create new correction.
-    this->fields[strategy::CONTENTION_COOLDOWN] =
+    this->items[strategy::CONTENTION_COOLDOWN] =
       strategy::DEFAULT_CONTENTION_COOLDOWN;
     // double_t
-    this->fields[strategy::DEFAULT_CPU_SEVERITY] =
+    this->items[strategy::DEFAULT_CPU_SEVERITY] =
       strategy::DEFAULT_DEFAULT_CPU_SEVERITY;
   }
 };

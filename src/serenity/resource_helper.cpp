@@ -43,36 +43,19 @@ ResourceUsageHelper::getProductionAndRevocableExecutors(
                          revocableExecutors);
 }
 
-Try<bool> ResourceUsageHelper::isProductionExecutor(
+bool ResourceUsageHelper::isProductionExecutor(
 const ResourceUsage_Executor& executor) {
-  if (executor.allocated().size() == 0) {
-    return Error("Executor has no allocated resources.");
-  }
-
-  if (Resources(executor.allocated()).revocable().empty()) {
-    return true;
-  } else {
-    return false;
-  }
+  return Resources(executor.allocated()).revocable().empty();
 }
 
 bool ResourceUsageHelper::isExecutorHasStatistics(
     const ResourceUsage_Executor& executor) {
-  if (executor.has_executor_info() && executor.has_statistics()) {
-    return true;
-  } else {
-    return false;
-  }
+  return executor.has_executor_info() && executor.has_statistics();
 }
 
-Try<bool> ResourceUsageHelper::isRevocableExecutor(
+bool ResourceUsageHelper::isRevocableExecutor(
     const ResourceUsage_Executor &executor) {
-  Try<bool> result = isProductionExecutor(executor);
-  if (result.isError()) {
-    return result;
-  }
-
-  return !result.get();
+  return !isProductionExecutor(executor);
 }
 
 }  // namespace serenity
