@@ -72,7 +72,6 @@ TEST(SerenityConfigTest, DefaultValuesAvailable) {
             DEFAULT_FIELD_DOUBLE);
 
   EXPECT_EQ(testFilter.config.item<bool>(FIELD_BOOL).get(), DEFAULT_FIELD_BOOL);
-
 }
 
 
