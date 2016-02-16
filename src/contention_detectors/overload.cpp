@@ -1,14 +1,14 @@
 #include <string>
 #include <utility>
 
-#include "contention_detectors/too_high_cpu.hpp"
+#include "contention_detectors/overload.hpp"
 
 #include "mesos/resources.hpp"
 
 namespace mesos {
 namespace serenity {
 
-Try<Nothing> TooHighCpuUsageDetector::consume(const ResourceUsage& in) {
+Try<Nothing> OverloadDetector::consume(const ResourceUsage& in) {
   Contentions product;
 
   if (in.total_size() == 0) {

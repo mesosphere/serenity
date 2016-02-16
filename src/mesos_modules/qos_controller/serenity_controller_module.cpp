@@ -29,7 +29,6 @@ using mesos::serenity::SerenityConfig;
 using mesos::serenity::SerenityController;
 using mesos::serenity::SeniorityStrategy;
 using mesos::serenity::SignalBasedDetector;
-using mesos::serenity::TooHighCpuUsageDetector;
 using mesos::serenity::TooLowUsageFilter;
 using mesos::serenity::QoSControllerPipeline;
 
