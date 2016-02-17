@@ -59,7 +59,6 @@ class SignalDropAnalyzer : public SignalAnalyzer {
     : SignalAnalyzer(_tag),
       valueBeforeDrop(None()),
       quorumNum(0) {
-
     setCfgWindowSize(_config.item<int64_t>(
         detector::WINDOW_SIZE,
         detector::DEFAULT_WINDOW_SIZE));
@@ -80,9 +79,9 @@ class SignalDropAnalyzer : public SignalAnalyzer {
         detector::NEAR_FRACTION,
         detector::DEFAULT_NEAR_FRACTION));
 
-    setCfgNearFraction(_config.item<double_t>(
+    setCfgSeverityFraction(_config.item<double_t>(
         detector::SEVERITY_FRACTION,
-        detector::DEFAULT_NEAR_FRACTION));
+        detector::DEFAULT_SEVERITY_FRACTION));
 
     this->recalculateParams();
   }
