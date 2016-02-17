@@ -53,7 +53,7 @@ class OverloadDetector :
 
  protected:
   void allProductsReady() override;
-  bool validate(const ResourceUsage_Executor& inExec);
+  bool hasRequiredFields(const ResourceUsage_Executor& inExec);
 
   const Tag tag;
   const lambda::function<usage::GetterFunction> cpuUsageGetFunction;

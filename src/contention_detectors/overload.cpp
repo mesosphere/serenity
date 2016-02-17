@@ -24,7 +24,7 @@ void OverloadDetector::allProductsReady() {
 
   if (totalAgentCpus.isNone()) {
     SERENITY_LOG(ERROR) << std::string(NAME)
-    << " No total cpus in ResourceUsage";
+                        << " No total cpus in ResourceUsage";
     produce(product);
   }
 
@@ -34,7 +34,7 @@ void OverloadDetector::allProductsReady() {
 
   for (const ResourceUsage_Executor& inExec : usage.executors()) {
     // Validate for statistics and executor info.
-    if (!validate(inExec)) {
+    if (!hasRequiredFields(inExec)) {
       continue;
     }
 
@@ -71,7 +71,7 @@ void OverloadDetector::allProductsReady() {
   produce(product);
 }
 
-bool OverloadDetector::validate(const ResourceUsage_Executor& inExec) {
+bool OverloadDetector::hasRequiredFields(const ResourceUsage_Executor& inExec) {
   if (!inExec.has_executor_info()) {
     SERENITY_LOG(ERROR) << "Executor <unknown>"
     << " does not include executor_info";

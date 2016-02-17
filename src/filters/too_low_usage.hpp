@@ -14,24 +14,6 @@
 namespace mesos {
 namespace serenity {
 
-class TooLowUsageFilterConfig : public SerenityConfig {
- public:
-  TooLowUsageFilterConfig() { }
-
-  explicit TooLowUsageFilterConfig(const SerenityConfig& customCfg) {
-    this->initDefaults();
-    this->applyConfig(customCfg);
-  }
-
-  void initDefaults() {
-    //! double_t
-    //! Minimal cpu usage
-    this->items[too_low_usage::MINIMAL_CPU_USAGE] =
-      too_low_usage::DEFAULT_MINIMAL_CPU_USAGE;
-  }
-};
-
-
 /**
  * Filter out PR executors with too low metrics.
  * Currently we filter out when CPU Usage is below specified threshold.
@@ -44,12 +26,12 @@ class TooLowUsageFilter :
 
   explicit TooLowUsageFilter(
       Consumer<ResourceUsage>* _consumer,
-      SerenityConfig _conf,
+      const SerenityConfig& _conf,
       const Tag& _tag = Tag(QOS_CONTROLLER, NAME))
       : Producer<ResourceUsage>(_consumer), tag(_tag) {
-    SerenityConfig config = TooLowUsageFilterConfig(_conf);
-    this->cfgMinimalCpuUsage =
-      config.item<double_t>(too_low_usage::MINIMAL_CPU_USAGE).get();
+    setCfgMinimalCpuUsage(_conf.item<double_t>(
+        too_low_usage::MINIMAL_CPU_USAGE,
+        too_low_usage::DEFAULT_MINIMAL_CPU_USAGE));
   }
 
   ~TooLowUsageFilter();
@@ -58,7 +40,11 @@ class TooLowUsageFilter :
 
   Try<Nothing> consume(const ResourceUsage& in);
 
- public:
+  void setCfgMinimalCpuUsage(double_t cfgMinimalCpuUsage) {
+    TooLowUsageFilter::cfgMinimalCpuUsage = cfgMinimalCpuUsage;
+  }
+
+ protected:
   const Tag tag;
 
   double_t cfgMinimalCpuUsage;

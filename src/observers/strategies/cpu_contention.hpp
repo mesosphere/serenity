@@ -12,30 +12,6 @@
 namespace mesos {
 namespace serenity {
 
-class CpuContentionStrategyConfig : public SerenityConfig {
- public:
-  CpuContentionStrategyConfig() {
-    this->initDefaults();
-  }
-
-  explicit CpuContentionStrategyConfig(const SerenityConfig& customCfg) {
-    this->initDefaults();
-    this->applyConfig(customCfg);
-  }
-
-  void initDefaults() {
-    // uint64_t
-    // Specify the initial value of iterations we should wait until
-    // we create new correction.
-    this->items[strategy::CONTENTION_COOLDOWN] =
-      strategy::DEFAULT_CONTENTION_COOLDOWN;
-    // double_t
-    this->items[strategy::DEFAULT_CPU_SEVERITY] =
-      strategy::DEFAULT_DEFAULT_CPU_SEVERITY;
-  }
-};
-
-
 /**
  * Checks contentions and choose executors to kill.
  * It accepts only Contention_Type_CPU.
@@ -51,7 +27,9 @@ class CpuContentionStrategy : public RevocationStrategy {
       const lambda::function<usage::GetterFunction>& _cpuUsageGetFunction)
       : RevocationStrategy(Tag(QOS_CONTROLLER, "CpuContentionStrategy")),
         getCpuUsage(_cpuUsageGetFunction) {
-    SerenityConfig config = CpuContentionStrategyConfig(_config);
+    setDefaultSeverity(_config.item<double_t>(
+        strategy::DEFAULT_CPU_SEVERITY,
+        strategy::DEFAULT_DEFAULT_CPU_SEVERITY));
   }
 
   Try<QoSCorrections> decide(ExecutorAgeFilter* ageFilter,
@@ -60,11 +38,14 @@ class CpuContentionStrategy : public RevocationStrategy {
 
   static const constexpr char* NAME = "CpuContentionStrategy";
 
+  void setDefaultSeverity(double_t defaultSeverity) {
+    CpuContentionStrategy::defaultSeverity = defaultSeverity;
+  }
+
  private:
   const lambda::function<usage::GetterFunction> getCpuUsage;
 
   // cfg parameters.
-  uint64_t cooldownTime;
   double_t defaultSeverity;
 };
 
