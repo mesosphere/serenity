@@ -40,47 +40,17 @@ static QoSController* createSerenityController(
     const Parameters& parameters) {
   LOG(INFO) << "Loading Serenity QoS Controller module";
   // TODO(bplotka): Fetch configuration from parameters or conf file.
-  //
-  // --Hardcoded configuration for Serenity QoS Controller---
 
   SerenityConfig conf;
-  // AssuranceDropAnalyzer configuration:
-  // How far we look back in samples.
-  conf[SIGNAL_DROP_ANALYZER_NAME].set(WINDOW_SIZE, (uint64_t) 10);
-  // Defines how much (relatively to base point) value must drop to trigger
-  // contention.
-  // Most signal_analyzer will use that.
-  conf[SIGNAL_DROP_ANALYZER_NAME].set(FRACTIONAL_THRESHOLD, (double_t) 0.3);
-  conf[SIGNAL_DROP_ANALYZER_NAME].set(SEVERITY_FRACTION, (double_t) 2.1);
-
-  // How many iterations observers will wait with creating another
-  // correction.
-  conf[CpuContentionStrategy::NAME].set(CONTENTION_COOLDOWN, (uint64_t) 10);
-  conf[SeniorityStrategy::NAME].set(CONTENTION_COOLDOWN, (uint64_t) 10);
-
-  // UtilizationDetector configuration:
-  // CPU utilization threshold.
-  conf[THRESHOLD].set(THRESHOLD, (double_t) 0.72);
-
-  conf[TooLowUsageFilter::NAME].set(MINIMAL_CPU_USAGE, (double_t) 0.25);
-
-  conf.set(ALPHA_CPU, (double_t) 0.9);
-  conf.set(ALPHA_IPC, (double_t) 0.9);
-  conf.set(ENABLED_VISUALISATION, false);
-  conf.set(VALVE_OPENED, true);
-
-  // Since slave is configured for 5 second perf interval, it is useless to
-  // check correction more often then 5 sec.
-  double onEmptyCorrectionInterval = 2;
-
-  // --End of hardcoded configuration for Serenity QoS Controller---
+  double onEmptyCorrectionInterval =
+    conf.item<double_t>(ON_EMPTY_CORRECTION_INTERVAL,
+                        DEFAULT_ON_EMPTY_CORRECTION_INTERVAL);
 
   // Use static constructor of QoSController.
   Try<QoSController*> result =
-    SerenityController::create(
-      std::shared_ptr<QoSControllerPipeline>(
-          new CpuQoSPipeline(conf)),
-          onEmptyCorrectionInterval);
+    SerenityController::create(std::shared_ptr<QoSControllerPipeline>(
+                                 new CpuQoSPipeline(conf)),
+                               onEmptyCorrectionInterval);
 
   if (result.isError()) {
     return NULL;

@@ -28,8 +28,6 @@
 #include "serenity/data_utils.hpp"
 #include "serenity/serenity.hpp"
 
-#include "time_series_export/resource_usage_ts_export.hpp"
-
 namespace mesos {
 namespace serenity {
 
@@ -105,10 +103,7 @@ using QoSControllerPipeline = Pipeline<ResourceUsage, QoSCorrections>;
 class CpuQoSPipeline : public QoSControllerPipeline {
  public:
   explicit CpuQoSPipeline(const SerenityConfig& _conf)
-    : conf(QoSPipelineConfig(_conf)),
-      // Time series exporters.
-      rawResourcesExporter("raw"),
-      emaFilteredResourcesExporter("ema"),
+    : conf(_conf),
       // NOTE(bplotka): age Filter should initialized first before passing
       // to the qosCorrectionObserver.
       ageFilter(),
@@ -116,12 +111,12 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       correctionMerger(
           this,
           Tag(QOS_CONTROLLER, "CorrectionMerger")),
-//      ipcContentionObserver(
-//          &correctionMerger,
-//          &ageFilter,
-//          new SeniorityStrategy(conf[SeniorityStrategy::NAME]),
-//          strategy::DEFAULT_CONTENTION_COOLDOWN,
-//          Tag(QOS_CONTROLLER, SeniorityStrategy::NAME)),
+      // ipcContentionObserver(
+      //     &correctionMerger,
+      //     &ageFilter,
+      //     new SeniorityStrategy(conf[SeniorityStrategy::NAME]),
+      //     strategy::DEFAULT_CONTENTION_COOLDOWN,
+      //     Tag(QOS_CONTROLLER, SeniorityStrategy::NAME)),
       cacheOccupancyContentionObserver(
           &correctionMerger,
           &ageFilter,
@@ -138,7 +133,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
           &ipcDropDetector,
           usage::getIpc,
           usage::setEmaIpc,
-          conf.item<double_t>(ema::ALPHA_IPC).get(),
+          conf.item<double_t>(ema::ALPHA_IPC, ema::DEFAULT_ALPHA_IPC),
           Tag(QOS_CONTROLLER, "ipcEMAFilter")),
       tooLowUsageFilter(
           &ipcEMAFilter,
@@ -161,7 +156,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
           &overloadDetector,
           usage::getCpuUsage,
           usage::setEmaCpuUsage,
-          conf.item<double_t>(ema::ALPHA_CPU).get(),
+          conf.item<double_t>(ema::ALPHA_CPU, ema::DEFAULT_ALPHA_CPU),
           Tag(QOS_CONTROLLER, "cpuEMAFilter")),
       cumulativeFilter(
           &tooLowUsageFilter,
@@ -169,34 +164,24 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       // First item in pipeline. For now, close the pipeline for QoS.
       valveFilter(
           &cumulativeFilter,
-          conf.item<bool>(VALVE_OPENED).get(),
+          conf.item<bool>(VALVE_OPENED, DEFAULT_VALVE_OPENED),
           Tag(QOS_CONTROLLER, "valveFilter")) {
     this->ageFilter.addConsumer(&valveFilter);
     // Setup starting producer.
     this->addConsumer(&ageFilter);
 
-//    cacheOccupancyContentionObserver.
-//      Producer<Contentions>::addConsumer(&ipcContentionObserver);
+    // cacheOccupancyContentionObserver.
+    // Producer<Contentions>::addConsumer(&ipcContentionObserver);
 
     // QoSCorrection observers needs ResourceUsage as well.
     cpuEMAFilter.addConsumer(&cpuContentionObserver);
-//    cumulativeFilter.addConsumer(&ipcContentionObserver);
+    // cumulativeFilter.addConsumer(&ipcContentionObserver);
     cumulativeFilter.addConsumer(&cacheOccupancyContentionObserver);
     cumulativeFilter.addConsumer(&cpuEMAFilter);
-
-    // Setup Time Series export
-    if (conf.item<bool>(ENABLED_VISUALISATION).get()) {
-      this->addConsumer(&rawResourcesExporter);
-      ipcEMAFilter.addConsumer(&emaFilteredResourcesExporter);
-    }
   }
 
  private:
   SerenityConfig conf;
-
-  // --- Time Series Exporters ---
-  ResourceUsageTimeSeriesExporter rawResourcesExporter;
-  ResourceUsageTimeSeriesExporter emaFilteredResourcesExporter;
 
   // --- Shared resource contention QoS
   CorrectionMergerFilter correctionMerger;

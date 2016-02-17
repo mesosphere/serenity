@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <type_traits>
 
 #include "boost/variant.hpp"
 
@@ -17,7 +18,7 @@ namespace mesos {
 namespace serenity {
 
 /**
- * Global Serenity Config class which implements basic mechanism
+ * Serenity Config class which implements basic mechanism
  * to support specifying config parameters via string key map & sections.
  *
  * Check config_test.cpp to see example usage.
@@ -30,7 +31,7 @@ class SerenityConfig {
    * Variant type for storing multiple types of data in configuration.
    */
   using CfgVariant = boost::variant<
-    bool, int64_t, uint64_t, double_t, std::string>;
+    bool, int64_t, double_t, std::string>;
 
   /**
    * Overlapping custom configuration options using recursive copy.
@@ -43,7 +44,14 @@ class SerenityConfig {
    * Templated, safe getter for item in config.
    */
   template <typename T>
-  const Result<T> item(std::string key) const {
+  const Result<T> item(const std::string& key) const {
+    static_assert(std::is_same<T, bool>()
+                  || std::is_same<T, int64_t>()
+                  || std::is_same<T, double_t>()
+                  || std::is_same<T, std::string>(),
+                  "T must be one of the types stored in CfgVariant (bool, "
+                  "int64_t, double_t, string)");
+
     Result<T> result = None();
 
     // Get item from items map.
@@ -54,10 +62,39 @@ class SerenityConfig {
       try {
         result = boost::get<T>(variantResult.get());
       } catch (std::exception& e) {
-        // NOTE(bplotka): Log here????
         LOG(ERROR) << "Failed to parse " << key
-        << " field: " << e.what();
+                   << " field: " << e.what();
         result = Result<T>::error(e.what());
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Templated, safe getter for item in config. Sets default value in case of
+   * error or none.
+   */
+  template <typename T>
+  const T item(const std::string& key, T defaultValue) const {
+    static_assert(std::is_same<T, bool>()
+                  || std::is_same<T, int64_t>()
+                  || std::is_same<T, double_t>()
+                  || std::is_same<T, std::string>(),
+                  "T must be one of the types stored in CfgVariant (bool, "
+                    "int64_t, double_t, string)");
+    T result = defaultValue;
+
+    // Get item from items map.
+    Option<SerenityConfig::CfgVariant> variantResult = getItem(key);
+
+    if (variantResult.isSome()) {
+      // When item is found, try to parse it to the specified T type.
+      try {
+        result = boost::get<T>(variantResult.get());
+      } catch (std::exception& e) {
+        LOG(ERROR) << "Failed to parse " << key << " to type "
+                   << typeid(T).name() << ". Field: " << e.what();
       }
     }
 
@@ -68,63 +105,39 @@ class SerenityConfig {
    * Gets config section.
    * In case there is not one, create empty section.
    */
-  SerenityConfig& operator[](std::string key) {
+  SerenityConfig& operator[](const std::string& key) {
     return *getSection(key);
   }
 
-
-  // -- setters --
-
   /**
-   * Sets char* config value.
+   * Templated set config value.
    */
-  void set(std::string key, char* value) {
-    this->setVariant(key, (std::string)value);
-  }
-
-  /**
-   * Sets string config value.
-   */
-  void set(std::string key, std::string value) {
+  template <typename T>
+  void set(const std::string& key, T value) {
+    static_assert(std::is_same<T, bool>()
+                  || std::is_same<T, int64_t>()
+                  || std::is_same<T, double_t>()
+                  || std::is_same<T, std::string>(),
+                  "T must be one of the types stored in CfgVariant (bool, "
+                    "int64_t, double_t, string)");
     this->setVariant(key, value);
   }
 
   /**
-   * Sets bool config value.
+   * Templated set config value for char*.
    */
-  void set(std::string key, bool value) {
-    this->setVariant(key, value);
-  }
-
-  /**
-   * Sets uint64_t config value.
-   */
-  void set(std::string key, uint64_t value) {
-    this->setVariant(key, value);
-  }
-
-  /**
-   * Sets int64_t config value.
-   */
-  void set(std::string key, int64_t value) {
-    this->setVariant(key, value);
-  }
-
-  /**
-   * Sets double_t config value.
-   */
-  void set(std::string key, double_t value) {
-    this->setVariant(key, value);
+  void set(const std::string& key, char* value) {
+    this->setVariant(key, (std::string) value);
   }
 
   /**
    * Sets CfgVariant config value.
    */
-  void setVariant(std::string key, SerenityConfig::CfgVariant value) {
+  void setVariant(const std::string& key, SerenityConfig::CfgVariant value) {
     this->items[key] = value;
   }
 
-  bool hasKey(std::string key) const {
+  bool hasKey(const std::string& key) const {
     return items.find(key) != items.end();
   }
 
@@ -151,7 +164,7 @@ class SerenityConfig {
    * Getter for section.
    * In case of no section - create such.
    */
-  std::shared_ptr<SerenityConfig> getSection(std::string sectionKey) {
+  std::shared_ptr<SerenityConfig> getSection(const std::string& sectionKey) {
     auto mapItem = this->sections.find(sectionKey);
     if (mapItem != this->sections.end()) {
       return mapItem->second;
@@ -167,7 +180,7 @@ class SerenityConfig {
   /**
    * Getter for field.
    */
-  Option<SerenityConfig::CfgVariant> getItem(std::string itemKey) const {
+  Option<SerenityConfig::CfgVariant> getItem(const std::string& itemKey) const {
     auto mapItem = this->items.find(itemKey);
     if (mapItem != this->items.end()) {
       return mapItem->second;

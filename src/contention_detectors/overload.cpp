@@ -16,7 +16,7 @@ void OverloadDetector::allProductsReady() {
 
   if (usage.total_size() == 0) {
     SERENITY_LOG(ERROR) << std::string(NAME) << " No total in ResourceUsage";
-    produce(product);
+    produce(Contentions());
   }
 
   Resources totalAgentResources(usage.total());

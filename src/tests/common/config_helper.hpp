@@ -10,8 +10,8 @@ namespace serenity {
 namespace tests {
 
 inline SerenityConfig createAssuranceAnalyzerCfg(
-    const uint64_t windowSize,
-    const uint64_t maxCheckpoints,
+    const int64_t windowSize,
+    const int64_t maxCheckpoints,
     const double_t fractionalThreshold,
     const double_t severityLvl = detector::DEFAULT_SEVERITY_FRACTION,
     const double_t nearLvl = detector::DEFAULT_NEAR_FRACTION,
@@ -19,16 +19,16 @@ inline SerenityConfig createAssuranceAnalyzerCfg(
   SerenityConfig cfg;
   cfg.set(detector::WINDOW_SIZE, windowSize);
   cfg.set(detector::MAX_CHECKPOINTS, maxCheckpoints);
-  cfg.set(detector::FRACTIONAL_THRESHOLD, fractionalThreshold);
-  cfg.set(detector::SEVERITY_FRACTION, severityLvl);
-  cfg.set(detector::NEAR_FRACTION, nearLvl);
-  cfg.set(detector::QUORUM, quorum);
+  cfg.set<double_t>(detector::FRACTIONAL_THRESHOLD, fractionalThreshold);
+  cfg.set<double_t>(detector::SEVERITY_FRACTION, severityLvl);
+  cfg.set<double_t>(detector::NEAR_FRACTION, nearLvl);
+  cfg.set<double_t>(detector::QUORUM, quorum);
 
   return cfg;
 }
 
 inline SerenityConfig createThresholdDetectorCfg(
-  const double_t utilization = detector::DEFAULT_UTILIZATION_THRESHOLD) {
+    const double_t utilization = detector::DEFAULT_UTILIZATION_THRESHOLD) {
   SerenityConfig cfg;
   cfg.set(detector::THRESHOLD, utilization);
 

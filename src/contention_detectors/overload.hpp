@@ -37,26 +37,21 @@ class OverloadDetector :
     : tag(_tag),
       cpuUsageGetFunction(_cpuUsageGetFunction),
       Producer<Contentions>(_consumer) {
-    configure(_conf);
+    // Parse config values.
+    setCfgUtilizationThreshold(
+      _conf.item<double_t>(detector::THRESHOLD,
+                           detector::DEFAULT_UTILIZATION_THRESHOLD));
   }
 
   ~OverloadDetector() {}
 
   static const constexpr char* NAME = "OverloadDetector";
 
- protected:
-  void configure(const SerenityConfig& externalConf) {
-    SerenityConfig config = SerenityConfig();
-
-    //! double_t
-    //! Detector threshold.
-    config.set(detector::THRESHOLD, detector::DEFAULT_UTILIZATION_THRESHOLD);
-
-    config.applyConfig(externalConf);
-
-    // cfgUtilizationThreshold = config.getD(detector::THRESHOLD).get();
+  void setCfgUtilizationThreshold(double_t cfgUtilizationThreshold) {
+    OverloadDetector::cfgUtilizationThreshold = cfgUtilizationThreshold;
   }
 
+ protected:
   void allProductsReady() override;
   bool validate(const ResourceUsage_Executor& inExec);
 

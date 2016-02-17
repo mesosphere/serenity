@@ -30,56 +30,6 @@ namespace serenity {
 
 #define SIGNAL_DROP_ANALYZER_NAME "AssuranceDropAnalyzer"
 
-class SignalDropAnalyzerConfig : public SerenityConfig {
- public:
-  SignalDropAnalyzerConfig() {}
-
-  explicit SignalDropAnalyzerConfig(const SerenityConfig& customCfg) {
-    this->initDefaults();
-    this->applyConfig(customCfg);
-  }
-
-  void initDefaults() {
-    this->items[detector::ANALYZER_TYPE] = SIGNAL_DROP_ANALYZER_NAME;
-    //! uint64_t
-    //! How far in the past we look.
-    this->items[detector::WINDOW_SIZE] =
-      detector::DEFAULT_WINDOW_SIZE;
-
-    //! double_t
-    //! Defines how much (relatively to base point) value must drop to trigger
-    //! contention.
-    //! Most signal_analyzer will use that.
-    this->items[detector::FRACTIONAL_THRESHOLD] =
-      detector::DEFAULT_FRACTIONAL_THRESHOLD;
-
-    //! double_t
-    //! You can adjust how big severity is created for a defined drop.
-    //! if -1 then unknown severity will be reported.
-    this->items[detector::SEVERITY_FRACTION] = (double_t) -1;
-
-    //! double_t
-    //! Tolerance fraction of threshold if signal is accepted as returned to
-    //! previous state after drop.
-    this->items[detector::NEAR_FRACTION] =
-      detector::DEFAULT_NEAR_FRACTION;
-
-    //! uint64_t
-    //! Maximum number of checkpoints we will have in our assurance detector.
-    //! Checkpoints are the reference assurance_test(base) points which we refer
-    //! to in the past when detecting drop or not.
-    //! It needs to be 0 < < WINDOW_SIZE
-    this->items[detector::MAX_CHECKPOINTS] =
-      detector::DEFAULT_MAX_CHECKPOINTS;
-
-    //! double_t
-    //! Fraction of checkpoints' votes that important decision needs to obtain.
-    this->items[detector::QUORUM] =
-      detector::DEFAULT_QUORUM;
-  }
-};
-
-
 /**
  * Dynamic implementation of sequential change point detection.
  *
@@ -109,17 +59,30 @@ class SignalDropAnalyzer : public SignalAnalyzer {
     : SignalAnalyzer(_tag),
       valueBeforeDrop(None()),
       quorumNum(0) {
-    SerenityConfig config = SignalDropAnalyzerConfig(_config);
-    this->cfgWindowSize = config.item<uint64_t>(detector::WINDOW_SIZE).get();
-    this->cfgMaxCheckpoints =
-      config.item<uint64_t>(detector::MAX_CHECKPOINTS).get();
-    this->cfgQuroum = config.item<double_t>(detector::QUORUM).get();
-    this->cfgFractionalThreshold =
-      config.item<double_t>(detector::FRACTIONAL_THRESHOLD).get();
-    this->cfgNearFraction =
-      config.item<double_t>(detector::NEAR_FRACTION).get();
-    this->cfgSeverityFraction =
-      config.item<double_t>(detector::SEVERITY_FRACTION).get();
+
+    setCfgWindowSize(_config.item<int64_t>(
+        detector::WINDOW_SIZE,
+        detector::DEFAULT_WINDOW_SIZE));
+
+    setCfgMaxCheckpoints(_config.item<int64_t>(
+        detector::MAX_CHECKPOINTS,
+        detector::DEFAULT_MAX_CHECKPOINTS));
+
+    setCfgQuroum(_config.item<double_t>(
+        detector::QUORUM,
+        detector::DEFAULT_QUORUM));
+
+    setCfgFractionalThreshold(_config.item<double_t>(
+        detector::FRACTIONAL_THRESHOLD,
+        detector::DEFAULT_FRACTIONAL_THRESHOLD));
+
+    setCfgNearFraction(_config.item<double_t>(
+        detector::NEAR_FRACTION,
+        detector::DEFAULT_NEAR_FRACTION));
+
+    setCfgNearFraction(_config.item<double_t>(
+        detector::SEVERITY_FRACTION,
+        detector::DEFAULT_NEAR_FRACTION));
 
     this->recalculateParams();
   }
@@ -135,6 +98,49 @@ class SignalDropAnalyzer : public SignalAnalyzer {
    */
   void shiftBasePoints();
 
+  //! int64_t
+  //! How far in the past we look.
+  void setCfgWindowSize(int64_t cfgWindowSize) {
+    SignalDropAnalyzer::cfgWindowSize = cfgWindowSize;
+  }
+
+  //! int64_t
+  //! Maximum number of checkpoints we will have in our assurance detector.
+  //! Checkpoints are the reference assurance_test(base) points which we refer
+  //! to in the past when detecting drop or not.
+  //! It needs to be 0 < < WINDOW_SIZE
+  void setCfgMaxCheckpoints(int64_t cfgMaxCheckpoints) {
+    SignalDropAnalyzer::cfgMaxCheckpoints = cfgMaxCheckpoints;
+  }
+
+  //! double_t
+  //! Fraction of checkpoints' votes that important decision needs to obtain.
+  void setCfgQuroum(double_t cfgQuroum) {
+    SignalDropAnalyzer::cfgQuroum = cfgQuroum;
+  }
+
+  //! double_t
+  //! Defines how much (relatively to base point) value must drop to trigger
+  //! contention.
+  //! Most signal_analyzer will use that.
+  void setCfgFractionalThreshold(double_t cfgFractionalThreshold) {
+    SignalDropAnalyzer::cfgFractionalThreshold = cfgFractionalThreshold;
+  }
+
+  //! double_t
+  //! You can adjust how big severity is created for a defined drop.
+  //! if -1 then unknown severity will be reported.
+  void setCfgSeverityFraction(double_t cfgSeverityFraction) {
+    SignalDropAnalyzer::cfgSeverityFraction = cfgSeverityFraction;
+  }
+
+  //! double_t
+  //! Tolerance fraction of threshold if signal is accepted as returned to
+  //! previous state after drop.
+  void setCfgNearFraction(double_t cfgNearFraction) {
+    SignalDropAnalyzer::cfgNearFraction = cfgNearFraction;
+  }
+
  protected:
   std::list<double_t> window;
   std::list<std::list<double_t>::iterator> basePoints;
@@ -146,16 +152,16 @@ class SignalDropAnalyzer : public SignalAnalyzer {
   uint32_t quorumNum;
 
   // cfg parameters.
-  uint64_t cfgWindowSize;
-  uint64_t cfgMaxCheckpoints;
+  int64_t cfgWindowSize;
+  int64_t cfgMaxCheckpoints;
   double_t cfgQuroum;
   double_t cfgFractionalThreshold;
   double_t cfgSeverityFraction;
   double_t cfgNearFraction;
 
   /**
-  * It is possible to dynamically change analyzer configuration.
-  */
+   * It is possible to dynamically change analyzer configuration.
+   */
   void recalculateParams();
 };
 

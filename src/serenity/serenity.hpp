@@ -8,6 +8,7 @@
 
 #include "stout/nothing.hpp"
 #include "stout/try.hpp"
+#include "stout/result.hpp"
 
 namespace mesos {
 namespace serenity {
@@ -33,6 +34,22 @@ class BaseFilter {
                  productionsInCurrentIterationCount(0) {}
 
   virtual ~BaseFilter() {}
+
+  /**
+   * Getting Result safely with default value when in error or none state.
+   */
+  template <typename T>
+  T safeGetResult(Result<T> result, T defaultValue) {
+    if (result.isSome()) {
+      return result.get();
+    }
+
+    if (result.isError()) {
+      // Do SERENITY_LOG when tag is available here.
+    }
+
+    return defaultValue;
+  }
 
  private:
   void registerProductForConsumption() {
