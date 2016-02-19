@@ -28,68 +28,100 @@ const constexpr char* FIELD_DOUBLE = "FIELD_DOUBLE";
 const constexpr double_t DEFAULT_FIELD_DOUBLE = 0.345345;
 const constexpr double_t MODIFIED_FIELD_DOUBLE = 3.432;
 
+const constexpr char* FIELD_SECTION = "SECTION1";
 
-SerenityConfig loadSampleConfig() {
-  SerenityConfig config;
-  config.set(FIELD_STR, (std::string) MODIFIED_FIELD_STR);
-  config.set(FIELD_BOOL, MODIFIED_FIELD_BOOL);
-  config.set(FIELD_INT, MODIFIED_FIELD_INT);
-  config.set(FIELD_DOUBLE, MODIFIED_FIELD_DOUBLE);
+class TestConfig : SerenityConfig {
+ public:
+  void loadSampleConfig() {
+    put(FIELD_STR, (std::string) MODIFIED_FIELD_STR);
+    put(FIELD_BOOL, MODIFIED_FIELD_BOOL);
+    put(FIELD_INT, MODIFIED_FIELD_INT);
+    put(FIELD_DOUBLE, MODIFIED_FIELD_DOUBLE);
+  }
 
-  return config;
-}
+  void loadSampleConfigWithSections() {
+    SerenityConfig config = getSectionOrNew(FIELD_SECTION);
+    config.put(FIELD_STR, (std::string) MODIFIED_FIELD_STR);
+  }
+};
 
 TEST(SerenityConfigTest, EmptyItemsTest) {
   SerenityConfig config;
-  EXPECT_NONE(config.item<std::string>(FIELD_STR));
-  EXPECT_NONE(config.item<bool>(FIELD_BOOL));
-  EXPECT_NONE(config.item<int64_t>(FIELD_INT));
-  EXPECT_NONE(config.item<double_t>(FIELD_DOUBLE));
+  EXPECT_NONE(config.getItem<std::string>(FIELD_STR));
+  EXPECT_NONE(config.getItem<bool>(FIELD_BOOL));
+  EXPECT_NONE(config.getItem<int64_t>(FIELD_INT));
+  EXPECT_NONE(config.getItem<double_t>(FIELD_DOUBLE));
 }
 
 TEST(SerenityConfigTest, DefaultItemsTest) {
   SerenityConfig config;
-  EXPECT_EQ(config.item<std::string>(FIELD_STR, DEFAULT_FIELD_STR),
+  EXPECT_EQ(config.getItemOrDefault<std::string>(FIELD_STR, DEFAULT_FIELD_STR),
             DEFAULT_FIELD_STR);
-  EXPECT_EQ(config.item<bool>(FIELD_BOOL, DEFAULT_FIELD_BOOL),
+  EXPECT_EQ(config.getItemOrDefault<int>(FIELD_BOOL, DEFAULT_FIELD_BOOL),
             DEFAULT_FIELD_BOOL);
-  EXPECT_EQ(config.item<int64_t>(FIELD_INT, DEFAULT_FIELD_INT),
+  EXPECT_EQ(config.getItemOrDefault<int64_t>(FIELD_INT, DEFAULT_FIELD_INT),
             DEFAULT_FIELD_INT);
-  EXPECT_EQ(config.item<double_t>(FIELD_DOUBLE, DEFAULT_FIELD_DOUBLE),
+  EXPECT_EQ(config.getItemOrDefault<double_t>(FIELD_DOUBLE, DEFAULT_FIELD_DOUBLE),
             DEFAULT_FIELD_DOUBLE);
 }
 
 
 TEST(SerenityConfigTest, ModifiedItemsTest) {
-  SerenityConfig config;
-  EXPECT_EQ(config.item<std::string>(FIELD_STR, DEFAULT_FIELD_STR),
+  TestConfig config;
+  EXPECT_EQ(config.getItemOrDefault<std::string>(FIELD_STR, DEFAULT_FIELD_STR),
             DEFAULT_FIELD_STR);
-  EXPECT_EQ(config.item<bool>(FIELD_BOOL, DEFAULT_FIELD_BOOL),
+  EXPECT_EQ(config.getItemOrDefault<bool>(FIELD_BOOL, DEFAULT_FIELD_BOOL),
             DEFAULT_FIELD_BOOL);
-  EXPECT_EQ(config.item<int64_t>(FIELD_INT, DEFAULT_FIELD_INT),
+  EXPECT_EQ(config.getItemOrDefault<int64_t>(FIELD_INT, DEFAULT_FIELD_INT),
             DEFAULT_FIELD_INT);
-  EXPECT_EQ(config.item<double_t>(FIELD_DOUBLE, DEFAULT_FIELD_DOUBLE),
+  EXPECT_EQ(config.getItemOrDefault<double_t>(FIELD_DOUBLE, DEFAULT_FIELD_DOUBLE),
             DEFAULT_FIELD_DOUBLE);
 
-  config = loadSampleConfig();
+  config.loadSampleConfig();
 
-  EXPECT_EQ(config.item<std::string>(FIELD_STR, DEFAULT_FIELD_STR),
+  EXPECT_EQ(config.getItemOrDefault<std::string>(FIELD_STR, DEFAULT_FIELD_STR),
             MODIFIED_FIELD_STR);
-  EXPECT_EQ(config.item<bool>(FIELD_BOOL, DEFAULT_FIELD_BOOL),
+  EXPECT_EQ(config.getItemOrDefault<bool>(FIELD_BOOL, DEFAULT_FIELD_BOOL),
             MODIFIED_FIELD_BOOL);
-  EXPECT_EQ(config.item<int64_t>(FIELD_INT, DEFAULT_FIELD_INT),
+  EXPECT_EQ(config.getItemOrDefault<int64_t>(FIELD_INT, DEFAULT_FIELD_INT),
             MODIFIED_FIELD_INT);
-  EXPECT_EQ(config.item<double_t>(FIELD_DOUBLE, DEFAULT_FIELD_DOUBLE),
+  EXPECT_EQ(config.getItemOrDefault<double_t>(FIELD_DOUBLE, DEFAULT_FIELD_DOUBLE),
             MODIFIED_FIELD_DOUBLE);
 }
 
 TEST(SerenityConfigTest, ErrorItemsTest) {
-  SerenityConfig config = loadSampleConfig();
-  EXPECT_ERROR(config.item<bool>(FIELD_STR));
-  EXPECT_ERROR(config.item<int64_t>(FIELD_BOOL));
-  EXPECT_ERROR(config.item<double_t>(FIELD_INT));
-  EXPECT_ERROR(config.item<std::string>(FIELD_DOUBLE));
+  TestConfig config;
+  config.loadSampleConfig();
+  EXPECT_ERROR(config.getItem<bool>(FIELD_STR));
+  EXPECT_ERROR(config.getItem<int64_t>(FIELD_BOOL));
+  EXPECT_ERROR(config.getItem<double_t>(FIELD_INT));
+  EXPECT_ERROR(config.getItem<std::string>(FIELD_DOUBLE));
 }
+
+TEST(SerenityConfigTest, ModifiedSectionItemsTest) {
+  TestConfig config;
+  EXPECT_EQ(config.getItemOrDefault<std::string>(FIELD_STR, DEFAULT_FIELD_STR),
+            DEFAULT_FIELD_STR);
+  EXPECT_EQ(config.getItemOrDefault<bool>(FIELD_BOOL, DEFAULT_FIELD_BOOL),
+            DEFAULT_FIELD_BOOL);
+  EXPECT_EQ(config.getItemOrDefault<int64_t>(FIELD_INT, DEFAULT_FIELD_INT),
+            DEFAULT_FIELD_INT);
+  EXPECT_EQ(config.getItemOrDefault<double_t>(FIELD_DOUBLE, DEFAULT_FIELD_DOUBLE),
+            DEFAULT_FIELD_DOUBLE);
+
+  config.loadSampleConfig();
+
+  EXPECT_EQ(config.getItemOrDefault<std::string>(FIELD_STR, DEFAULT_FIELD_STR),
+            MODIFIED_FIELD_STR);
+  EXPECT_EQ(config.getItemOrDefault<bool>(FIELD_BOOL, DEFAULT_FIELD_BOOL),
+            MODIFIED_FIELD_BOOL);
+  EXPECT_EQ(config.getItemOrDefault<int64_t>(FIELD_INT, DEFAULT_FIELD_INT),
+            MODIFIED_FIELD_INT);
+  EXPECT_EQ(config.getItemOrDefault<double_t>(FIELD_DOUBLE, DEFAULT_FIELD_DOUBLE),
+            MODIFIED_FIELD_DOUBLE);
+}
+
+
 
 }  // namespace tests
 }  // namespace serenity

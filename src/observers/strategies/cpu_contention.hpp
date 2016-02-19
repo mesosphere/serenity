@@ -27,7 +27,7 @@ class CpuContentionStrategy : public RevocationStrategy {
       const lambda::function<usage::GetterFunction>& _cpuUsageGetFunction)
       : RevocationStrategy(Tag(QOS_CONTROLLER, "CpuContentionStrategy")),
         getCpuUsage(_cpuUsageGetFunction) {
-    setDefaultSeverity(_config.item<double_t>(
+    setDefaultSeverity(_config.getItemOrDefault<double_t>(
         strategy::DEFAULT_CPU_SEVERITY,
         strategy::DEFAULT_DEFAULT_CPU_SEVERITY));
   }

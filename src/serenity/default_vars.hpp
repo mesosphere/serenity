@@ -38,20 +38,8 @@ constexpr double_t DEFAULT_ALPHA_IPC = 0.9;
 }  // namespace ema
 
 namespace detector {
-const constexpr char* ANALYZER_TYPE = "ANALYZER_TYPE";
-const constexpr char* WINDOW_SIZE = "WINDOW_SIZE";
-constexpr int64_t DEFAULT_WINDOW_SIZE = 10;
-const constexpr char* FRACTIONAL_THRESHOLD = "FRACTIONAL_THRESHOLD";
-constexpr double_t DEFAULT_FRACTIONAL_THRESHOLD = 0.3;
-const constexpr char* SEVERITY_FRACTION = "SEVERITY_FRACTION";
-constexpr double_t DEFAULT_SEVERITY_FRACTION = 2.1;
-const constexpr char* NEAR_FRACTION = "NEAR_FRACTION";
-constexpr double_t DEFAULT_NEAR_FRACTION = 0.1;
-const constexpr char* MAX_CHECKPOINTS = "MAX_CHECKPOINTS";
-constexpr int64_t DEFAULT_MAX_CHECKPOINTS = 3;
-const constexpr char* QUORUM = "QUORUM";
-constexpr double_t DEFAULT_QUORUM = 0.70;
 
+//const constexpr char* ANALYZER_TYPE = "ANALYZER_TYPE";
 constexpr double_t DEFAULT_START_VALUE = 0.00001;
 
 const constexpr char* THRESHOLD = "THRESHOLD";

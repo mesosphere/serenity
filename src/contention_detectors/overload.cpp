@@ -75,7 +75,6 @@ bool OverloadDetector::hasRequiredFields(const ResourceUsage_Executor& inExec) {
   if (!inExec.has_executor_info()) {
     SERENITY_LOG(ERROR) << "Executor <unknown>"
     << " does not include executor_info";
-    // Filter out these executors.
     return false;
   }
 
@@ -83,7 +82,6 @@ bool OverloadDetector::hasRequiredFields(const ResourceUsage_Executor& inExec) {
     SERENITY_LOG(ERROR) << "Executor "
     << inExec.executor_info().executor_id().value()
     << " does not include statistics.";
-    // Filter out these executors.
     return false;
   }
 

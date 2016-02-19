@@ -126,37 +126,39 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       ipcDropDetector(
           &cacheOccupancyContentionObserver,
           usage::getEmaIpc,
-          conf[SIGNAL_DROP_ANALYZER_NAME],
+          conf.getSectionOrNew(SIGNAL_DROP_ANALYZER_NAME),
           Tag(QOS_CONTROLLER, "IPC detectorFilter"),
           Contention_Type_IPC),
       ipcEMAFilter(
           &ipcDropDetector,
           usage::getIpc,
           usage::setEmaIpc,
-          conf.item<double_t>(ema::ALPHA_IPC, ema::DEFAULT_ALPHA_IPC),
+          conf.getItemOrDefault<double_t>(ema::ALPHA_IPC,
+                                          ema::DEFAULT_ALPHA_IPC),
           Tag(QOS_CONTROLLER, "ipcEMAFilter")),
       tooLowUsageFilter(
           &ipcEMAFilter,
-          conf[TooLowUsageFilter::NAME],
+          conf.getSectionOrNew(TooLowUsageFilter::NAME),
           Tag(QOS_CONTROLLER, "tooLowCPUUsageFilter")),
       cpuContentionObserver(
           &correctionMerger,
           &ageFilter,
           new CpuContentionStrategy(
-            conf[CpuContentionStrategy::NAME],
+            conf.getSectionOrNew(CpuContentionStrategy::NAME),
             usage::getEmaCpuUsage),
           strategy::DEFAULT_CONTENTION_COOLDOWN,
           Tag(QOS_CONTROLLER, CpuContentionStrategy::NAME)),
       overloadDetector(
           &cpuContentionObserver,
           usage::getEmaCpuUsage,
-          conf[OverloadDetector::NAME],
+          conf.getSectionOrNew(OverloadDetector::NAME),
           Tag(QOS_CONTROLLER, "CPU High Usage utilization detector")),
       cpuEMAFilter(
           &overloadDetector,
           usage::getCpuUsage,
           usage::setEmaCpuUsage,
-          conf.item<double_t>(ema::ALPHA_CPU, ema::DEFAULT_ALPHA_CPU),
+          conf.getItemOrDefault<double_t>(ema::ALPHA_CPU,
+                                          ema::DEFAULT_ALPHA_CPU),
           Tag(QOS_CONTROLLER, "cpuEMAFilter")),
       cumulativeFilter(
           &tooLowUsageFilter,
@@ -164,7 +166,7 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       // First item in pipeline. For now, close the pipeline for QoS.
       valveFilter(
           &cumulativeFilter,
-          conf.item<bool>(VALVE_OPENED, DEFAULT_VALVE_OPENED),
+          conf.getItemOrDefault<bool>(VALVE_OPENED, DEFAULT_VALVE_OPENED),
           Tag(QOS_CONTROLLER, "valveFilter")) {
     this->ageFilter.addConsumer(&valveFilter);
     // Setup starting producer.

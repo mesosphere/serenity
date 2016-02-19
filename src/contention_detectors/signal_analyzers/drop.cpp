@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <list>
 #include <utility>
 
@@ -22,8 +23,7 @@ void SignalDropAnalyzer::recalculateParams() {
   this->window.clear();
   this->basePoints.clear();
 
-  uint64_t windowSize = this->cfgWindowSize;
-
+  uint64_t windowSize  = cfgWindowSize;
   // Find the biggest n in the T-2^n which fits within window length.
   uint64_t checkpoints = 0;
   while (windowSize > 0) {
@@ -31,34 +31,31 @@ void SignalDropAnalyzer::recalculateParams() {
     checkpoints++;
   }
 
-  // Make sure it does not exceed MAX_CHECKPOINSs option.
-  if (checkpoints > this->cfgMaxCheckpoints) {
-    checkpoints = this->cfgMaxCheckpoints;
-  }
+  // Make sure it does not exceed MAX_CHECKPOINTS option.
+  checkpoints = min(checkpoints, cfgMaxCheckpoints);
 
   // Get the Quorum number from QUORUM fraction parameter.
-  this->quorumNum = this->cfgQuroum * checkpoints;
-  if (this->quorumNum == 0 || this->quorumNum > checkpoints) {
+  quorumNum = cfgQuroumFraction * checkpoints;
+  if (quorumNum == 0 || quorumNum > checkpoints) {
     SERENITY_LOG(WARNING) << "Bad value for Quorum parameter. Creating 100%"
                           << " quorum.";
-    this->quorumNum = checkpoints;
+   quorumNum = checkpoints;
   }
 
   std::stringstream checkpointLog;
-  checkpointLog << "Assurance Parameters: Quorum = "
-                << this->quorumNum << "/"
+  checkpointLog << "Assurance Parameters: Quorum = " << quorumNum << "/"
                 << checkpoints << " Checkpoints [ ";
   // Iterate over window and initialize it. Choose proper base points starting
   // from the end of window.
   uint64_t choosenNum = pow(2, (--checkpoints));
-  for (uint64_t i = this->cfgWindowSize; i > 0 ; i--) {
-    this->window.push_back(detector::DEFAULT_START_VALUE);
+  for (uint64_t i = cfgWindowSize; i > 0 ; i--) {
+    window.push_back(detector::DEFAULT_START_VALUE);
 
     if (choosenNum == i) {
       checkpointLog << "T-" << choosenNum << " ";
 
       choosenNum /= 2;
-      basePoints.push_back(--this->window.end());
+      basePoints.push_back(--window.end());
     }
   }
   checkpointLog << "]";

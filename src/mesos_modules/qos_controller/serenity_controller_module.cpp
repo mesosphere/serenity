@@ -43,12 +43,12 @@ static QoSController* createSerenityController(
 
   SerenityConfig conf;
   double onEmptyCorrectionInterval =
-    conf.item<double_t>(ON_EMPTY_CORRECTION_INTERVAL,
+    conf.getItemOrDefault<double_t>(ON_EMPTY_CORRECTION_INTERVAL,
                         DEFAULT_ON_EMPTY_CORRECTION_INTERVAL);
 
   // Use static constructor of QoSController.
   Try<QoSController*> result =
-    SerenityController::create(std::shared_ptr<QoSControllerPipeline>(
+    SerenityController::create(std::unique_ptr<QoSControllerPipeline>(
                                  new CpuQoSPipeline(conf)),
                                onEmptyCorrectionInterval);
 

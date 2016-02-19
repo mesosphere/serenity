@@ -29,7 +29,7 @@ class TooLowUsageFilter :
       const SerenityConfig& _conf,
       const Tag& _tag = Tag(QOS_CONTROLLER, NAME))
       : Producer<ResourceUsage>(_consumer), tag(_tag) {
-    setCfgMinimalCpuUsage(_conf.item<double_t>(
+    setCfgMinimalCpuUsage(_conf.getItemOrDefault<double_t>(
         too_low_usage::MINIMAL_CPU_USAGE,
         too_low_usage::DEFAULT_MINIMAL_CPU_USAGE));
   }

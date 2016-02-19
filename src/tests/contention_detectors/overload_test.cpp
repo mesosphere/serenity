@@ -50,8 +50,10 @@ TEST(OverloadDetectorTest, LowUtilization) {
 
   OverloadDetector overloadDetector(
     &mockSink, usage::getCpuUsage,
-    createThresholdDetectorCfg(
-      UTIL_THRESHOLD));
+    SerenityConfig());
+
+  overloadDetector.setCfgUtilizationThreshold()
+
 
   // Fake slave ResourceUsage source.
   MockSource<ResourceUsage> usageSource(&overloadDetector);

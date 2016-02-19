@@ -39,8 +39,9 @@ class OverloadDetector :
       Producer<Contentions>(_consumer) {
     // Parse config values.
     setCfgUtilizationThreshold(
-      _conf.item<double_t>(detector::THRESHOLD,
-                           detector::DEFAULT_UTILIZATION_THRESHOLD));
+      _conf.getItemOrDefault<double_t>(
+          detector::THRESHOLD,
+          detector::DEFAULT_UTILIZATION_THRESHOLD));
   }
 
   ~OverloadDetector() {}

@@ -17,6 +17,109 @@
 namespace mesos {
 namespace serenity {
 
+template <typename T>
+class SerenityItem {
+ public:
+  SerenityItem(T _value, T _defaultValue, std::string _key) :
+    value(_value), defaultValue(_defaultValue), key(_key) {};
+
+  T getValueOrDefault() {
+    if (validationFailed) {
+      return defaultValue;
+    }
+
+    return value;
+  }
+
+  //! Validates that value is below given threshold item.
+  SerenityItem<T>& validateValueIsBelow(SerenityItem<T> _thresholdItem) {
+    assertTypeMatchNumericVariant<T>();
+
+    if (value > _thresholdItem.getValueOrDefault()) {
+      LOG(WARNING) << key << " option which is " << value
+                   << "must be below the " << _thresholdItem.key
+                   << " which is " << _thresholdItem.getValueOrDefault();
+
+      validationFailed = true;
+    }
+
+    return *this;
+  }
+
+  //! Validates that value is below given threshold.
+  SerenityItem<T>& validateValueIsBelow(T thresholdValue) {
+    assertTypeMatchNumericVariant<T>();
+
+    if (value > thresholdValue) {
+      LOG(WARNING) << key << " option which is " << value
+                   << "must be below " << thresholdValue;
+
+      validationFailed = true;
+    }
+
+    return *this;
+  }
+
+  //! Validates that value is above given threshold item.
+  SerenityItem<T>& validateValueIsAbove(SerenityItem<T> _thresholdItem) {
+    assertTypeMatchNumericVariant<T>();
+
+    if (value < _thresholdItem.getValueOrDefault()) {
+      LOG(WARNING) << key << " option which is " << value
+      << "must be above the " << _thresholdItem.key
+      << " which is " << _thresholdItem.getValueOrDefault();
+
+      validationFailed = true;
+    }
+
+    return *this;
+  }
+
+  //! Validates that value is above given threshold.
+  SerenityItem<T>& validateValueIsAbove(T thresholdValue) {
+    assertTypeMatchNumericVariant<T>();
+
+    if (value < thresholdValue) {
+      LOG(WARNING) << key << " option which is " << value
+      << "must be above " << thresholdValue;
+
+      validationFailed = true;
+    }
+
+    return *this;
+  }
+
+  //! Validates that value is positive.
+  SerenityItem<T>& validateValueIsPositive() {
+    assertTypeMatchNumericVariant<T>();
+
+    if (value < 0) {
+      LOG(WARNING) << key << " option which is " << value
+      << "must be above 0";
+
+      validationFailed = true;
+    }
+
+    return *this;
+  }
+
+ protected:
+  T value;
+  const T defaultValue;
+  const std::string key;
+  bool validationFailed = false;
+
+ private:
+  template <typename T>
+  static void assertTypeMatchNumericVariant() const {
+    static_assert(std::is_same<T, int64_t>()
+                  || std::is_same<T, double_t>(),
+                  "Function supports only following numeric types: int64_t, "
+                    "double_t");
+  }
+};
+
+
 /**
  * Serenity Config class which implements basic mechanism
  * to support specifying config parameters via string key map & sections.
@@ -28,113 +131,61 @@ class SerenityConfig {
   SerenityConfig() {}
 
   /**
-   * Variant type for storing multiple types of data in configuration.
-   */
-  using CfgVariant = boost::variant<
-    bool, int64_t, double_t, std::string>;
-
-  /**
-   * Overlapping custom configuration options using recursive copy.
-   */
-  void applyConfig(const SerenityConfig& customCfg) {
-    recursiveCfgCopy(this, customCfg);
-  }
-
-  /**
-   * Templated, safe getter for item in config.
+   * Safe getter for item in config.
+   * Return default value in case of error or none.
    */
   template <typename T>
-  const Result<T> item(const std::string& key) const {
-    static_assert(std::is_same<T, bool>()
-                  || std::is_same<T, int64_t>()
-                  || std::is_same<T, double_t>()
-                  || std::is_same<T, std::string>(),
-                  "T must be one of the types stored in CfgVariant (bool, "
-                  "int64_t, double_t, string)");
+  const SerenityItem<T> getItemAndSetDefault(
+    const std::string& key, T defaultValue) const {
+    assertTypeMatchVariant<T>();
 
-    Result<T> result = None();
-
-    // Get item from items map.
-    Option<SerenityConfig::CfgVariant> variantResult = getItem(key);
-
-    if (variantResult.isSome()) {
-      // When item is found, try to parse it to the specified T type.
-      try {
-        result = boost::get<T>(variantResult.get());
-      } catch (std::exception& e) {
-        LOG(ERROR) << "Failed to parse " << key
-                   << " field: " << e.what();
-        result = Result<T>::error(e.what());
-      }
-    }
-
-    return result;
-  }
-
-  /**
-   * Templated, safe getter for item in config. Sets default value in case of
-   * error or none.
-   */
-  template <typename T>
-  const T item(const std::string& key, T defaultValue) const {
-    static_assert(std::is_same<T, bool>()
-                  || std::is_same<T, int64_t>()
-                  || std::is_same<T, double_t>()
-                  || std::is_same<T, std::string>(),
-                  "T must be one of the types stored in CfgVariant (bool, "
-                    "int64_t, double_t, string)");
     T result = defaultValue;
 
     // Get item from items map.
-    Option<SerenityConfig::CfgVariant> variantResult = getItem(key);
+    Option<SerenityConfig::Item> value = getVariantValue(key);
 
-    if (variantResult.isSome()) {
+    if (value.isSome()) {
       // When item is found, try to parse it to the specified T type.
       try {
-        result = boost::get<T>(variantResult.get());
+        result = boost::get<T>(value.get());
       } catch (std::exception& e) {
         LOG(ERROR) << "Failed to parse " << key << " to type "
                    << typeid(T).name() << ". Field: " << e.what();
       }
     }
 
-    return result;
+    return SerenityItem<T>(result, defaultValue, key);
+  }
+
+  /**
+   * Gets config section.
+   */
+  Option<SerenityConfig> getSection(const std::string& sectionKey) {
+    auto mapItem = this->sections.find(sectionKey);
+    if (mapItem != this->sections.end()) {
+      return *(mapItem->second);
+    }
+
+    // Element not found.
+    return None();
   }
 
   /**
    * Gets config section.
    * In case there is not one, create empty section.
    */
-  SerenityConfig& operator[](const std::string& key) {
-    return *getSection(key);
-  }
+  SerenityConfig& getSectionOrNew(const std::string& sectionKey) {
+    auto mapItem = this->sections.find(sectionKey);
+    if (mapItem != this->sections.end()) {
+      return *(mapItem->second);
+    }
 
-  /**
-   * Templated set config value.
-   */
-  template <typename T>
-  void set(const std::string& key, T value) {
-    static_assert(std::is_same<T, bool>()
-                  || std::is_same<T, int64_t>()
-                  || std::is_same<T, double_t>()
-                  || std::is_same<T, std::string>(),
-                  "T must be one of the types stored in CfgVariant (bool, "
-                    "int64_t, double_t, string)");
-    this->setVariant(key, value);
-  }
+    // In case of no section under this key - create empty section.
+    std::shared_ptr<SerenityConfig> newSection =
+      std::shared_ptr<SerenityConfig>(new SerenityConfig());
+    sections[sectionKey] = newSection;
 
-  /**
-   * Templated set config value for char*.
-   */
-  void set(const std::string& key, char* value) {
-    this->setVariant(key, (std::string) value);
-  }
-
-  /**
-   * Sets CfgVariant config value.
-   */
-  void setVariant(const std::string& key, SerenityConfig::CfgVariant value) {
-    this->items[key] = value;
+    return *newSection;
   }
 
   bool hasKey(const std::string& key) const {
@@ -142,18 +193,22 @@ class SerenityConfig {
   }
 
   /**
-   * TODO(skonefal): Add UT for usage of this enum.
-   */
-  enum ConfigurationType : int {
-    BOOL = 0,
-    INT64 = 1,
-    UINT64 = 2,
-    DOUBLE = 3,
-    STRING = 4
-  };
+  * Overlapping custom configuration options using recursive copy.
+  */
+  void applyConfig(const SerenityConfig& customCfg) {
+    recursiveCfgCopy(this, customCfg);
+  }
 
  protected:
-  std::unordered_map<std::string, SerenityConfig::CfgVariant> items;
+  /**
+   * Variant type for storing multiple types of data in configuration.
+   */
+  using Item = boost::variant<bool, int64_t, double_t, std::string>;
+
+  /**
+   * Item
+   */
+  std::unordered_map<std::string, SerenityConfig::Item> items;
 
   /**
    * Support for hierarchical configuration sections.
@@ -161,33 +216,25 @@ class SerenityConfig {
   std::unordered_map<std::string, std::shared_ptr<SerenityConfig>> sections;
 
   /**
-   * Getter for section.
-   * In case of no section - create such.
+   * Put config value for Item types.
    */
-  std::shared_ptr<SerenityConfig> getSection(const std::string& sectionKey) {
-    auto mapItem = this->sections.find(sectionKey);
-    if (mapItem != this->sections.end()) {
-      return mapItem->second;
-    }
-
-    // In case of no section under this key - create empty section.
-    auto newSection = std::make_shared<SerenityConfig>(SerenityConfig());
-    this->sections[sectionKey] = newSection;
-
-    return newSection;
+  template <typename T>
+  void put(const std::string& key, T value) {
+    this->putVariant(key, value);
   }
 
   /**
-   * Getter for field.
+   * Put config value for char*.
    */
-  Option<SerenityConfig::CfgVariant> getItem(const std::string& itemKey) const {
-    auto mapItem = this->items.find(itemKey);
-    if (mapItem != this->items.end()) {
-      return mapItem->second;
-    }
+  void put(const std::string& key, char* value) {
+    this->putVariant(key, (std::string) value);
+  }
 
-    // Element not found.
-    return None();
+  /**
+   * Put Item config value.
+   */
+  void putVariant(const std::string& key, SerenityConfig::Item value) {
+    this->items[key] = value;
   }
 
   /**
@@ -201,8 +248,33 @@ class SerenityConfig {
 
     for (auto customSection : customCfg.sections) {
       this->recursiveCfgCopy(
-        &((*base)[customSection.first]), *customSection.second);
+          &(base->getSectionOrNew(customSection.first)), *customSection.second);
     }
+  }
+
+  /**
+   * Getter for Item.
+   */
+  Option<SerenityConfig::Item> getVariantValue(
+    const std::string& itemKey) const {
+    auto mapItem = this->items.find(itemKey);
+    if (mapItem != this->items.end()) {
+      return mapItem->second;
+    }
+
+    // Element not found.
+    return None();
+  }
+
+ private:
+  template <typename T>
+  static void assertTypeMatchVariant() const {
+    static_assert(std::is_same<T, bool>()
+                  || std::is_same<T, int64_t>()
+                  || std::is_same<T, double_t>()
+                  || std::is_same<T, std::string>(),
+                  "Config supports only following types: bool, int64_t, "
+                  "double_t, string");
   }
 };
 
