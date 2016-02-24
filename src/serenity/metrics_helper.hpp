@@ -22,7 +22,7 @@ namespace serenity {
  * @param _precision std::ratio of precision. Default std::micro
  */
 template <typename Ratio = std::milli>
-inline std::string DblTimestampToString(
+inline std::string TimestampToString(
     const double_t _timestamp,
     const Ratio _precision = std::micro()) {
   // count number of places after decimal

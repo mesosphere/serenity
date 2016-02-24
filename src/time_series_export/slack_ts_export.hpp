@@ -1,8 +1,10 @@
 #ifndef SERENITY_SLACK_TIME_SERIES_EXPORTER_HPP
 #define SERENITY_SLACK_TIME_SERIES_EXPORTER_HPP
 
+#include <string>
+
 #include "backend/time_series_backend.hpp"
-#include "backend/influx_db8.hpp"
+#include "backend/influx_db9.hpp"
 
 #include "mesos/mesos.hpp"
 #include "mesos/resources.hpp"
@@ -15,8 +17,8 @@ namespace serenity {
 class SlackTimeSeriesExporter : public Consumer<Resources> {
  public:
   SlackTimeSeriesExporter(
-      Variant _tag = "",
-      TimeSeriesBackend* _timeSeriesBackend = new InfluxDb8Backend()) :
+      std::string _tag = "",
+      TimeSeriesBackend* _timeSeriesBackend = new InfluxDb9Backend()) :
   timeSeriesBackend(_timeSeriesBackend),
   customTag(_tag) {}
 
@@ -25,7 +27,7 @@ class SlackTimeSeriesExporter : public Consumer<Resources> {
  protected:
   TimeSeriesBackend* timeSeriesBackend;
 
-  const Variant customTag;  //!< Custom tag that is added to every sample.
+  const std::string customTag;  //!< Custom tag that is added to every sample.
 };
 
 }  // namespace serenity

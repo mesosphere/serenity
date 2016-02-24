@@ -48,7 +48,7 @@
 
 #include "logging/logging.hpp"
 
-#include "time_series_export/backend/influx_db8.hpp"
+#include "time_series_export/backend/influx_db9.hpp"
 #include "time_series_export/backend/time_series_backend.hpp"
 
 #include "smoke_flags.hpp"
@@ -100,7 +100,7 @@ public:
     const Duration _reportInterval = Milliseconds(200))
     : jobs(_jobs),
       reportInterval(reportInterval),
-      dbBackend(new InfluxDb8Backend()),
+      dbBackend(new InfluxDb9Backend()),
       ProcessBase(process::ID::generate("stf")) {}
 
   void reportToInfluxDbJob() {
@@ -135,7 +135,7 @@ public:
 
   // TODO(bplotka): Add hostname.
   void sendToInflux(const Series series,
-                    const std::string taskName,
+                    const std::string& taskName,
                     const int64_t value = 1) {
     TimeSeriesRecord record(series, value);
     record.setTag(TsTag::TASK_NAME, taskName);
