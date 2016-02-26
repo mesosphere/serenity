@@ -134,7 +134,7 @@ set(SERENITY_SOURCES
     src/serenity/wid.cpp
     src/time_series_export/resource_usage_ts_export.cpp
     src/time_series_export/slack_ts_export.cpp
-    src/time_series_export/backend/influx_db8.cpp
+    src/time_series_export/backend/influx_db9.cpp
 )
 
 set(SERENITY_TEST_SOURCES
@@ -168,10 +168,13 @@ if (INTEGRATION_TESTS)
         # Needs Mesos Agent working on http://localhost:5051.
         src/tests/serenity/agent_utils_tests.cpp
 
-        # Needs InfluxDB 0.8.8
+        # Needs InfluxDB 0.9
+        src/tests/time_series_export/backend/influx_db9_test.cpp
+
+        # Needs InfluxDB 0.9 and Mesos Agent working on http://localhost:5051.
         src/tests/time_series_export/resource_usage_ts_export_test.cpp
         src/tests/time_series_export/slack_ts_export_test.cpp
-       )
+    )
 endif(INTEGRATION_TESTS)
 
 # Copy fixtures.
@@ -223,7 +226,7 @@ if (MESOS_SOURCE_DIR)
     # Serenity test framework exe.
     add_executable(smoke_test_framework
         src/mesos_frameworks/smoke_test/smoke_test_framework.cpp
-        src/time_series_export/backend/influx_db8.cpp)
+        src/time_series_export/backend/influx_db9.cpp)
     target_link_libraries(smoke_test_framework mesos protobuf glog stdc++ m curlcpp)
 
 else(MESOS_SOURCE_DIR)

@@ -4,7 +4,7 @@
 #include <string>
 
 #include "backend/time_series_backend.hpp"
-#include "backend/influx_db8.hpp"
+#include "backend/influx_db9.hpp"
 
 #include "mesos/mesos.hpp"
 #include "mesos/resources.hpp"
@@ -23,8 +23,8 @@ namespace serenity {
 class ResourceUsageTimeSeriesExporter : public Consumer<ResourceUsage> {
  public:
   ResourceUsageTimeSeriesExporter(
-      Variant _tag = "",
-      TimeSeriesBackend* _timeSeriesBackend = new InfluxDb8Backend()) :
+      std::string _tag = "",
+      TimeSeriesBackend* _timeSeriesBackend = new InfluxDb9Backend()) :
         timeSeriesBackend(_timeSeriesBackend),
         customTag(_tag) {}
 
@@ -35,7 +35,7 @@ class ResourceUsageTimeSeriesExporter : public Consumer<ResourceUsage> {
 
   std::string hostname;
 
-  const Variant customTag;  //!< Custom tag that is added to every sample.
+  const std::string customTag;  //!< Custom tag that is added to every sample.
 };
 
 }  // namespace serenity

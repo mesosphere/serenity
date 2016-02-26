@@ -1,7 +1,7 @@
 #include "tests/common/sources/json_source.hpp"
-#include "tests/common/sinks/mock_sink.hpp"
+#include "tests/common/mocks/mock_sink.hpp"
 
-#include "time_series_export/backend/influx_db8.hpp"
+#include "time_series_export/backend/influx_db9.hpp"
 #include "time_series_export/resource_usage_ts_export.hpp"
 
 namespace mesos {
@@ -9,8 +9,8 @@ namespace serenity {
 namespace tests {
 
 TEST(ResourceUsageTimeSeriesExport, BasicTest) {
-  InfluxDb8Backend backend("localhost", "8086", "serenity", "root", "root");
-  ResourceUsageTimeSeriesExporter ruExporter("tagged-test", backend);
+  InfluxDb9Backend backend("localhost", "8086", "serenity", "root", "root");
+  ResourceUsageTimeSeriesExporter ruExporter("tagged-test", &backend);
   JsonSource jsonSource;
   MockSink<ResourceUsage> mockSink;
 

@@ -30,8 +30,7 @@ Try<Nothing> SlackTimeSeriesExporter::consume(const Resources& resources) {
                        // stats reporting failure
   }
 
-  TimeSeriesRecord record(Series::SLACK_RESOURCES);
-  record.setTag(TsTag::VALUE, cpus);
+  TimeSeriesRecord record(Series::SLACK_RESOURCES, cpus);
   record.setTag(TsTag::HOSTNAME, hostname.get());
   record.setTag(TsTag::AGENT_ID, agentId.get());
   record.setTag(TsTag::TAG, this->customTag);

@@ -9,7 +9,8 @@
 
 #include "serenity/agent_utils.hpp"
 
-#include "resource_usage_ts_export.hpp"
+#include "time_series_export/resource_usage_ts_export.hpp"
+#include "time_series_export/backend/time_series_record.hpp"
 
 namespace mesos {
 namespace serenity {
