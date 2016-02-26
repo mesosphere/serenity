@@ -32,10 +32,10 @@ class SerenityControllerProcess :
  public:
   SerenityControllerProcess(
       const lambda::function<Future<ResourceUsage>()>& _usage,
-      std::shared_ptr<QoSControllerPipeline> _pipeline,
+      std::unique_ptr<QoSControllerPipeline> _pipeline,
       double _onEmptyCorrectionInterval)
     : usage(_usage),
-      pipeline(_pipeline),
+      pipeline(std::move(_pipeline)),
       onEmptyCorrectionInterval(_onEmptyCorrectionInterval) {}
 
   Future<QoSCorrections> corrections() {
@@ -84,7 +84,7 @@ class SerenityControllerProcess :
 
  private:
   const lambda::function<Future<ResourceUsage>()> usage;
-  std::shared_ptr<QoSControllerPipeline> pipeline;
+  std::unique_ptr<QoSControllerPipeline> pipeline;
   //! How much time we wait in case of empty correction.
   //! This value should be near the perf interval since it is useless
   //! to rerun QoS pipeline on the same perf's counter collection.
@@ -109,7 +109,7 @@ Try<Nothing> SerenityController::initialize(
   }
 
   process.reset(new SerenityControllerProcess(
-      usage, this->pipeline, this->onEmptyCorrectionInterval));
+      usage, std::move(this->pipeline), this->onEmptyCorrectionInterval));
   spawn(process.get());
 
   return Nothing();

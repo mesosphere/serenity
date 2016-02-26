@@ -15,6 +15,7 @@ using std::list;
 using std::pair;
 
 
+const constexpr char* SeniorityStrategy::STARTING_SEVERITY_KEY;
 
 Try<QoSCorrections> SeniorityStrategy::decide(
     ExecutorAgeFilter* ageFilter,

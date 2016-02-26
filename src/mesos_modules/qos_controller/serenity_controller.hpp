@@ -26,15 +26,16 @@ class SerenityControllerProcess;
 class SerenityController: public slave::QoSController {
  public:
   explicit SerenityController(
-      std::shared_ptr<QoSControllerPipeline> _pipeline,
+      std::unique_ptr<QoSControllerPipeline> _pipeline,
       double _onEmptyCorrectionInterval)
-    : pipeline(_pipeline),
+    : pipeline(std::move(_pipeline)),
       onEmptyCorrectionInterval(_onEmptyCorrectionInterval) {}
 
   static Try<slave::QoSController*> create(
-      std::shared_ptr<QoSControllerPipeline> _pipeline,
+      std::unique_ptr<QoSControllerPipeline> _pipeline,
       double _onEmptyCorrectionInterval = 5) {
-    return new SerenityController(_pipeline, _onEmptyCorrectionInterval);
+    return new SerenityController(std::move(_pipeline),
+                                  _onEmptyCorrectionInterval);
   }
 
   virtual ~SerenityController();
@@ -46,7 +47,7 @@ class SerenityController: public slave::QoSController {
 
  protected:
   process::Owned<SerenityControllerProcess> process;
-  std::shared_ptr<QoSControllerPipeline> pipeline;
+  std::unique_ptr<QoSControllerPipeline> pipeline;
   double onEmptyCorrectionInterval;
 };
 

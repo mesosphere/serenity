@@ -10,7 +10,6 @@
 #include "messages/serenity.hpp"
 
 #include "serenity/data_utils.hpp"
-#include "serenity/default_vars.hpp"
 #include "serenity/executor_map.hpp"
 #include "serenity/executor_set.hpp"
 #include "serenity/serenity.hpp"
@@ -36,7 +35,7 @@ class ExponentialMovingAverage {
  public:
   ExponentialMovingAverage(
       EMASeriesType _seriesType = EMA_REGULAR_SERIES,
-      double_t _alpha = ema::DEFAULT_ALPHA)
+      double_t _alpha = ALPHA_DEFAULT)
       : alpha(_alpha),
         seriesType(_seriesType),
         uninitialized(true) {}
@@ -55,6 +54,7 @@ class ExponentialMovingAverage {
   double_t calculateEMA(double_t sample, double_t sampleTimestamp);
 
  private:
+  static const constexpr double_t ALPHA_DEFAULT = 0.2;
   //! Constant describing how the window weights decrease over time.
   //! It controls how long the moving average period is.
   //! The smaller alpha becomes, the longer your moving average is.
@@ -103,7 +103,7 @@ class EMAFilter :
       Consumer<ResourceUsage>* _consumer,
       const lambda::function<usage::GetterFunction>& _valueGetFunction,
       const lambda::function<usage::SetterFunction>& _valueSetFunction,
-      double_t _alpha = ema::DEFAULT_ALPHA,
+      double_t _alpha = ALPHA_DEFAULT,
       const Tag& _tag = Tag(UNDEFINED, "emaFilter"))
     : tag(_tag), Producer<ResourceUsage>(_consumer),
       emaSamples(new ExecutorMap<ExponentialMovingAverage>()),
@@ -121,6 +121,8 @@ class EMAFilter :
   const lambda::function<usage::GetterFunction> valueGetFunction;
   const lambda::function<usage::SetterFunction> valueSetFunction;
   std::unique_ptr<ExecutorMap<ExponentialMovingAverage>> emaSamples;
+
+  static const constexpr double_t ALPHA_DEFAULT = 0.2;
 };
 
 }  // namespace serenity

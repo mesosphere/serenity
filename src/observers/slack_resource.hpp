@@ -11,7 +11,6 @@
 
 #include "stout/result.hpp"
 
-#include "serenity/default_vars.hpp"
 #include "serenity/executor_set.hpp"
 #include "serenity/serenity.hpp"
 
@@ -39,16 +38,16 @@ class SlackResourceObserver : public Consumer<ResourceUsage>,
  public:
   explicit SlackResourceObserver(
       double_t _maxOversubscriptionFraction =
-        slack_observer::DEFAULT_MAX_OVERSUBSCRIPTION_FRACTION)
-      : previousSamples(new ExecutorSet()),
-        maxOversubscriptionFraction(_maxOversubscriptionFraction),
-        default_role(getDefaultRole()) {}
+        MAX_OVERSUBSCRIPTION_FRACTION_DEFAULT)
+    : previousSamples(new ExecutorSet()),
+      maxOversubscriptionFraction(_maxOversubscriptionFraction),
+      default_role(getDefaultRole()) {}
 
   SlackResourceObserver(
       Consumer<Resources>* _consumer,
       double_t _maxOversubscriptionFraction =
-        slack_observer::DEFAULT_MAX_OVERSUBSCRIPTION_FRACTION) :
-      Producer<Resources>(_consumer),
+        MAX_OVERSUBSCRIPTION_FRACTION_DEFAULT)
+    : Producer<Resources>(_consumer),
       maxOversubscriptionFraction(_maxOversubscriptionFraction),
       previousSamples(new ExecutorSet()),
       default_role(getDefaultRole()) {}
@@ -76,6 +75,8 @@ class SlackResourceObserver : public Consumer<ResourceUsage>,
   SlackResourceObserver(const SlackResourceObserver& other)
       : default_role(getDefaultRole()) {}
   std::string default_role;
+
+  static const constexpr double_t MAX_OVERSUBSCRIPTION_FRACTION_DEFAULT = 0.8;
 };
 
 }  // namespace serenity

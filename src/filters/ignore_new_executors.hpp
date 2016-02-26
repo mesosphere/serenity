@@ -9,7 +9,6 @@
 
 #include "messages/serenity.hpp"
 
-#include "serenity/default_vars.hpp"
 #include "serenity/executor_map.hpp"
 #include "serenity/serenity.hpp"
 
@@ -32,7 +31,7 @@ class IgnoreNewExecutorsFilter : public Consumer<ResourceUsage>,
  public:
   explicit IgnoreNewExecutorsFilter(
     Consumer<ResourceUsage>* _consumer = nullptr,
-    uint32_t _thresholdSeconds = new_executor::DEFAULT_THRESHOLD_SEC) :
+    uint32_t _thresholdSeconds = THRESHOLD_SEC_DEFAULT) :
       Producer<ResourceUsage>(_consumer),
       threshold(_thresholdSeconds),
       executorTimestamps(new ExecutorMap<time_t>) {}
@@ -61,6 +60,8 @@ class IgnoreNewExecutorsFilter : public Consumer<ResourceUsage>,
 
   static constexpr const char* name =
     "[SerenityEstimator] IgnoreNewExecutorsFilter: ";
+
+  static constexpr uint32_t THRESHOLD_SEC_DEFAULT = 5 * 60;  // !< Five minutes.
 };
 
 }  // namespace serenity

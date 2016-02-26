@@ -20,22 +20,6 @@
 namespace mesos {
 namespace serenity {
 
-class OverloadDetectorConfig : public SerenityConfig {
- public:
-  OverloadDetectorConfig() { }
-
-  explicit OverloadDetectorConfig(const SerenityConfig& customCfg) {
-    this->initDefaults();
-    this->applyConfig(customCfg);
-  }
-
-  void initDefaults() {
-    //! double_t
-    //! Detector threshold.
-    this->fields[detector::THRESHOLD] =
-      detector::DEFAULT_UTILIZATION_THRESHOLD;
-  }
-};
 
 /**
  * OverloadDetector is able to create contention if utilization is above
@@ -48,28 +32,40 @@ class OverloadDetector :
   OverloadDetector(
       Consumer<Contentions>* _consumer,
       const lambda::function<usage::GetterFunction>& _cpuUsageGetFunction,
-      SerenityConfig _conf,
+      const Config& _conf,
       const Tag& _tag = Tag(QOS_CONTROLLER, NAME))
     : tag(_tag),
       cpuUsageGetFunction(_cpuUsageGetFunction),
       Producer<Contentions>(_consumer) {
-    SerenityConfig config = OverloadDetectorConfig(_conf);
-    this->cfgUtilizationThreshold =
-      config.getD(detector::THRESHOLD);
+    // Parse config values.
+    setUtilizationThreshold(
+        _conf.getValue<double_t>(UTILIZATION_THRESHOLD_KEY));
   }
 
   ~OverloadDetector() {}
 
-  Try<Nothing> consume(const ResourceUsage& in) override;
-
   static const constexpr char* NAME = "OverloadDetector";
 
+  void setUtilizationThreshold(const Result<double_t>& value) {
+    cfgUtilizationThreshold =
+      ConfigValidator<double_t>(value, UTILIZATION_THRESHOLD_KEY)
+        .validateValueIsPositive()
+        .getOrElse(DEFAULT_UTILIZATION_THRESHOLD);
+  }
+
+  static const constexpr char* UTILIZATION_THRESHOLD_KEY = "THRESHOLD";
+
  protected:
+  void allProductsReady() override;
+  bool hasRequiredFields(const ResourceUsage_Executor& inExec);
+
   const Tag tag;
   const lambda::function<usage::GetterFunction> cpuUsageGetFunction;
 
   // cfg parameters.
   double_t cfgUtilizationThreshold;
+
+  static const constexpr double_t DEFAULT_UTILIZATION_THRESHOLD = 0.72;
 };
 
 }  // namespace serenity

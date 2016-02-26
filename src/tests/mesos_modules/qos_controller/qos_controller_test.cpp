@@ -51,7 +51,7 @@ class TestCorrectionPipeline : public QoSControllerPipeline {
 TEST(SerenityControllerTest, PipelineIntegration) {
   Try<QoSController*> qoSController =
     serenity::SerenityController::create(
-        std::shared_ptr<QoSControllerPipeline>(
+        std::unique_ptr<QoSControllerPipeline>(
             new TestCorrectionPipeline()));
   ASSERT_SOME(qoSController);
 

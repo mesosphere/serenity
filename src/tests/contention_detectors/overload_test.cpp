@@ -20,7 +20,6 @@
 
 #include "stout/gtest.hpp"
 
-#include "tests/common/config_helper.hpp"
 #include "tests/common/signal_helper.hpp"
 #include "tests/common/usage_helper.hpp"
 #include "tests/common/mocks/mock_sink.hpp"
@@ -50,8 +49,9 @@ TEST(OverloadDetectorTest, LowUtilization) {
 
   OverloadDetector overloadDetector(
     &mockSink, usage::getCpuUsage,
-    createThresholdDetectorCfg(
-      UTIL_THRESHOLD));
+    Config());
+
+  overloadDetector.setUtilizationThreshold(UTIL_THRESHOLD);
 
   // Fake slave ResourceUsage source.
   MockSource<ResourceUsage> usageSource(&overloadDetector);
@@ -101,8 +101,9 @@ TEST(OverloadDetectorTest, HighUtilization) {
 
   OverloadDetector overloadDetector(
     &mockSink, usage::getCpuUsage,
-    createThresholdDetectorCfg(
-      UTIL_THRESHOLD));
+    Config());
+
+  overloadDetector.setUtilizationThreshold(UTIL_THRESHOLD);
 
   // Fake slave ResourceUsage source.
   MockSource<ResourceUsage> usageSource(&overloadDetector);
@@ -157,9 +158,9 @@ TEST(OverloadDetectorTest, IntegrationTest) {
 
   OverloadDetector overloadDetector(
     &mockSink, usage::getEmaCpuUsage,
-    createThresholdDetectorCfg(
-      UTIL_THRESHOLD));
+    Config());
 
+  overloadDetector.setUtilizationThreshold(UTIL_THRESHOLD);
 
   EMAFilter cpuEMAFilter(&overloadDetector,
                          usage::getCpuUsage,

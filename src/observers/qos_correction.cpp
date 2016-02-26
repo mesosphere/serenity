@@ -57,7 +57,7 @@ void QoSCorrectionObserver::allProductsReady() {
 
   // Strategy has pointed aggressors, so don't pass
   // current contentions to next QoS Controller.
-  iterationCooldownCounter = this->cooldownIterations;
+  iterationCooldownCounter = cfgCooldownIterations;
   produceResults(corrections.get(), Contentions());
 }
 

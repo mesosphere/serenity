@@ -8,6 +8,7 @@
 
 #include "stout/nothing.hpp"
 #include "stout/try.hpp"
+#include "stout/result.hpp"
 
 namespace mesos {
 namespace serenity {

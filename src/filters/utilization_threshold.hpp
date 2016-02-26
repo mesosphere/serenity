@@ -4,7 +4,6 @@
 #include <string>
 #include <memory>
 
-#include "serenity/default_vars.hpp"
 #include "serenity/executor_set.hpp"
 #include "serenity/serenity.hpp"
 
@@ -27,7 +26,7 @@ class UtilizationThresholdFilter :
     public Consumer<ResourceUsage>, public Producer<ResourceUsage> {
  public:
   UtilizationThresholdFilter(
-        double_t _utilizationThreshold = utilization::DEFAULT_THRESHOLD,
+        double_t _utilizationThreshold = THRESHOLD_DEFAULT,
         const Tag& _tag = Tag(UNDEFINED, "utilizationFilter"))
       : tag(_tag),
         utilizationThreshold(_utilizationThreshold),
@@ -35,7 +34,7 @@ class UtilizationThresholdFilter :
 
   UtilizationThresholdFilter(
       Consumer<ResourceUsage>* _consumer,
-      double_t _utilizationThreshold = utilization::DEFAULT_THRESHOLD,
+      double_t _utilizationThreshold = THRESHOLD_DEFAULT,
       const Tag& _tag = Tag(UNDEFINED, "utilizationFilter"))
       : tag(_tag), Producer<ResourceUsage>(_consumer),
         utilizationThreshold(_utilizationThreshold),
@@ -56,6 +55,8 @@ class UtilizationThresholdFilter :
   const std::string UTILIZATION_THRESHOLD_FILTER_WARNING = "Filter is not" \
     "able to calculate total cpu usage and will base on allocated " \
     " resources to cut off oversubscription if needed.";
+
+  static constexpr double_t THRESHOLD_DEFAULT = 0.95;
 };
 
 }  // namespace serenity

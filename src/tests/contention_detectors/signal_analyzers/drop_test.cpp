@@ -11,8 +11,6 @@
 
 #include "serenity/data_utils.hpp"
 
-#include "tests/common/config_helper.hpp"
-
 namespace mesos {
 namespace serenity {
 namespace tests {
@@ -35,12 +33,14 @@ TEST(SignalDropAnalyzerTest, StableSignal) {
 
   SignalDropAnalyzer signalDropAnalyzer(
     Tag(QOS_CONTROLLER, "SignalDropAnalyzer"),
-    createAssuranceAnalyzerCfg(
-        WINDOWS_SIZE,
-        MAX_CHECKPOINTS,
-        FRACTION_THRESHOLD,
-        SEVERITY_FRACTION,
-        NEAR_FRACTION));
+    Config());
+
+  signalDropAnalyzer.setWindowsSizeAndMaxCheckpoints(
+      WINDOWS_SIZE,
+      MAX_CHECKPOINTS);
+  signalDropAnalyzer.setFractionalThreshold(FRACTION_THRESHOLD);
+  signalDropAnalyzer.setSeverityFraction(SEVERITY_FRACTION);
+  signalDropAnalyzer.setNearFraction(NEAR_FRACTION);
 
   SignalScenario signalGen =
     SignalScenario(ITERATIONS)
@@ -67,13 +67,15 @@ TEST(SignalDropAnalyzerTest, StableLoadOneBigDrop) {
 
   SignalDropAnalyzer signalDropAnalyzer(
     Tag(QOS_CONTROLLER, "SignalDropAnalyzer"),
-    createAssuranceAnalyzerCfg(
-      WINDOWS_SIZE,
-      MAX_CHECKPOINTS,
-      FRACTION_THRESHOLD,
-      SEVERITY_FRACTION,
-      NEAR_FRACTION,
-      QUORUM));
+    Config());
+
+  signalDropAnalyzer.setWindowsSizeAndMaxCheckpoints(
+    WINDOWS_SIZE,
+    MAX_CHECKPOINTS);
+  signalDropAnalyzer.setFractionalThreshold(FRACTION_THRESHOLD);
+  signalDropAnalyzer.setSeverityFraction(SEVERITY_FRACTION);
+  signalDropAnalyzer.setNearFraction(NEAR_FRACTION);
+  signalDropAnalyzer.setQuroumFraction(QUORUM);
 
   SignalScenario signalGen =
     SignalScenario(ITERATIONS)
@@ -95,23 +97,25 @@ TEST(SignalDropAnalyzerTest, StableLoadOneBigDrop) {
 
 
 TEST(SignalDropAnalyzerTest, StableLoadOneBigDropWithReset) {
-  const uint64_t WINDOWS_SIZE = 8;
-  const uint64_t MAX_CHECKPOINTS = 4;
+  const int64_t WINDOWS_SIZE = 8;
+  const int64_t MAX_CHECKPOINTS = 4;
   const double_t FRACTION_THRESHOLD = 0.5;
   const double_t SEVERITY_FRACTION = 1;
   const double_t NEAR_FRACTION = 0.1;
   const double_t QUORUM = 0.50;
-  const uint64_t ITERATIONS = 30;
+  const int64_t ITERATIONS = 30;
 
   SignalDropAnalyzer signalDropAnalyzer(
     Tag(QOS_CONTROLLER, "SignalDropAnalyzer"),
-    createAssuranceAnalyzerCfg(
-      WINDOWS_SIZE,
-      MAX_CHECKPOINTS,
-      FRACTION_THRESHOLD,
-      SEVERITY_FRACTION,
-      NEAR_FRACTION,
-      QUORUM));
+    Config());
+
+  signalDropAnalyzer.setWindowsSizeAndMaxCheckpoints(
+    WINDOWS_SIZE,
+    MAX_CHECKPOINTS);
+  signalDropAnalyzer.setFractionalThreshold(FRACTION_THRESHOLD);
+  signalDropAnalyzer.setSeverityFraction(SEVERITY_FRACTION);
+  signalDropAnalyzer.setNearFraction(NEAR_FRACTION);
+  signalDropAnalyzer.setQuroumFraction(QUORUM);
 
   SignalScenario signalGen =
     SignalScenario(ITERATIONS)
@@ -146,13 +150,15 @@ TEST(SignalDropAnalyzerTest, StableLoadOneProgressiveDrop) {
 
   SignalDropAnalyzer signalDropAnalyzer(
     Tag(QOS_CONTROLLER, "SignalDropAnalyzer"),
-    createAssuranceAnalyzerCfg(
-      WINDOWS_SIZE,
-      MAX_CHECKPOINTS,
-      FRACTION_THRESHOLD,
-      SEVERITY_FRACTION,
-      NEAR_FRACTION,
-      QUORUM));
+    Config());
+
+  signalDropAnalyzer.setWindowsSizeAndMaxCheckpoints(
+    WINDOWS_SIZE,
+    MAX_CHECKPOINTS);
+  signalDropAnalyzer.setFractionalThreshold(FRACTION_THRESHOLD);
+  signalDropAnalyzer.setSeverityFraction(SEVERITY_FRACTION);
+  signalDropAnalyzer.setNearFraction(NEAR_FRACTION);
+  signalDropAnalyzer.setQuroumFraction(QUORUM);
 
   SignalScenario signalGen =
     SignalScenario(ITERATIONS)
@@ -184,13 +190,15 @@ TEST(SignalDropAnalyzerTest, StableLoadOneBigDropAndRecovery) {
 
   SignalDropAnalyzer signalDropAnalyzer(
     Tag(QOS_CONTROLLER, "SignalDropAnalyzer"),
-    createAssuranceAnalyzerCfg(
-      WINDOWS_SIZE,
-      MAX_CHECKPOINTS,
-      FRACTION_THRESHOLD,
-      SEVERITY_FRACTION,
-      NEAR_FRACTION,
-      QUORUM));
+    Config());
+
+  signalDropAnalyzer.setWindowsSizeAndMaxCheckpoints(
+    WINDOWS_SIZE,
+    MAX_CHECKPOINTS);
+  signalDropAnalyzer.setFractionalThreshold(FRACTION_THRESHOLD);
+  signalDropAnalyzer.setSeverityFraction(SEVERITY_FRACTION);
+  signalDropAnalyzer.setNearFraction(NEAR_FRACTION);
+  signalDropAnalyzer.setQuroumFraction(QUORUM);
 
   SignalScenario signalGen =
     SignalScenario(ITERATIONS)
@@ -225,13 +233,15 @@ TEST(SignalDropAnalyzerTest, NoisyLoadOneBigDropLessCheckpoints) {
 
   SignalDropAnalyzer signalDropAnalyzer(
     Tag(QOS_CONTROLLER, "SignalDropAnalyzer"),
-    createAssuranceAnalyzerCfg(
-      WINDOWS_SIZE,
-      MAX_CHECKPOINTS,
-      FRACTION_THRESHOLD,
-      SEVERITY_FRACTION,
-      NEAR_FRACTION,
-      QUORUM));
+    Config());
+
+  signalDropAnalyzer.setWindowsSizeAndMaxCheckpoints(
+    WINDOWS_SIZE,
+    MAX_CHECKPOINTS);
+  signalDropAnalyzer.setFractionalThreshold(FRACTION_THRESHOLD);
+  signalDropAnalyzer.setSeverityFraction(SEVERITY_FRACTION);
+  signalDropAnalyzer.setNearFraction(NEAR_FRACTION);
+  signalDropAnalyzer.setQuroumFraction(QUORUM);
 
   SignalScenario signalGen =
     SignalScenario(ITERATIONS)
@@ -265,13 +275,15 @@ TEST(SignalDropAnalyzerTest, NoisyLoadOneBigDropMoreCheckpoints) {
 
   SignalDropAnalyzer signalDropAnalyzer(
     Tag(QOS_CONTROLLER, "SignalDropAnalyzer"),
-    createAssuranceAnalyzerCfg(
-      WINDOWS_SIZE,
-      MAX_CHECKPOINTS,
-      FRACTION_THRESHOLD,
-      SEVERITY_FRACTION,
-      NEAR_FRACTION,
-      QUORUM));
+    Config());
+
+  signalDropAnalyzer.setWindowsSizeAndMaxCheckpoints(
+    WINDOWS_SIZE,
+    MAX_CHECKPOINTS);
+  signalDropAnalyzer.setFractionalThreshold(FRACTION_THRESHOLD);
+  signalDropAnalyzer.setSeverityFraction(SEVERITY_FRACTION);
+  signalDropAnalyzer.setNearFraction(NEAR_FRACTION);
+  signalDropAnalyzer.setQuroumFraction(QUORUM);
 
   SignalScenario signalGen =
     SignalScenario(ITERATIONS)

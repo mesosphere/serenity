@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <list>
 #include <utility>
 
@@ -9,6 +10,15 @@
 
 namespace mesos {
 namespace serenity {
+
+
+const constexpr char* SignalDropAnalyzer::WINDOW_SIZE_KEY;
+const constexpr char* SignalDropAnalyzer::FRACTIONAL_THRESHOLD_KEY;
+const constexpr char* SignalDropAnalyzer::SEVERITY_FRACTION_KEY;
+const constexpr char* SignalDropAnalyzer::NEAR_FRACTION_KEY;
+const constexpr char* SignalDropAnalyzer::MAX_CHECKPOINTS_KEY;
+const constexpr char* SignalDropAnalyzer::QUORUM_FRACTION_KEY;
+const constexpr double_t SignalDropAnalyzer::START_VALUE_DEFAULT;
 
 void SignalDropAnalyzer::shiftBasePoints() {
   for (std::list<double_t>::iterator& basePoint : this->basePoints) {
@@ -22,8 +32,7 @@ void SignalDropAnalyzer::recalculateParams() {
   this->window.clear();
   this->basePoints.clear();
 
-  uint64_t windowSize = this->cfgWindowSize;
-
+  uint64_t windowSize  = cfgWindowSize;
   // Find the biggest n in the T-2^n which fits within window length.
   uint64_t checkpoints = 0;
   while (windowSize > 0) {
@@ -31,34 +40,31 @@ void SignalDropAnalyzer::recalculateParams() {
     checkpoints++;
   }
 
-  // Make sure it does not exceed MAX_CHECKPOINSs option.
-  if (checkpoints > this->cfgMaxCheckpoints) {
-    checkpoints = this->cfgMaxCheckpoints;
-  }
+  // Make sure it does not exceed MAX_CHECKPOINTS option.
+  checkpoints = std::min((int64_t)checkpoints, cfgMaxCheckpoints);
 
   // Get the Quorum number from QUORUM fraction parameter.
-  this->quorumNum = this->cfgQuroum * checkpoints;
-  if (this->quorumNum == 0 || this->quorumNum > checkpoints) {
+  quorumNum = cfgQuroumFraction * checkpoints;
+  if (quorumNum == 0 || quorumNum > checkpoints) {
     SERENITY_LOG(WARNING) << "Bad value for Quorum parameter. Creating 100%"
                           << " quorum.";
-    this->quorumNum = checkpoints;
+    quorumNum = checkpoints;
   }
 
   std::stringstream checkpointLog;
-  checkpointLog << "Assurance Parameters: Quorum = "
-                << this->quorumNum << "/"
+  checkpointLog << "Assurance Parameters: Quorum = " << quorumNum << "/"
                 << checkpoints << " Checkpoints [ ";
   // Iterate over window and initialize it. Choose proper base points starting
   // from the end of window.
   uint64_t choosenNum = pow(2, (--checkpoints));
-  for (uint64_t i = this->cfgWindowSize; i > 0 ; i--) {
-    this->window.push_back(detector::DEFAULT_START_VALUE);
+  for (uint64_t i = cfgWindowSize; i > 0 ; i--) {
+    window.push_back(START_VALUE_DEFAULT);
 
     if (choosenNum == i) {
       checkpointLog << "T-" << choosenNum << " ";
 
       choosenNum /= 2;
-      basePoints.push_back(--this->window.end());
+      basePoints.push_back(--window.end());
     }
   }
   checkpointLog << "]";
@@ -68,6 +74,12 @@ void SignalDropAnalyzer::recalculateParams() {
 
 
 Result<Detection> SignalDropAnalyzer::processSample(double_t in) {
+  if (paramsChanged) {
+    recalculateParams();
+    paramsChanged = false;
+  }
+
+
   // Fill window.
   if (in < 0.1)
     in = 0.1;
