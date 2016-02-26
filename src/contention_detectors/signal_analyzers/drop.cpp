@@ -11,6 +11,15 @@
 namespace mesos {
 namespace serenity {
 
+
+const constexpr char* SignalDropAnalyzer::WINDOW_SIZE_KEY;
+const constexpr char* SignalDropAnalyzer::FRACTIONAL_THRESHOLD_KEY;
+const constexpr char* SignalDropAnalyzer::SEVERITY_FRACTION_KEY;
+const constexpr char* SignalDropAnalyzer::NEAR_FRACTION_KEY;
+const constexpr char* SignalDropAnalyzer::MAX_CHECKPOINTS_KEY;
+const constexpr char* SignalDropAnalyzer::QUORUM_FRACTION_KEY;
+const constexpr double_t SignalDropAnalyzer::START_VALUE_DEFAULT;
+
 void SignalDropAnalyzer::shiftBasePoints() {
   for (std::list<double_t>::iterator& basePoint : this->basePoints) {
     basePoint++;
@@ -32,14 +41,14 @@ void SignalDropAnalyzer::recalculateParams() {
   }
 
   // Make sure it does not exceed MAX_CHECKPOINTS option.
-  checkpoints = min(checkpoints, cfgMaxCheckpoints);
+  checkpoints = std::min((int64_t)checkpoints, cfgMaxCheckpoints);
 
   // Get the Quorum number from QUORUM fraction parameter.
   quorumNum = cfgQuroumFraction * checkpoints;
   if (quorumNum == 0 || quorumNum > checkpoints) {
     SERENITY_LOG(WARNING) << "Bad value for Quorum parameter. Creating 100%"
                           << " quorum.";
-   quorumNum = checkpoints;
+    quorumNum = checkpoints;
   }
 
   std::stringstream checkpointLog;
@@ -49,7 +58,7 @@ void SignalDropAnalyzer::recalculateParams() {
   // from the end of window.
   uint64_t choosenNum = pow(2, (--checkpoints));
   for (uint64_t i = cfgWindowSize; i > 0 ; i--) {
-    window.push_back(detector::DEFAULT_START_VALUE);
+    window.push_back(START_VALUE_DEFAULT);
 
     if (choosenNum == i) {
       checkpointLog << "T-" << choosenNum << " ";
@@ -65,6 +74,12 @@ void SignalDropAnalyzer::recalculateParams() {
 
 
 Result<Detection> SignalDropAnalyzer::processSample(double_t in) {
+  if (paramsChanged) {
+    recalculateParams();
+    paramsChanged = false;
+  }
+
+
   // Fill window.
   if (in < 0.1)
     in = 0.1;

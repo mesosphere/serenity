@@ -52,36 +52,18 @@ class SignalDropAnalyzer : public SignalAnalyzer {
  public:
   explicit SignalDropAnalyzer(
       const Tag& _tag,
-      const SerenityConfig& _config)
+      const Config& _config)
     : SignalAnalyzer(_tag),
       valueBeforeDrop(None()),
       quorumNum(0) {
-
     setWindowsSizeAndMaxCheckpoints(
-        _config.getItemAndSetDefault<int64_t>(
-           SignalDropAnalyzer::WINDOW_SIZE_KEY,
-           SignalDropAnalyzer::WINDOW_SIZE_DEFAULT),
-        _config.getItemAndSetDefault<int64_t>(
-           SignalDropAnalyzer::MAX_CHECKPOINTS_KEY,
-           SignalDropAnalyzer::MAX_CHECKPOINTS_DEFAULT));
-
-    setQuroumFraction(_config.getItemAndSetDefault<double_t>(
-        SignalDropAnalyzer::QUORUM_FRACTION_KEY,
-        SignalDropAnalyzer::QUORUM_FRACTION_DEFAULT));
-
-    setFractionalThreshold(_config.getItemAndSetDefault<double_t>(
-        SignalDropAnalyzer::FRACTIONAL_THRESHOLD_KEY,
-        SignalDropAnalyzer::FRACTIONAL_THRESHOLD_DEFAULT));
-
-    setNearFraction(_config.getItemAndSetDefault<double_t>(
-        SignalDropAnalyzer::NEAR_FRACTION_KEY,
-        SignalDropAnalyzer::NEAR_FRACTION_DEFAULT));
-
-    setSeverityFraction(_config.getItemAndSetDefault<double_t>(
-        SignalDropAnalyzer::SEVERITY_FRACTION_KEY,
-        SignalDropAnalyzer::SEVERITY_FRACTION_DEFAULT));
-
-    this->recalculateParams();
+        _config.getValue<int64_t>(WINDOW_SIZE_KEY),
+        _config.getValue<int64_t>(MAX_CHECKPOINTS_KEY));
+    setQuroumFraction(_config.getValue<double_t>(QUORUM_FRACTION_KEY));
+    setFractionalThreshold(
+        _config.getValue<double_t>(FRACTIONAL_THRESHOLD_KEY));
+    setNearFraction(_config.getValue<double_t>(NEAR_FRACTION_KEY));
+    setSeverityFraction(_config.getValue<double_t>(SEVERITY_FRACTION_KEY));
   }
 
   Result<Detection> _processSample(double_t in);
@@ -95,6 +77,65 @@ class SignalDropAnalyzer : public SignalAnalyzer {
    */
   void shiftBasePoints();
 
+  //! WindowSize: How far in the past we look.
+  //! MaxCheckpoints: Maximum number of checkpoints we will have in our
+  //! assurance detector.
+  //! Checkpoints are the reference assurance_test(base) points which we refer
+  //! to in the past when detecting drop or not.
+  //! It needs to be 0 < and < WINDOW_SIZE.
+  void setWindowsSizeAndMaxCheckpoints(
+    const Result<int64_t>& _cfgWindowSize,
+    const Result<int64_t>& _cfgMaxCheckpoints) {
+    cfgWindowSize = ConfigValidator<int64_t>(_cfgWindowSize, WINDOW_SIZE_KEY)
+      .validateValueIsPositive()
+      .getOrElse(WINDOW_SIZE_DEFAULT);
+
+    cfgMaxCheckpoints =
+      ConfigValidator<int64_t>(_cfgMaxCheckpoints, MAX_CHECKPOINTS_KEY)
+        .validateValueIsPositive()
+        .validateValueIsBelow(cfgWindowSize, WINDOW_SIZE_KEY)
+        .getOrElse(MAX_CHECKPOINTS_DEFAULT);
+    paramsChanged = true;
+  }
+
+  //! Fraction of checkpoints' votes needed to make a Drop contention.
+  void setQuroumFraction(const Result<double_t>& value) {
+    cfgQuroumFraction = ConfigValidator<double_t>(value, QUORUM_FRACTION_KEY)
+      .validateValueIsPositive()
+      .getOrElse(QUORUM_FRACTION_DEFAULT);
+    paramsChanged = true;
+  }
+
+  //! Defines how much (relatively to base point) value must drop to trigger
+  //! contention.
+  void setFractionalThreshold(const Result<double_t>& value) {
+    cfgFractionalThreshold =
+      ConfigValidator<double_t>(value, FRACTIONAL_THRESHOLD_KEY)
+        .validateValueIsPositive()
+        .getOrElse(FRACTIONAL_THRESHOLD_DEFAULT);
+    paramsChanged = true;
+  }
+
+  //! You can adjust how big severity is created for a defined drop.
+  //! if -1 then unknown severity will be reported.
+  void setSeverityFraction(const Result<double_t>& value) {
+    cfgSeverityFraction =
+      ConfigValidator<double_t>(value, SEVERITY_FRACTION_KEY)
+        .getOrElse(SEVERITY_FRACTION_DEFAULT);
+    paramsChanged = true;
+  }
+
+  //! Tolerance fraction of threshold if signal is accepted as returned to
+  //! previous state after drop.
+  void setNearFraction(const Result<double_t>& value) {
+    cfgNearFraction =
+      ConfigValidator<double_t>(value, NEAR_FRACTION_KEY)
+        .validateValueIsPositive()
+        .getOrElse(NEAR_FRACTION_DEFAULT);
+    paramsChanged = true;
+  }
+
+  static const constexpr char* NAME = "SignalDropAnalyzer";
   static const constexpr char* WINDOW_SIZE_KEY = "WINDOW_SIZE";
   static const constexpr char* FRACTIONAL_THRESHOLD_KEY =
     "FRACTIONAL_THRESHOLD";
@@ -103,47 +144,8 @@ class SignalDropAnalyzer : public SignalAnalyzer {
   static const constexpr char* MAX_CHECKPOINTS_KEY = "MAX_CHECKPOINTS";
   static const constexpr char* QUORUM_FRACTION_KEY = "QUORUM_FRACTION";
 
-protected:
+ protected:
   void recalculateParams();
-
-  //! WindowSize: How far in the past we look.
-  //! MaxCheckpoints: Maximum number of checkpoints we will have in our
-  //! assurance detector.
-  //! Checkpoints are the reference assurance_test(base) points which we refer
-  //! to in the past when detecting drop or not.
-  //! It needs to be 0 < and < WINDOW_SIZE.
-  void setWindowsSizeAndMaxCheckpoints(
-      SerenityItem<int64_t> _cfgWindowSize,
-      SerenityItem<int64_t> _cfgMaxCheckpoints) {
-    cfgWindowSize = _cfgWindowSize.validateValueIsPositive().getValueOrDefault();
-    cfgMaxCheckpoints = _cfgMaxCheckpoints
-      .validateValueIsPositive()
-      .validateValueIsBelow(_cfgWindowSize)
-      .getValueOrDefault();
-  }
-
-  //! Fraction of checkpoints' votes needed to make a Drop contention.
-  void setQuroumFraction(SerenityItem<double_t> item) {
-    cfgQuroumFraction = item.validateValueIsPositive().getValueOrDefault();
-  }
-
-  //! Defines how much (relatively to base point) value must drop to trigger
-  //! contention.
-  void setFractionalThreshold(SerenityItem<double_t> item) {
-    cfgFractionalThreshold = item.validateValueIsPositive().getValueOrDefault();
-  }
-
-  //! You can adjust how big severity is created for a defined drop.
-  //! if -1 then unknown severity will be reported.
-  void setSeverityFraction(SerenityItem<double_t> item) {
-    cfgSeverityFraction = item.getValueOrDefault();
-  }
-
-  //! Tolerance fraction of threshold if signal is accepted as returned to
-  //! previous state after drop.
-  void setNearFraction(SerenityItem<double_t> item) {
-    cfgNearFraction = item.validateValueIsPositive().getValueOrDefault();
-  }
 
   std::list<double_t> window;
   std::list<std::list<double_t>::iterator> basePoints;
@@ -153,6 +155,7 @@ protected:
 
   uint64_t dropVotes;
   uint64_t quorumNum;
+  bool paramsChanged = true;
 
   // Cfg parameters.
   int64_t cfgWindowSize;
@@ -169,6 +172,7 @@ protected:
   static constexpr double_t NEAR_FRACTION_DEFAULT = 0.1;
   static constexpr int64_t MAX_CHECKPOINTS_DEFAULT = 3;
   static constexpr double_t QUORUM_FRACTION_DEFAULT = 0.7;
+  static constexpr double_t START_VALUE_DEFAULT = 0.00001;
 };
 
 

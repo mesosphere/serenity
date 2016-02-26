@@ -51,13 +51,13 @@ class QoSCorrectionObserver : public Consumer<Contentions>,
       Consumer<QoSCorrections>* _consumer,
       ExecutorAgeFilter* _ageFilter = new ExecutorAgeFilter(),
       RevocationStrategy* _revStrategy =
-          new SeniorityStrategy(SerenityConfig()),
-      uint32_t _cooldownIterations = strategy::DEFAULT_CONTENTION_COOLDOWN,
+          new SeniorityStrategy(Config()),
+      int64_t _cooldownIterations = CONTENTION_COOLDOWN_DEFAULT,
       const Tag& _tag = Tag(QOS_CONTROLLER, NAME)) :
         Producer<QoSCorrections>(_consumer),
         revocationStrategy(_revStrategy),
         executorAgeFilter(_ageFilter),
-        cooldownIterations(_cooldownIterations),
+        cfgCooldownIterations(_cooldownIterations),
         tag(_tag) {}
 
   ~QoSCorrectionObserver();
@@ -68,6 +68,8 @@ class QoSCorrectionObserver : public Consumer<Contentions>,
   }
 
   static constexpr const char* NAME = "QoSCorrectionObserver";
+
+  static const constexpr char* CONTENTION_COOLDOWN_KEY = "CONTENTION_COOLDOWN";
 
  protected:
   void allProductsReady() override;
@@ -111,7 +113,9 @@ class QoSCorrectionObserver : public Consumer<Contentions>,
   /**
    * Default iterationCooldownCounter start value.
    */
-  uint64_t cooldownIterations;
+  int64_t cfgCooldownIterations;
+
+  static constexpr int64_t CONTENTION_COOLDOWN_DEFAULT = 10;
 };
 
 }  // namespace serenity

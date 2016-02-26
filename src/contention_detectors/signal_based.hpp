@@ -42,7 +42,7 @@ class SignalBasedDetector :
   SignalBasedDetector(
       Consumer<Contentions>* _consumer,
       const lambda::function<usage::GetterFunction>& _getValue,
-      SerenityConfig _detectorConf,
+      const Config& _detectorConf,
       const Tag& _tag = Tag(QOS_CONTROLLER, "SignalBasedDetector"),
       const Contention_Type _contentionType = Contention_Type_IPC)
     : tag(_tag),
@@ -65,7 +65,7 @@ class SignalBasedDetector :
 
   // Detections.
   ExecutorMap<std::unique_ptr<SignalAnalyzer>> detectors;
-  SerenityConfig detectorConf;
+  const Config detectorConf;
 };
 
 }  // namespace serenity

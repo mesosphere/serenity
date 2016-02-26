@@ -28,7 +28,7 @@ class CacheOccupancyStrategy : public RevocationStrategy {
     init();
   }
 
-  explicit CacheOccupancyStrategy(const SerenityConfig& _config)
+  explicit CacheOccupancyStrategy(const Config& _config)
   : RevocationStrategy(Tag(QOS_CONTROLLER, NAME)) {
     init();
   }
@@ -42,7 +42,7 @@ class CacheOccupancyStrategy : public RevocationStrategy {
 
  protected:
   void init() {
-    minimalCacheOccupancy = DEFAULT_MINIMAL_CACHE_OCCUPANCY;
+    minimalCacheOccupancy = MINIMAL_CACHE_OCCUPANCY_DEFAULT;
   }
 
   std::vector<ResourceUsage_Executor> getCmtEnabledExecutors(
@@ -56,7 +56,7 @@ class CacheOccupancyStrategy : public RevocationStrategy {
     const double_t meanCacheOccupancy) const;
 
   //!< Minimal cache occupancy for executor to be revoked.
-  static constexpr uint64_t DEFAULT_MINIMAL_CACHE_OCCUPANCY = 1000000;  // 1M
+  static constexpr uint64_t MINIMAL_CACHE_OCCUPANCY_DEFAULT = 1000000;  // 1M
   uint64_t minimalCacheOccupancy;
 };
 

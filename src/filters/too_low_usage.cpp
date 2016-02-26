@@ -18,6 +18,9 @@ using std::map;
 using std::pair;
 using std::string;
 
+
+const constexpr char* TooLowUsageFilter::MINIMAL_CPU_USAGE_KEY;
+
 TooLowUsageFilter::~TooLowUsageFilter() {}
 
 
@@ -58,11 +61,11 @@ Try<Nothing> TooLowUsageFilter::consume(const ResourceUsage& in) {
         continue;
       }
 
-      if (cpuUsage.get() <= this->cfgMinimalCpuUsage) {
+      if (cpuUsage.get() <= cfgMinimalCpuUsage) {
         // Exclude executor.
         SERENITY_LOG(INFO) << "Filtering out PR exec: " << executor_id
           << " because of its CPU Usage: " << cpuUsage.get() << " [Min: "
-          << this->cfgMinimalCpuUsage << "]";
+          << cfgMinimalCpuUsage << "]";
         continue;
       }
     }

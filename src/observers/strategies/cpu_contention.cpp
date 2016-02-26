@@ -16,6 +16,8 @@ namespace serenity {
 using std::list;
 using std::pair;
 
+const constexpr char* CpuContentionStrategy::DEFAULT_CPU_SEVERITY_KEY;
+
 Try<QoSCorrections> CpuContentionStrategy::decide(
     ExecutorAgeFilter* ageFilter,
     const Contentions& currentContentions,
@@ -43,7 +45,7 @@ Try<QoSCorrections> CpuContentionStrategy::decide(
     if (contention.has_severity()) {
       cpuToRecover = std::max(contention.severity(), cpuToRecover);
     } else {
-      cpuToRecover = std::max(this->defaultSeverity, cpuToRecover);
+      cpuToRecover = std::max(cfgDefaultSeverity, cpuToRecover);
     }
   }
 

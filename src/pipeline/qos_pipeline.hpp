@@ -31,28 +31,6 @@
 namespace mesos {
 namespace serenity {
 
-using namespace qos_pipeline;  // NOLINT(build/namespaces)
-
-class QoSPipelineConfig : public SerenityConfig {
- public:
-  QoSPipelineConfig() {}
-
-  explicit QoSPipelineConfig(const SerenityConfig& customCfg) {
-    this->initDefaults();
-    this->applyConfig(customCfg);
-  }
-
-  void initDefaults() {
-    // Used sections: QoSCorrectionObserver, AssuranceDetector,
-    // UtilizationDetector
-    // TODO(bplotka): Move EMA conf to separate section.
-    this->items[ema::ALPHA] = ema::DEFAULT_ALPHA;
-    this->items[VALVE_OPENED] = DEFAULT_VALVE_OPENED;
-    this->items[ENABLED_VISUALISATION] = DEFAULT_ENABLED_VISUALISATION;
-  }
-};
-
-
 using QoSControllerPipeline = Pipeline<ResourceUsage, QoSCorrections>;
 
 
@@ -102,7 +80,7 @@ using QoSControllerPipeline = Pipeline<ResourceUsage, QoSCorrections>;
  */
 class CpuQoSPipeline : public QoSControllerPipeline {
  public:
-  explicit CpuQoSPipeline(const SerenityConfig& _conf)
+  explicit CpuQoSPipeline(const Config& _conf)
     : conf(_conf),
       // NOTE(bplotka): age Filter should initialized first before passing
       // to the qosCorrectionObserver.
@@ -121,20 +99,22 @@ class CpuQoSPipeline : public QoSControllerPipeline {
           &correctionMerger,
           &ageFilter,
           new CacheOccupancyStrategy(),
-          strategy::DEFAULT_CONTENTION_COOLDOWN,
+          ConfigValidator<int64_t>(conf.getValue<int64_t>(
+              QoSCorrectionObserver::CONTENTION_COOLDOWN_KEY))
+                .getOrElse(CONTENTION_COOLDOWN_DEFAULT),
           Tag(QOS_CONTROLLER, CacheOccupancyStrategy::NAME)),
       ipcDropDetector(
           &cacheOccupancyContentionObserver,
           usage::getEmaIpc,
-          conf.getSectionOrNew(SIGNAL_DROP_ANALYZER_NAME),
+          conf.getSectionOrNew(SignalDropAnalyzer::NAME),
           Tag(QOS_CONTROLLER, "IPC detectorFilter"),
           Contention_Type_IPC),
       ipcEMAFilter(
           &ipcDropDetector,
           usage::getIpc,
           usage::setEmaIpc,
-          conf.getItemOrDefault<double_t>(ema::ALPHA_IPC,
-                                          ema::DEFAULT_ALPHA_IPC),
+          ConfigValidator<double_t>(conf.getValue<double_t>(ALPHA_IPC_KEY))
+            .getOrElse(ALPHA_IPC_DEFAULT),
           Tag(QOS_CONTROLLER, "ipcEMAFilter")),
       tooLowUsageFilter(
           &ipcEMAFilter,
@@ -146,7 +126,9 @@ class CpuQoSPipeline : public QoSControllerPipeline {
           new CpuContentionStrategy(
             conf.getSectionOrNew(CpuContentionStrategy::NAME),
             usage::getEmaCpuUsage),
-          strategy::DEFAULT_CONTENTION_COOLDOWN,
+          ConfigValidator<int64_t>(conf.getValue<int64_t>(
+              QoSCorrectionObserver::CONTENTION_COOLDOWN_KEY))
+                .getOrElse(CONTENTION_COOLDOWN_DEFAULT),
           Tag(QOS_CONTROLLER, CpuContentionStrategy::NAME)),
       overloadDetector(
           &cpuContentionObserver,
@@ -157,8 +139,8 @@ class CpuQoSPipeline : public QoSControllerPipeline {
           &overloadDetector,
           usage::getCpuUsage,
           usage::setEmaCpuUsage,
-          conf.getItemOrDefault<double_t>(ema::ALPHA_CPU,
-                                          ema::DEFAULT_ALPHA_CPU),
+          ConfigValidator<double_t>(conf.getValue<double_t>(ALPHA_CPU_KEY))
+            .getOrElse(ALPHA_CPU_DEFAULT),
           Tag(QOS_CONTROLLER, "cpuEMAFilter")),
       cumulativeFilter(
           &tooLowUsageFilter,
@@ -166,7 +148,8 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       // First item in pipeline. For now, close the pipeline for QoS.
       valveFilter(
           &cumulativeFilter,
-          conf.getItemOrDefault<bool>(VALVE_OPENED, DEFAULT_VALVE_OPENED),
+          ConfigValidator<bool>(conf.getValue<bool>(VALVE_OPENED_KEY))
+            .getOrElse(VALVE_OPENED_DEFAULT),
           Tag(QOS_CONTROLLER, "valveFilter")) {
     this->ageFilter.addConsumer(&valveFilter);
     // Setup starting producer.
@@ -182,8 +165,23 @@ class CpuQoSPipeline : public QoSControllerPipeline {
     cumulativeFilter.addConsumer(&cpuEMAFilter);
   }
 
+  /**
+   * Alpha controls how long is the moving average period.
+   * The smaller alpha becomes, the longer your moving average is.
+   * It becomes smoother, but less reactive to new samples.
+   */
+  static const constexpr char* ALPHA_KEY = "ALPHA";
+  static const constexpr char* ALPHA_CPU_KEY = "ALPHA_CPU";
+  static const constexpr char* ALPHA_IPC_KEY = "ALPHA_IPC";
+  static const constexpr char* VALVE_OPENED_KEY = "VALVE_OPENED";
+
  private:
-  SerenityConfig conf;
+  Config initConf(const Config& _conf) {
+     return _conf;
+  }
+
+  Config conf;
+
 
   // --- Shared resource contention QoS
   CorrectionMergerFilter correctionMerger;
@@ -203,6 +201,12 @@ class CpuQoSPipeline : public QoSControllerPipeline {
   ExecutorAgeFilter ageFilter;
 
   ValveFilter valveFilter;
+
+  // Cfg
+  static const constexpr double_t ALPHA_IPC_DEFAULT = 0.9;
+  static const constexpr double_t ALPHA_CPU_DEFAULT = 0.9;
+  static const constexpr bool VALVE_OPENED_DEFAULT = true;
+  static constexpr int64_t CONTENTION_COOLDOWN_DEFAULT = 10;
 };
 
 }  // namespace serenity

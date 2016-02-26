@@ -17,15 +17,11 @@
 
 // TODO(nnielsen): Should be explicit using-directives.
 using namespace mesos;  // NOLINT(build/namespaces)
-using namespace mesos::serenity::ema;  // NOLINT(build/namespaces)
-using namespace mesos::serenity::strategy;  // NOLINT(build/namespaces)
-using namespace mesos::serenity::detector;  // NOLINT(build/namespaces)
-using namespace mesos::serenity::too_low_usage;  // NOLINT(build/namespaces)
-using namespace mesos::serenity::qos_pipeline;  // NOLINT(build/namespaces)
 
 using mesos::serenity::CpuContentionStrategy;
 using mesos::serenity::CpuQoSPipeline;
-using mesos::serenity::SerenityConfig;
+using mesos::serenity::Config;
+using mesos::serenity::ConfigValidator;
 using mesos::serenity::SerenityController;
 using mesos::serenity::SeniorityStrategy;
 using mesos::serenity::SignalBasedDetector;
@@ -34,17 +30,22 @@ using mesos::serenity::QoSControllerPipeline;
 
 using mesos::slave::QoSController;
 
+const constexpr char* ON_EMPTY_CORRECTION_INTERVAL_KEY =
+  "ON_EMPTY_CORRECTION_INTERVAL";
+
+const constexpr double_t ON_EMPTY_CORRECTION_INTERVAL_DEFAULT = 2;
 
 // IPC QoS pipeline.
 static QoSController* createSerenityController(
     const Parameters& parameters) {
   LOG(INFO) << "Loading Serenity QoS Controller module";
   // TODO(bplotka): Fetch configuration from parameters or conf file.
+  Config conf;
 
-  SerenityConfig conf;
-  double onEmptyCorrectionInterval =
-    conf.getItemOrDefault<double_t>(ON_EMPTY_CORRECTION_INTERVAL,
-                        DEFAULT_ON_EMPTY_CORRECTION_INTERVAL);
+  double_t onEmptyCorrectionInterval =
+    ConfigValidator<double_t>(
+        conf.getValue<double_t>(ON_EMPTY_CORRECTION_INTERVAL_KEY))
+          .getOrElse(ON_EMPTY_CORRECTION_INTERVAL_DEFAULT);
 
   // Use static constructor of QoSController.
   Try<QoSController*> result =

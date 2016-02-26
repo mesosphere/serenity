@@ -13,7 +13,6 @@
 
 #include "pipeline/pipeline.hpp"
 
-#include "serenity/default_vars.hpp"
 #include "serenity/serenity.hpp"
 
 #include "time_series_export/slack_ts_export.hpp"
@@ -56,8 +55,8 @@ using ResourceEstimatorPipeline = Pipeline<ResourceUsage, Resources>;
 class CpuEstimatorPipeline : public ResourceEstimatorPipeline {
  public:
   explicit CpuEstimatorPipeline(
-      double_t _newExecutorsThreshold = new_executor::DEFAULT_THRESHOLD_SEC,
-      double_t _utilizationThreshold = utilization::DEFAULT_THRESHOLD,
+      double_t _newExecutorsThreshold = THRESHOLD_SEC_DEFAULT,
+      double_t _utilizationThreshold = THRESHOLD_DEFAULT,
       bool _visualisation = false,
       bool _valveOpened = true) :
       // Time series exporters.
@@ -101,6 +100,9 @@ class CpuEstimatorPipeline : public ResourceEstimatorPipeline {
   PrExecutorPassFilter prExecutorPassFilter;
   UtilizationThresholdFilter utilizationFilter;
   ValveFilter valveFilter;
+
+  static constexpr double_t THRESHOLD_DEFAULT = 0.95;
+  static constexpr uint32_t THRESHOLD_SEC_DEFAULT = 5 * 60;  // !< Five minutes.
 };
 
 }  // namespace serenity

@@ -32,25 +32,28 @@ class OverloadDetector :
   OverloadDetector(
       Consumer<Contentions>* _consumer,
       const lambda::function<usage::GetterFunction>& _cpuUsageGetFunction,
-      const SerenityConfig& _conf,
+      const Config& _conf,
       const Tag& _tag = Tag(QOS_CONTROLLER, NAME))
     : tag(_tag),
       cpuUsageGetFunction(_cpuUsageGetFunction),
       Producer<Contentions>(_consumer) {
     // Parse config values.
-    setCfgUtilizationThreshold(
-      _conf.getItemOrDefault<double_t>(
-          detector::THRESHOLD,
-          detector::DEFAULT_UTILIZATION_THRESHOLD));
+    setUtilizationThreshold(
+        _conf.getValue<double_t>(UTILIZATION_THRESHOLD_KEY));
   }
 
   ~OverloadDetector() {}
 
   static const constexpr char* NAME = "OverloadDetector";
 
-  void setCfgUtilizationThreshold(double_t cfgUtilizationThreshold) {
-    OverloadDetector::cfgUtilizationThreshold = cfgUtilizationThreshold;
+  void setUtilizationThreshold(const Result<double_t>& value) {
+    cfgUtilizationThreshold =
+      ConfigValidator<double_t>(value, UTILIZATION_THRESHOLD_KEY)
+        .validateValueIsPositive()
+        .getOrElse(DEFAULT_UTILIZATION_THRESHOLD);
   }
+
+  static const constexpr char* UTILIZATION_THRESHOLD_KEY = "THRESHOLD";
 
  protected:
   void allProductsReady() override;
@@ -61,6 +64,8 @@ class OverloadDetector :
 
   // cfg parameters.
   double_t cfgUtilizationThreshold;
+
+  static const constexpr double_t DEFAULT_UTILIZATION_THRESHOLD = 0.72;
 };
 
 }  // namespace serenity

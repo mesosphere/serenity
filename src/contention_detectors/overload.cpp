@@ -10,6 +10,8 @@
 namespace mesos {
 namespace serenity {
 
+const constexpr char* OverloadDetector::UTILIZATION_THRESHOLD_KEY;
+
 void OverloadDetector::allProductsReady() {
   Contentions product;
   ResourceUsage usage = getConsumable().get();

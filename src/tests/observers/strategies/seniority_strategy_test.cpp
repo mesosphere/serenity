@@ -50,7 +50,7 @@ TEST(QoSCorrectionObserverSeniorityDeciderTest, EmptyContentions) {
   ExecutorAgeFilter age;
 
   QoSCorrectionObserver observer(
-  &mockSink, &age, new SeniorityStrategy(SerenityConfig()));
+  &mockSink, &age, new SeniorityStrategy(Config()));
 
   age.addConsumer(&observer);
 
@@ -104,7 +104,7 @@ TEST(QoSCorrectionObserverSeniorityDeciderTest, OneContentionSmallSeverity) {
   ExecutorAgeFilter age;
 
   QoSCorrectionObserver observer(
-  &mockSink, &age, new SeniorityStrategy(SerenityConfig()));
+  &mockSink, &age, new SeniorityStrategy(Config()));
 
   age.addConsumer(&observer);
 

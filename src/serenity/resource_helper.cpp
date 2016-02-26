@@ -50,7 +50,7 @@ const ResourceUsage_Executor& executor) {
 
 bool ResourceUsageHelper::isExecutorHasStatistics(
     const ResourceUsage_Executor& executor) {
-  return executor.has_executor_info() && executor.has_statistics();
+  return executor.has_statistics();
 }
 
 bool ResourceUsageHelper::isRevocableExecutor(
