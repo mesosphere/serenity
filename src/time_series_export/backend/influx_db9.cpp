@@ -1,14 +1,13 @@
 #include <string>
 #include <sstream>
 
-#include "curl/curl.h"
-#include "curl_easy.h"  // NOLINT(build/include)
+#include "3rdparty/lib/curlcpp/include/curl_easy.h"
 
 #include "glog/logging.h"
 
-#include "time_series_export/backend/influx_db9.hpp"
-
 #include "serenity/metrics_helper.hpp"
+
+#include "time_series_export/backend/influx_db9.hpp"
 
 namespace mesos {
 namespace serenity {
@@ -49,10 +48,9 @@ const curl_easy InfluxDb9Backend::prepareRequest(
   return easy;
 }
 
-
 /**
  * Returns URL to database.
- * Eg, http://localhost:8086/write?db=mydb
+ * i.e. http://localhost:8086/write?db=mydb
  */
 const std::string InfluxDb9Backend::getDbUrl() const {
   constexpr uint32_t kBufferLen = 256;
@@ -71,9 +69,8 @@ const std::string InfluxDb9Backend::getUserAndPassword() const {
   return stringstream.str();
 }
 
-
 /**
- * Serialize record to InfluxDB9 format
+ * Serializes record to InfluxDB9 format
  * measurement,tag=val,tkey2=tval2 fkey=fval,fkey2=fval2 1234567890000000000
  * <measurement>,<tags> <values <timestamp>
  */

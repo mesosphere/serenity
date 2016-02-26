@@ -115,7 +115,6 @@ class TimeSeriesRecord {
     tags[tag] = val;
   }
 
-
   /**
    * Set column value in database
    * Key is one of commonly used tags
@@ -134,7 +133,7 @@ class TimeSeriesRecord {
   std::unordered_map<std::string, std::string> tags;
   Value value;
 
-  const std::string      seriesName;  //!< Series name in backend.
+  const std::string seriesName;  //!< Series name in backend.
 };
 
 }  // namespace serenity

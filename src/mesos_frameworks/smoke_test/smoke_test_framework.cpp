@@ -136,7 +136,7 @@ public:
   // TODO(bplotka): Add hostname.
   void sendToInflux(const Series series,
                     const std::string& taskName,
-                    const int64_t value = 1) {
+                    const int64_t value) {
     TimeSeriesRecord record(series, value);
     record.setTag(TsTag::TASK_NAME, taskName);
     dbBackend->PutMetric(record);
