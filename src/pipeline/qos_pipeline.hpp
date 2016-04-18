@@ -116,20 +116,20 @@ class CpuQoSPipeline : public QoSControllerPipeline {
       correctionMerger(
           this,
           Tag(QOS_CONTROLLER, "CorrectionMerger")),
-//      ipcContentionObserver(
-//          &correctionMerger,
-//          &ageFilter,
-//          new SeniorityStrategy(conf[SeniorityStrategy::NAME]),
-//          strategy::DEFAULT_CONTENTION_COOLDOWN,
-//          Tag(QOS_CONTROLLER, SeniorityStrategy::NAME)),
-      cacheOccupancyContentionObserver(
+      ipcContentionObserver(
           &correctionMerger,
           &ageFilter,
-          new CacheOccupancyStrategy(),
+          new SeniorityStrategy(conf[SeniorityStrategy::NAME]),
           strategy::DEFAULT_CONTENTION_COOLDOWN,
-          Tag(QOS_CONTROLLER, CacheOccupancyStrategy::NAME)),
+          Tag(QOS_CONTROLLER, SeniorityStrategy::NAME)),
+//      cacheOccupancyContentionObserver(
+//          &correctionMerger,
+//          &ageFilter,
+//          new CacheOccupancyStrategy(),
+//          strategy::DEFAULT_CONTENTION_COOLDOWN,
+//          Tag(QOS_CONTROLLER, CacheOccupancyStrategy::NAME)),
       ipcDropDetector(
-          &cacheOccupancyContentionObserver,
+          &ipcContentionObserver,
           usage::getEmaIpc,
           conf[SIGNAL_DROP_ANALYZER_NAME],
           Tag(QOS_CONTROLLER, "IPC detectorFilter"),
@@ -180,8 +180,8 @@ class CpuQoSPipeline : public QoSControllerPipeline {
 
     // QoSCorrection observers needs ResourceUsage as well.
     cpuEMAFilter.addConsumer(&cpuContentionObserver);
-//    cumulativeFilter.addConsumer(&ipcContentionObserver);
-    cumulativeFilter.addConsumer(&cacheOccupancyContentionObserver);
+    cumulativeFilter.addConsumer(&ipcContentionObserver);
+//    cumulativeFilter.addConsumer(&cacheOccupancyContentionObserver);
     cumulativeFilter.addConsumer(&cpuEMAFilter);
 
     // Setup Time Series export
@@ -200,8 +200,8 @@ class CpuQoSPipeline : public QoSControllerPipeline {
 
   // --- Shared resource contention QoS
   CorrectionMergerFilter correctionMerger;
-  // QoSCorrectionObserver ipcContentionObserver;
-  QoSCorrectionObserver cacheOccupancyContentionObserver;
+  QoSCorrectionObserver ipcContentionObserver;
+  //QoSCorrectionObserver cacheOccupancyContentionObserver;
 
   SignalBasedDetector ipcDropDetector;
   EMAFilter ipcEMAFilter;
